@@ -31,7 +31,7 @@
 <header class="header">
   <div>
     <p class="eyebrow">Ranking · análisis a {{ run_date }}</p>
-    <h1>Análisis de empresas del fondo multiactivos</h1>
+    <h1>{% if site %}Análisis de empresas{% else %}Análisis de empresas del fondo multiactivos{% endif %}</h1>
     <p class="meta">{{ companies_count }} empresas · {{ alerts_count }} alertas ·
       descarga para Excel: <a href="ranking.csv">ranking.csv</a></p>
   </div>

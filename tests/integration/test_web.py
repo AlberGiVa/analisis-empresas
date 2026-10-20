@@ -90,6 +90,7 @@ def test_every_section_is_built(site: Path) -> None:
         "academy.html",
         "mercados.html",
         "indices.html",
+        "internacional.html",
         "marca/graficos.js",
         ".nojekyll",
         "marca/luceiro-logo.webp",

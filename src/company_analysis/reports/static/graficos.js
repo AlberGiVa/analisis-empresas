@@ -580,8 +580,43 @@
     });
   }
 
+  /* --- World economy (World Bank, downloaded with the website) ------------------------------ */
+  function world() {
+    var table = document.getElementById("economia");
+    var source = document.getElementById("mercado");
+    if (!table || !source) return;
+    var data = JSON.parse(source.textContent);
+    var w = data.world || {};
+    function get(key, country) { return (w[key] || {})[country] || null; }
+    var rows = (data.world_countries || []).map(function (c) {
+      return { c: c, pib: get("pib", c), ipc: get("inflacion", c), paro: get("paro", c) };
+    }).filter(function (r) { return r.pib || r.ipc || r.paro; });
+    rows.sort(function (a, b) { return (b.pib ? b.pib[1] : -99) - (a.pib ? a.pib[1] : -99); });
+    var max = Math.max.apply(null, rows.map(function (r) { return r.pib ? Math.abs(r.pib[1]) : 0; })) || 1;
+    var body = table.querySelector("tbody");
+    body.innerHTML = "";
+    rows.forEach(function (r) {
+      var tr = document.createElement("tr");
+      function td(text, cls) { var cell = document.createElement("td"); cell.className = cls || ""; cell.textContent = text; tr.appendChild(cell); return cell; }
+      function pctCell(v) { td(v ? num(v[1], 1) + " %" : "—", "num"); }
+      td(texto("pais-" + r.c, r.c));
+      var bar = td("", "gdp-bar");
+      if (r.pib) {
+        var fill = document.createElement("span");
+        fill.className = "gdp-fill " + (r.pib[1] < 0 ? "down" : "up");
+        fill.style.width = (Math.abs(r.pib[1]) / max * 100).toFixed(1) + "%";
+        bar.appendChild(fill);
+      }
+      pctCell(r.pib); pctCell(r.ipc); pctCell(r.paro);
+      td(r.pib ? r.pib[0] : r.ipc ? r.ipc[0] : "", "num muted small");
+      body.appendChild(tr);
+    });
+    if (!rows.length) table.closest(".panel-card").hidden = true;
+  }
+
   document.addEventListener("DOMContentLoaded", function () {
     tradingview();
+    world();
     document.querySelectorAll("[data-contar]").forEach(countUp);
     document.querySelectorAll(".bars").forEach(bars);
     if (document.querySelector("[data-mercado]")) { clocks(); setInterval(clocks, 30000); }

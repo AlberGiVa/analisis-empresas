@@ -77,6 +77,7 @@ console = Console(soft_wrap=True)
 SECTIONS: tuple[tuple[str, str, str], ...] = (  # (key, label, page from the website root)
     ("inicio", "Panel", "index.html"),
     ("indices", "Índices", "indices.html"),
+    ("internacional", "Internacional", "internacional.html"),
     ("reales", "Empresas", "reales/index.html"),
     ("mercados", "Mercados", "mercados.html"),
     ("ejemplo", "Ejemplos", "ejemplo/index.html"),
@@ -365,6 +366,28 @@ ECB_DATA = "https://data-api.ecb.europa.eu/service/data"
 DEPOSIT_RATE = "FM/D.U2.EUR.4F.KR.DFR.LEV"  # ECB deposit facility rate (daily)
 BOND_COUNTRIES = ("ES", "DE", "IT", "FR")
 BONDS_10Y = f"IRS/M.{'+'.join(BOND_COUNTRIES)}.L.L40.CI.0000.EUR.N.Z"  # 10-year yields (monthly)
+# World Bank (open data, CC BY 4.0): latest annual value per country. Its API does not allow
+# browser requests, so the figures are those downloaded when the website is built (daily).
+WORLD_COUNTRIES = (
+    "USA",
+    "CHN",
+    "JPN",
+    "DEU",
+    "GBR",
+    "FRA",
+    "ITA",
+    "ESP",
+    "PRT",
+    "IND",
+    "BRA",
+    "CAN",
+)
+WORLD_INDICATORS = {
+    "pib": "NY.GDP.MKTP.KD.ZG",  # GDP growth, %
+    "inflacion": "FP.CPI.TOTL.ZG",  # consumer price inflation, %
+    "paro": "SL.UEM.TOTL.ZS",  # unemployment, % of the labour force
+}
+WORLD_BANK = "https://api.worldbank.org/v2/country/{countries}/indicator/{code}"
 
 
 def market_requests(today: date) -> list[Request]:
@@ -401,6 +424,17 @@ def market_requests(today: date) -> list[Request]:
             "browser",
             required=False,
         ),
+        *(
+            Request(
+                f"mercados/bm-{key}.json",
+                WORLD_BANK.format(countries=";".join(WORLD_COUNTRIES), code=code)
+                + "?format=json&mrnev=1&per_page=100",
+                "Banco Mundial (indicadores del desarrollo mundial)",
+                "browser",
+                required=False,
+            )
+            for key, code in WORLD_INDICATORS.items()
+        ),
     ]
 
 
@@ -414,6 +448,22 @@ def _ecb_csv(path: Path) -> list[tuple[str, str, float]]:
         if value:
             rows.append((row["KEY"], row["TIME_PERIOD"], float(value)))
     return rows
+
+
+def _world_bank(path: Path) -> dict[str, list[Any]]:
+    """{ISO3: [year, value]} of a World Bank JSON answer; empty if missing or unexpected."""
+    if not path.is_file():
+        return {}
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except ValueError:
+        return {}
+    rows = payload[1] if isinstance(payload, list) and len(payload) > 1 else None
+    out: dict[str, list[Any]] = {}
+    for row in rows or []:
+        if isinstance(row, dict) and row.get("value") is not None:
+            out[str(row.get("countryiso3code"))] = [str(row.get("date")), float(row["value"])]
+    return out
 
 
 def market_data(snapshot: Path) -> dict[str, Any]:
@@ -443,6 +493,10 @@ def market_data(snapshot: Path) -> dict[str, Any]:
         "currencies": list(FX_CURRENCIES),
         "tenors": list(CURVE_TENORS),
         "countries": list(BOND_COUNTRIES),
+        "world": {
+            key: _world_bank(snapshot / "mercados" / f"bm-{key}.json") for key in WORLD_INDICATORS
+        },
+        "world_countries": list(WORLD_COUNTRIES),
         "keys": {"dfr": DEPOSIT_RATE, "bonds": BONDS_10Y},
     }
 
@@ -526,6 +580,7 @@ def write_pages(
         ),
         "mercados.html": ("web_mercados.html.j2", "mercados", {"fx": fx, "market": market}),
         "indices.html": ("web_indices.html.j2", "indices", {}),
+        "internacional.html": ("web_internacional.html.j2", "internacional", {"market": market}),
         "academy.html": (
             "web_academy.html.j2",
             "academy",

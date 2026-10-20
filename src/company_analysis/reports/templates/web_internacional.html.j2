@@ -1,0 +1,115 @@
+{% extends "web_base.html.j2" %}
+{% block title %}Internacional{% endblock %}
+{% block content %}
+<style>
+  .intl { display: grid; gap: 16px; margin-top: 14px; }
+  .intl-two { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 16px; }
+  .tv { min-height: 120px; }
+  .gdp-bar { width: 32%; min-width: 90px; }
+  .gdp-fill { display: block; height: 10px; border-radius: 3px; background: var(--up); transform-origin: left;
+              animation: crecer .9s cubic-bezier(.2,.7,.2,1) both; }
+  .gdp-fill.down { background: var(--down); }
+  #economia td, #economia th { vertical-align: middle; }
+  @media (max-width: 1100px) { .intl-two { grid-template-columns: minmax(0, 1fr); } }
+</style>
+
+<div class="panel-head">
+  <div><p class="eyebrow">Mercados</p><h1>Internacional</h1></div>
+  <span class="muted small">Mercados: TradingView · Economía: Banco Mundial</span>
+</div>
+
+<div class="intl">
+  <section class="panel-card">
+    <div class="panel-head"><h2>Renta variable mundial</h2>
+      <span class="muted small">MSCI World, índice de referencia del fondo, a través de un ETF que lo replica</span></div>
+    <div class="tv" data-tv="symbol-overview" style="height:460px"><script type="application/json">
+      {"symbols": [["MSCI World", "XETR:EUNL|1D"], ["@emergentes", "XETR:IS3N|1D"], ["Stoxx Europe 600", "XETR:EXSA|1D"],
+                   ["S&P 500", "FOREXCOM:SPXUSD|1D"], ["Nikkei 225", "PEPPERSTONE:JPN225|1D"]],
+       "chartOnly": false, "width": "100%", "height": "100%", "autosize": true, "showVolume": false, "showMA": false,
+       "hideDateRanges": false, "hideMarketStatus": false, "hideSymbolLogo": false, "scalePosition": "right",
+       "scaleMode": "Normal", "fontSize": "10", "noTimeScale": false, "valuesTracking": "1",
+       "changeMode": "price-and-percent", "chartType": "area", "lineWidth": 2, "lineType": 0,
+       "dateRanges": ["1m|30", "3m|60", "12m|1D", "60m|1W", "all|1M"]}
+    </script></div>
+  </section>
+
+  <div class="intl-two">
+    <section class="panel-card">
+      <div class="panel-head"><h2>Economía mundial</h2><span class="muted small">Último año publicado</span></div>
+      <div class="scroll">
+      <table id="economia">
+        <thead><tr><th>País</th><th>Crecimiento del PIB</th><th class="num">PIB</th><th class="num">Inflación</th>
+          <th class="num">Paro</th><th class="num">Año</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      </div>
+    </section>
+    <section class="panel-card">
+      <div class="panel-head"><h2>Calendario económico</h2><span class="muted small">Datos y decisiones que mueven los mercados</span></div>
+      <div class="tv" data-tv="events" style="height:520px"><script type="application/json">
+        {"width": "100%", "height": "100%", "importanceFilter": "0,1", "countryFilter": "us,eu,es,gb,jp,cn,de,fr,it"}
+      </script></div>
+    </section>
+  </div>
+
+  <section class="panel-card">
+    <div class="panel-head"><h2>Índices del mundo</h2></div>
+    <div class="tv" data-tv="market-quotes" style="height:700px"><script type="application/json">
+      {"width": "100%", "height": "100%", "showSymbolLogo": true, "symbolsGroups": [
+        {"name": "@globales", "symbols": [
+          {"name": "XETR:EUNL", "displayName": "MSCI World (ETF)"}, {"name": "XETR:IS3N", "displayName": "@emergentes-etf"},
+          {"name": "XETR:EXSA", "displayName": "Stoxx Europe 600 (ETF)"}]},
+        {"name": "@europa", "symbols": [
+          {"name": "PEPPERSTONE:EUSTX50", "displayName": "Euro Stoxx 50"}, {"name": "XETR:DAX", "displayName": "DAX"},
+          {"name": "PEPPERSTONE:FRA40", "displayName": "CAC 40"}, {"name": "PEPPERSTONE:UK100", "displayName": "FTSE 100"},
+          {"name": "CAPITALCOM:IT40", "displayName": "FTSE MIB"}, {"name": "BME:IBC", "displayName": "IBEX 35"}]},
+        {"name": "@america", "symbols": [
+          {"name": "FOREXCOM:SPXUSD", "displayName": "S&P 500"}, {"name": "FOREXCOM:NSXUSD", "displayName": "Nasdaq 100"},
+          {"name": "FOREXCOM:DJI", "displayName": "Dow Jones"}, {"name": "TSX:TSX", "displayName": "S&P/TSX (Canadá)"},
+          {"name": "BMFBOVESPA:IBOV", "displayName": "Bovespa (Brasil)"}]},
+        {"name": "@asia", "symbols": [
+          {"name": "PEPPERSTONE:JPN225", "displayName": "Nikkei 225"}, {"name": "PEPPERSTONE:HK50", "displayName": "Hang Seng"},
+          {"name": "PEPPERSTONE:CN50", "displayName": "FTSE China A50"}, {"name": "PEPPERSTONE:AUS200", "displayName": "ASX 200 (Australia)"}]},
+        {"name": "@divisas", "symbols": [
+          {"name": "FX:EURUSD", "displayName": "EUR/USD"}, {"name": "FX:GBPUSD", "displayName": "GBP/USD"},
+          {"name": "FX:USDJPY", "displayName": "USD/JPY"}, {"name": "FX_IDC:USDCNY", "displayName": "USD/CNY"}]},
+        {"name": "@cripto", "symbols": [
+          {"name": "BITSTAMP:BTCUSD", "displayName": "Bitcoin"}, {"name": "BITSTAMP:ETHUSD", "displayName": "Ethereum"}]}
+      ]}
+    </script></div>
+  </section>
+
+  <section class="panel-card">
+    <div class="panel-head"><h2>Mapa del S&amp;P 500</h2><span class="muted small">Tamaño según capitalización; color según la variación del día</span></div>
+    <div class="tv" data-tv="stock-heatmap" style="height:560px"><script type="application/json">
+      {"exchanges": [], "dataSource": "SPX500", "grouping": "sector", "blockSize": "market_cap_basic",
+       "blockColor": "change", "hasTopBar": false, "isDataSetEnabled": false, "isZoomEnabled": true,
+       "hasSymbolTooltip": true, "width": "100%", "height": "100%"}
+    </script></div>
+  </section>
+</div>
+
+<div hidden>
+  <span data-texto="emergentes">MSCI Emergentes</span>
+  <span data-texto="emergentes-etf">MSCI Emergentes (ETF)</span>
+  <span data-texto="globales">Índices globales</span>
+  <span data-texto="europa">Europa</span>
+  <span data-texto="america">América</span>
+  <span data-texto="asia">Asia y Pacífico</span>
+  <span data-texto="divisas">Divisas</span>
+  <span data-texto="cripto">Criptomonedas</span>
+  <span data-texto="pais-USA">Estados Unidos</span>
+  <span data-texto="pais-CHN">China</span>
+  <span data-texto="pais-JPN">Japón</span>
+  <span data-texto="pais-DEU">Alemania</span>
+  <span data-texto="pais-GBR">Reino Unido</span>
+  <span data-texto="pais-FRA">Francia</span>
+  <span data-texto="pais-ITA">Italia</span>
+  <span data-texto="pais-ESP">España</span>
+  <span data-texto="pais-PRT">Portugal</span>
+  <span data-texto="pais-IND">India</span>
+  <span data-texto="pais-BRA">Brasil</span>
+  <span data-texto="pais-CAN">Canadá</span>
+</div>
+<script type="application/json" id="mercado">{{ market }}</script>
+{% endblock %}
