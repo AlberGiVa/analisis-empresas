@@ -45,6 +45,17 @@
       <span class="k-fecha">{{ study.run.companies | length }} empresas · {{ quality_warnings }} avisos de calidad</span></div>
   </div>
 
+  <section class="panel-card">
+    <div class="panel-head"><h2>Índices</h2><a href="indices.html">Ver índices →</a></div>
+    <div class="tv" data-tv="ticker-tape" style="height:78px"><script type="application/json">
+      {"symbols": [{"proName": "BME:IBC", "title": "IBEX 35"}, {"proName": "PEPPERSTONE:EUSTX50", "title": "Euro Stoxx 50"},
+                   {"proName": "XETR:DAX", "title": "DAX"}, {"proName": "FOREXCOM:SPXUSD", "title": "S&P 500"},
+                   {"proName": "FOREXCOM:NSXUSD", "title": "Nasdaq 100"}, {"proName": "PEPPERSTONE:JPN225", "title": "Nikkei 225"},
+                   {"proName": "TVC:UKOIL", "title": "Brent"}, {"proName": "TVC:GOLD", "title": "@oro"}],
+       "showSymbolLogo": true, "displayMode": "adaptive"}
+    </script></div>
+  </section>
+
   <div class="dash-two">
     <section class="panel-card">
       <div class="panel-head">
@@ -110,5 +121,6 @@
     </section>
   </div>
 </div>
+<div hidden><span data-texto="oro">Oro</span></div>
 <script type="application/json" id="mercado">{{ market }}</script>
 {% endblock %}

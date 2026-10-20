@@ -89,6 +89,7 @@ def test_every_section_is_built(site: Path) -> None:
         "ejemplo/ranking.csv",
         "academy.html",
         "mercados.html",
+        "indices.html",
         "marca/graficos.js",
         ".nojekyll",
         "marca/luceiro-logo.webp",

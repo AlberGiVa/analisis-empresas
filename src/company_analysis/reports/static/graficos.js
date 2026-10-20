@@ -546,7 +546,42 @@
     setInterval(live, 15 * 60 * 1000);
   }
 
+  /* --- TradingView widgets (indices, commodities, Spanish stocks) --------------------------------
+   * The data are TradingView's, shown inside its own official widget: they are not copied nor
+   * republished here. Each container: <div data-tv="widget-file-name"><script type="application/json">
+   * {config}</script></div>. Strings starting with "@" are labels of the page (translated). */
+  function tradingview() {
+    var boxes = document.querySelectorAll("[data-tv]");
+    if (!boxes.length) return;
+    function build() {
+      var dark = (getComputedStyle(document.documentElement).colorScheme || "").indexOf("dark") >= 0;
+      boxes.forEach(function (box) {
+        var source = box.querySelector("script[type='application/json']");
+        if (!box._config) box._config = source ? source.textContent : "{}";
+        var config = JSON.parse(box._config, function (key, value) {
+          return typeof value === "string" && value.charAt(0) === "@" ? texto(value.slice(1), value.slice(1)) : value;
+        });
+        config.colorTheme = dark ? "dark" : "light";
+        config.isTransparent = true;
+        config.locale = document.documentElement.lang === "en" ? "en" : "es";
+        box.innerHTML = '<div class="tradingview-widget-container" style="height:100%"><div class="tradingview-widget-container__widget" style="height:100%"></div></div>';
+        var script = document.createElement("script");
+        script.src = "https://s3.tradingview.com/external-embedding/embed-widget-" + box.getAttribute("data-tv") + ".js";
+        script.async = true;
+        script.textContent = JSON.stringify(config);
+        box.firstChild.appendChild(script);
+      });
+    }
+    build();
+    var pending = null;
+    window.addEventListener("luceiro:tema", function () {  /* new style or mode: redraw with its theme */
+      clearTimeout(pending);
+      pending = setTimeout(build, 300);
+    });
+  }
+
   document.addEventListener("DOMContentLoaded", function () {
+    tradingview();
     document.querySelectorAll("[data-contar]").forEach(countUp);
     document.querySelectorAll(".bars").forEach(bars);
     if (document.querySelector("[data-mercado]")) { clocks(); setInterval(clocks, 30000); }

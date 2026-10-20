@@ -76,6 +76,7 @@ console = Console(soft_wrap=True)
 
 SECTIONS: tuple[tuple[str, str, str], ...] = (  # (key, label, page from the website root)
     ("inicio", "Panel", "index.html"),
+    ("indices", "Índices", "indices.html"),
     ("reales", "Empresas", "reales/index.html"),
     ("mercados", "Mercados", "mercados.html"),
     ("ejemplo", "Ejemplos", "ejemplo/index.html"),
@@ -524,6 +525,7 @@ def write_pages(
             },
         ),
         "mercados.html": ("web_mercados.html.j2", "mercados", {"fx": fx, "market": market}),
+        "indices.html": ("web_indices.html.j2", "indices", {}),
         "academy.html": (
             "web_academy.html.j2",
             "academy",
@@ -550,7 +552,7 @@ def write_logo(site: Path) -> None:
     """The logo and the charts script every page uses."""
     folder = site / "marca"
     folder.mkdir()
-    for name in (LOGO, "graficos.js", "prueba-indices.htm"):  # .htm: a test page, not translated
+    for name in (LOGO, "graficos.js"):
         (folder / name).write_bytes(
             (files("company_analysis.reports") / "static" / name).read_bytes()
         )
