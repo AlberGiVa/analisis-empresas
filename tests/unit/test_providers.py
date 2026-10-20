@@ -2,22 +2,35 @@
 
 from collections import Counter
 from collections.abc import Callable
+from pathlib import Path
 
 import pytest
 
 from company_analysis.models import DataBundle
 from company_analysis.providers import DataProvider, SampleProvider, create_provider
+from company_analysis.providers.workbook import WorkbookProvider, write_workbook
 from company_analysis.settings import PROJECT_ROOT, Settings
 
-PROVIDER_FACTORIES: dict[str, Callable[[], DataProvider]] = {
-    "sample": lambda: SampleProvider(PROJECT_ROOT / "data" / "sample"),
+SAMPLE_DIR = PROJECT_ROOT / "data" / "sample"
+
+
+def workbook_provider(directory: Path) -> DataProvider:
+    """The Excel import, fed with a workbook that contains the sample data."""
+    path = write_workbook(SampleProvider(SAMPLE_DIR).fetch(), directory / "datos.xlsx")
+    return WorkbookProvider(path)
+
+
+# Each factory receives an empty temporary folder for any files it needs.
+PROVIDER_FACTORIES: dict[str, Callable[[Path], DataProvider]] = {
+    "sample": lambda _directory: SampleProvider(SAMPLE_DIR),
+    "workbook": workbook_provider,
 }
 
 
 @pytest.fixture(params=sorted(PROVIDER_FACTORIES))
-def provider(request: pytest.FixtureRequest) -> DataProvider:
-    factory: Callable[[], DataProvider] = PROVIDER_FACTORIES[request.param]
-    return factory()
+def provider(request: pytest.FixtureRequest, tmp_path: Path) -> DataProvider:
+    factory: Callable[[Path], DataProvider] = PROVIDER_FACTORIES[request.param]
+    return factory(tmp_path)
 
 
 def test_fetch_returns_a_validated_bundle(provider: DataProvider) -> None:

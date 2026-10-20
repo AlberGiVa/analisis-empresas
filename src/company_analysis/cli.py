@@ -9,6 +9,7 @@ from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import date
 from enum import StrEnum
+from pathlib import Path
 from typing import Annotated, NoReturn
 
 import duckdb
@@ -24,13 +25,20 @@ from company_analysis.config import ScoreType
 from company_analysis.config_loader import ConfigError, LoadedConfig, load_config
 from company_analysis.formatting import format_date
 from company_analysis.journal import Decision, JournalError, add_entry, list_entries
+from company_analysis.models import DataBundle
 from company_analysis.pipeline import AnalysisError, RunOutcome, run_analysis
 from company_analysis.provenance import current_user
-from company_analysis.providers import PROVIDERS, create_provider
+from company_analysis.providers import PROVIDERS, SampleProvider, create_provider
 from company_analysis.providers.sample_generator import DEMO_AS_OF_DATES
+from company_analysis.providers.workbook import (
+    WorkbookError,
+    WorkbookProvider,
+    read_workbook,
+    write_workbook,
+)
 from company_analysis.reports import ReportError, ReportFiles, build_run_view, write_reports
 from company_analysis.settings import Settings
-from company_analysis.storage import latest_price_date, open_database, save_bundle
+from company_analysis.storage import LoadResult, latest_price_date, open_database, save_bundle
 from company_analysis.storage.runs import latest_completed_run, list_runs
 
 app = typer.Typer(
@@ -185,6 +193,10 @@ def load_data(
         fail(f"Los datos del proveedor '{proveedor}' no son válidos:\n{error}")
     with database(settings) as conn:
         result = save_bundle(conn, bundle, provider.name)
+    print_load(result)
+
+
+def print_load(result: LoadResult) -> None:
     batch = result.batch
     counts = ", ".join(
         f"{count} {COLLECTION_LABELS[name]}" for name, count in batch.row_counts.items()
@@ -196,6 +208,56 @@ def load_data(
             f"Estos datos ya estaban cargados (lote {batch.load_id}, "
             f"{batch.loaded_at:%d/%m/%Y %H:%M} UTC); no se ha duplicado nada."
         )
+
+
+@app.command("importar")
+def import_command(
+    fichero: Annotated[
+        Path, typer.Argument(help="Libro de Excel con la plantilla de importación rellena.")
+    ],
+) -> None:
+    """Valida y carga un libro de Excel con datos reales (crea la plantilla con 'plantilla')."""
+    settings = Settings()
+    try:
+        imported = read_workbook(fichero)
+    except WorkbookError as error:
+        problems = "\n- ".join(error.errors)
+        fail(f"No se ha cargado nada. Corrige estos problemas y vuelve a intentarlo:\n- {problems}")
+    with database(settings) as conn:
+        result = save_bundle(conn, imported.bundle, WorkbookProvider.name)
+    print_load(result)
+    for warning in imported.warnings:
+        typer.secho(f"Aviso: {warning}", fg=typer.colors.YELLOW)
+
+
+@app.command("plantilla")
+def template_command(
+    destino: Annotated[
+        Path | None,
+        typer.Argument(help="Dónde guardar el libro. Por defecto, en la carpeta data\\import."),
+    ] = None,
+    ejemplo: Annotated[
+        bool,
+        typer.Option(
+            "--ejemplo", help="Rellenarla con los datos de ejemplo, para ver cómo se usa."
+        ),
+    ] = False,
+) -> None:
+    """Crea la plantilla de Excel para importar datos reales (de Bloomberg, FactSet o a mano)."""
+    settings = Settings()
+    name = "ejemplo-importacion.xlsx" if ejemplo else "plantilla-importacion.xlsx"
+    path = destino or settings.import_dir / name
+    bundle = SampleProvider(settings.sample_data_dir).fetch() if ejemplo else DataBundle()
+    try:
+        write_workbook(bundle, path)
+    except PermissionError:
+        fail(
+            f"No se puede escribir {path}: ¿está abierto en Excel? Ciérralo y vuelve a intentarlo."
+        )
+    typer.echo(f"Plantilla creada: {path}")
+    typer.echo(
+        "Rellénala siguiendo la hoja «Instrucciones» y cárgala con: .\\analisis importar RUTA"
+    )
 
 
 @app.command("ejecutar")

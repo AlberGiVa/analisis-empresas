@@ -27,6 +27,7 @@ uv run python -m mypy                            # tipos (modo estricto)
 .\analisis demo                                  # carga ejemplo, 2 ejecuciones, ranking y fichas
 .\analisis cargar | ejecutar [--fecha AAAA-MM-DD] | fichas | ejecuciones | panel
 .\analisis nota nueva VALD "texto" --decision seguimiento ; .\analisis nota listar VALD
+.\analisis plantilla [--ejemplo] ; .\analisis importar data\import\libro.xlsx   # datos reales
 ```
 - `.\analisis` equivale a `uv run python -m company_analysis`.
 - Python 3.14 del equipo (oficial, firmado). uv nunca descarga intérpretes (`[tool.uv]` en
@@ -52,7 +53,7 @@ Las fichas y el panel leen esos resultados guardados (`reports`, `app`).
 | `settings.py` | Rutas y secretos desde `.env` (prefijo `ANALYSIS_`). |
 | `config.py`, `config_loader.py` | Metodología de `config/analysis.yaml`: modelos, validación y huella. |
 | `models/` | Modelos de dominio validados (pydantic): emisores, instrumentos, estados financieros en formato largo, mercado y `DataBundle` (lote autocontenido). |
-| `providers/` | Interfaz `DataProvider`, `SampleProvider` (CSV de `data/sample`) y generador determinista de datos sintéticos. |
+| `providers/` | Interfaz `DataProvider`, `SampleProvider` (CSV de `data/sample`), generador determinista de datos sintéticos y `WorkbookProvider` (plantilla de Excel para datos reales; `docs/importar-datos.md`). |
 | `storage/` | DuckDB: migraciones SQL, carga solo por inserción, lectura a fecha (`read_bundle`) y ejecuciones con sus resultados (`runs.py`). |
 | `figures.py` | `Status` y `Figure`: un valor o el motivo por el que no está disponible. |
 | `normalization/` | Periodo de referencia, LTM, divisas (`FxTable`), alineación de ejercicios y `CompanySnapshot`. |

@@ -8,8 +8,8 @@ Calcula métricas con su fórmula documentada, puntuaciones que se descomponen f
 filtros y alertas. **No emite recomendaciones de compra o venta**: apoya al gestor, no decide por
 él.
 
-Es la base del proyecto, no un producto terminado. Funciona con datos sintéticos de ejemplo
-(20 empresas ficticias) hasta que se conecte un proveedor real.
+Es la base del proyecto, no un producto terminado. Trae datos sintéticos de ejemplo (20 empresas
+ficticias) y carga datos reales desde una plantilla de Excel.
 
 ## Puesta en marcha
 
@@ -53,6 +53,19 @@ Qué se obtiene:
 
 La metodología se ajusta en [config/analysis.yaml](config/analysis.yaml) (factores, pesos, umbrales,
 filtros y alertas). Las fórmulas están en [docs/metricas.md](docs/metricas.md).
+
+## Datos reales (Bloomberg, FactSet o a mano)
+
+```powershell
+.\analisis plantilla                          # crea data\import\plantilla-importacion.xlsx
+.\analisis plantilla --ejemplo                # la misma plantilla, rellena con el ejemplo
+.\analisis importar data\import\mis-datos.xlsx  # valida y carga el libro relleno
+```
+
+La plantilla se rellena con los complementos de Excel de Bloomberg o FactSet, o a mano. Su hoja
+«Instrucciones» detalla cada columna. Si algo no cuadra, no se carga nada y se indica hoja, fila
+y columna. Guía completa: [docs/importar-datos.md](docs/importar-datos.md). Los datos reales
+nunca se suben al repositorio.
 
 ## Comprobaciones de calidad
 

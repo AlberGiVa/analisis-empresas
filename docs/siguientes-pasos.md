@@ -4,8 +4,16 @@ Ideas y mejoras detectadas durante el desarrollo que quedan fuera del alcance ac
 aquí en lugar de implementarse.
 
 ## Datos y proveedores
-- Conectar Bloomberg o FactSet implementando la interfaz de proveedor. Los proveedores reales
-  necesitarán recibir una petición (universo de emisores y rango de fechas).
+- Conexión directa por API con Bloomberg (Desktop API o Data License) o FactSet (API), como un
+  proveedor más. Hoy los datos reales entran por la plantilla de Excel (`docs/importar-datos.md`).
+  Requisitos previos:
+  - saber qué tiene contratado el fondo;
+  - credenciales en `.env`;
+  - visto bueno de informática (la librería de Bloomberg trae binarios);
+  - confirmar que el contrato permite guardar los datos y puntuar con ellos.
+
+  Además, la interfaz tendrá que recibir una petición (universo de emisores y rango de fechas).
+- Verificar en cada terminal los códigos orientativos de Bloomberg y FactSet de la plantilla.
 - Cargas incrementales (por ejemplo, solo los precios del día): hoy cada lote debe ser
   autocontenido.
 - Lista de universo con altas y bajas: con el almacenamiento solo por inserción, un emisor que deja

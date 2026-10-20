@@ -40,8 +40,9 @@ class Settings(BaseSettings):
     output_dir: Path = Path("output")
     config_path: Path = Path("config/analysis.yaml")
     sample_data_dir: Path = Path("data/sample")
+    import_dir: Path = Path("data/import")  # Excel workbooks with real data (ignored by git)
 
-    @field_validator("db_path", "output_dir", "config_path", "sample_data_dir")
+    @field_validator("db_path", "output_dir", "config_path", "sample_data_dir", "import_dir")
     @classmethod
     def _resolve_against_root(cls, value: Path, info: ValidationInfo) -> Path:
         if value.is_absolute():

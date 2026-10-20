@@ -63,3 +63,24 @@ def test_fichas_without_runs_is_explained(workspace: Path) -> None:
     result = runner.invoke(app, ["fichas"])
     assert result.exit_code == 1
     assert "no hay ejecuciones completadas" in result.output.lower()
+
+
+def test_real_data_are_imported_from_an_excel_workbook(workspace: Path) -> None:
+    example = workspace / "ejemplo.xlsx"
+    created = runner.invoke(app, ["plantilla", str(example), "--ejemplo"])
+    assert created.exit_code == 0, created.output
+    imported = runner.invoke(app, ["importar", str(example)])
+    assert imported.exit_code == 0, imported.output
+    assert "20 emisores" in imported.output
+    again = runner.invoke(app, ["importar", str(example)])
+    assert "ya estaban cargados" in again.output
+    assert runner.invoke(app, ["ejecutar", "--fecha", "2026-06-30"]).exit_code == 0
+
+
+def test_an_invalid_workbook_loads_nothing(workspace: Path) -> None:
+    template = workspace / "plantilla.xlsx"
+    assert runner.invoke(app, ["plantilla", str(template)]).exit_code == 0
+    result = runner.invoke(app, ["importar", str(template)])
+    assert result.exit_code == 1
+    assert "No se ha cargado nada" in result.output
+    assert not (workspace / "analysis.duckdb").exists()
