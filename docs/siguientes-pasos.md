@@ -14,13 +14,24 @@ aquí en lugar de implementarse.
 
   Además, la interfaz tendrá que recibir una petición (universo de emisores y rango de fechas).
 - Verificar en cada terminal los códigos orientativos de Bloomberg y FactSet de la plantilla.
-- Proveedores con APIs públicas y gratuitas, sin licencia. Hoy solo hay una prueba de conexión
-  (`scripts/probar_apis.py`) y una demostración en vivo en `docs/muestra-luceiro-capital.html`:
+- Estudio con datos reales (`estudio-real/`, decisión 0017). Mejoras detectadas al hacerlo:
+  - fuente de diferenciales de bonos y ratings (hoy la vista de acreedor del estudio solo usa
+    fundamentales);
+  - leer el XBRL del propio informe cuando la SEC tarda en pasarlo a sus datos estructurados (hace
+    falta identificarse con un correo de contacto en `ANALYSIS_HTTP_USER_AGENT`);
+  - datos de dos clases de acciones (excluida Hershey) y empresas sin resultado operativo
+    publicado (excluida Clorox);
+  - EBITDA ajustado de un proveedor con licencia, para comparar con el contable;
+  - ampliar el universo, incluidas cotizadas europeas: ESMA o los registros nacionales no dan
+    estados financieros estructurados como la SEC.
+- Proveedores con APIs públicas y gratuitas, sin licencia. Hay una prueba de conexión
+  (`scripts/probar_apis.py`), una demostración en vivo en `docs/muestra-luceiro-capital.html` y el
+  estudio con datos reales (SEC, Nasdaq y BCE). Pendientes:
   - BCE: tipos de cambio diarios, para sustituir la hoja «Tipos de cambio»;
   - BCE: curva de la deuda AAA del euro, para calcular un diferencial propio de cada bono;
   - GLEIF: comprobar los LEI (caducados, matriz y grupo);
   - ESMA FIRDS: datos de referencia de bonos (cupón, vencimiento, nominal);
-  - SEC EDGAR: estados financieros de las empresas de EE. UU., con fecha de presentación;
+  - SEC EDGAR: llevar a la herramienta principal lo que ya usa el estudio;
   - FRED: diferenciales de mercado ICE BofA como contexto (solo tres años de historia);
   - OpenFIGI: traducir ISIN a ticker para pedir datos a Bloomberg.
 

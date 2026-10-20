@@ -59,7 +59,9 @@ Qué se obtiene:
 La metodología se ajusta en [config/analysis.yaml](config/analysis.yaml) (factores, pesos, umbrales,
 filtros y alertas). Las fórmulas están en [docs/metricas.md](docs/metricas.md).
 
-## Datos reales (Bloomberg, FactSet o a mano)
+## Datos reales
+
+### Plantilla de Excel (Bloomberg, FactSet o a mano)
 
 ```powershell
 .\analisis plantilla                          # crea data\import\plantilla-importacion.xlsx
@@ -71,6 +73,18 @@ La plantilla se rellena con los complementos de Excel de Bloomberg o FactSet, o 
 «Instrucciones» detalla cada columna. Si algo no cuadra, no se carga nada y se indica hoja, fila
 y columna. Guía completa: [docs/importar-datos.md](docs/importar-datos.md). Los datos reales
 nunca se suben al repositorio.
+
+### Estudio con datos reales de hoy
+
+```powershell
+estudio-real\estudio todo   # 10 empresas reales: SEC, cotizaciones y BCE, en un espacio aislado
+```
+
+Prueba la herramienta con diez empresas reales de consumo básico de EE. UU. Las cuentas vienen de
+la SEC, las cotizaciones de Nasdaq (contrastadas con Yahoo Finance) y los tipos de cambio del BCE.
+Tiene su propia base de datos, metodología y carpeta de resultados, y genera un informe con
+comparables, cambios entre dos fechas y la calidad y el origen de cada dato. Detalles en
+[estudio-real/README.md](estudio-real/README.md).
 
 ## Comprobaciones de calidad
 

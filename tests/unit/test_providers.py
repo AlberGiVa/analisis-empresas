@@ -8,8 +8,10 @@ import pytest
 
 from company_analysis.models import DataBundle
 from company_analysis.providers import DataProvider, SampleProvider, create_provider
+from company_analysis.providers.public import PublicDataProvider
 from company_analysis.providers.workbook import WorkbookProvider, write_workbook
 from company_analysis.settings import PROJECT_ROOT, Settings
+from tests import public_samples
 
 SAMPLE_DIR = PROJECT_ROOT / "data" / "sample"
 
@@ -20,10 +22,17 @@ def workbook_provider(directory: Path) -> DataProvider:
     return WorkbookProvider(path)
 
 
+def public_provider(directory: Path) -> DataProvider:
+    """Public sources (SEC, prices, ECB), fed with a synthetic downloaded snapshot."""
+    universe = public_samples.write_universe(directory)
+    return PublicDataProvider(universe, public_samples.write_snapshot(directory / "descarga"))
+
+
 # Each factory receives an empty temporary folder for any files it needs.
 PROVIDER_FACTORIES: dict[str, Callable[[Path], DataProvider]] = {
     "sample": lambda _directory: SampleProvider(SAMPLE_DIR),
     "workbook": workbook_provider,
+    "public": public_provider,
 }
 
 

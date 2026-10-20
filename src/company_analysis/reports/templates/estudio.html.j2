@@ -1,0 +1,225 @@
+{% extends "base.html.j2" %}
+{% block title %}Estudio con datos reales · {{ run_date }}{% endblock %}
+{% block content %}
+<style>
+  main { max-width: 1440px; }
+  .notice { margin: 14px 0 6px; padding: 12px 14px; border-left: 4px solid var(--warn-text); background: var(--warn-bg); }
+  .notice p { margin: 4px 0; }
+  .lead { max-width: 80ch; color: var(--text); }
+  table.peers th, table.peers td { font-size: 13px; }
+  table.peers th { position: sticky; top: 0; }
+  table.peers tr.group td { background: var(--soft); font-weight: 600; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+  table.peers tr.median td { border-top: 2px solid var(--line); font-weight: 600; }
+  .na { color: var(--muted); font-size: 12px; }
+  .scroll { overflow-x: auto; }
+  .nowrap { white-space: nowrap; }
+  table.peers td:first-child { min-width: 170px; }
+  .score { font-weight: 600; }
+  svg.chart { width: 100%; max-width: 760px; height: auto; display: block; }
+  svg.chart .grid { stroke: #e6ece8; stroke-width: 1; }
+  svg.chart .median { stroke: #9aa7a0; stroke-width: 1; }
+  svg.chart .tick { fill: var(--muted); font-size: 11px; }
+  svg.chart .axis { fill: var(--muted); font-size: 12px; font-weight: 600; }
+  svg.chart .dot { fill: #0e7c4e; stroke: #fff; stroke-width: 2; }
+  svg.chart .label { fill: var(--text); font-size: 12px; font-weight: 600; }
+  .company { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; margin: 12px 0; }
+  .company h3 { margin: 0 0 4px; }
+  .warn { margin: 6px 0; padding-left: 18px; }
+  .warn li { color: var(--warn-text); margin: 2px 0; }
+  .ok-text { color: var(--ok-text); }
+  .two { display: grid; grid-template-columns: 1.3fr 1fr; gap: 18px; }
+  .small { font-size: 12px; }
+  code { font-size: 12px; overflow-wrap: anywhere; }
+  @media (max-width: 860px) { .two { grid-template-columns: 1fr; } }
+</style>
+
+<div class="header">
+  <div>
+    <p class="eyebrow">Estudio con datos reales · fuentes públicas · aislado del resto de la herramienta</p>
+    <h1>{{ study.title }}</h1>
+    <p class="meta">Análisis a {{ run_date }}{% if previous_date %}, comparado con el {{ previous_date }}{% endif %} ·
+      {{ study.run.companies | length }} empresas · metodología {{ record.config_version }}
+      {% if study.data %}· datos descargados el {{ study.data.created[:10] }} a las {{ study.data.created[11:16] }} UTC{% endif %}</p>
+  </div>
+  <p class="meta"><a href="ranking.html">Ranking de la herramienta</a> · <a href="ranking.csv">CSV para Excel</a></p>
+</div>
+<p class="lead">{{ study.description }}</p>
+
+<div class="notice">
+  <p><strong>Datos reales, uso interno.</strong> Cifras tal como las publican las empresas en la SEC
+  (normas contables de EE. UU., sin los ajustes que ellas mismas presentan como «ajustados»),
+  cotizaciones de cierre y tipos de cambio del BCE. Cada importe en euros usa el tipo de cambio de su
+  fecha. No es una recomendación de inversión: describe y compara.</p>
+  <p>La vista de acreedor usa solo fundamentales: no hay una fuente gratuita y fiable de diferenciales
+  de bonos ni de ratings (ver «Método y límites»).</p>
+</div>
+
+<h2>Comparables</h2>
+<p class="muted">Últimos doce meses hasta el último informe publicado antes del {{ run_date }} (la columna
+«Cifras» dice cuál). Capitalización en millones de euros. Las puntuaciones comparan cada empresa con las
+otras nueve: 100 es la mejor del grupo en cada factor.</p>
+<div class="scroll">
+<table class="peers">
+  <thead><tr>
+    <th>Empresa</th><th>Cifras</th>
+    {% for column in study.columns %}<th class="num" title="{{ column.name }}">{{ column.header }}</th>{% endfor %}
+    <th class="num">Accionista</th><th class="num">Acreedor</th>
+  </tr></thead>
+  <tbody>
+  {% for industry, rows in study.groups %}
+    <tr class="group"><td colspan="{{ study.columns | length + 4 }}">{{ industry }}</td></tr>
+    {% for row in rows %}
+    <tr>
+      <td><a href="{{ row.company.ficha_path }}">{{ row.company.name }}</a><br><span class="muted small">{{ row.company.issuer_id }}</span>
+        {% if row.warnings %}<a class="badge" href="#q-{{ row.company.issuer_id }}">{{ row.warnings }} aviso{{ "s" if row.warnings != 1 }}</a>{% endif %}</td>
+      <td class="small muted nowrap" title="{{ row.company.reference_text }}">{{ row.period }}</td>
+      {% for cell in row.cells %}
+        {% if cell.available %}<td class="num">{{ cell.text }}</td>
+        {% else %}<td class="num na" title="{{ cell.note or '' }}">{{ cell.text }}</td>{% endif %}
+      {% endfor %}
+      <td class="num score">{{ row.company.equity.value_text if row.company.equity.value is not none else "—" }}</td>
+      <td class="num score">{{ row.company.credit.value_text if row.company.credit.value is not none else "—" }}</td>
+    </tr>
+    {% endfor %}
+  {% endfor %}
+    <tr class="median"><td>Mediana del grupo</td><td></td>
+      {% for text in study.medians %}<td class="num">{{ text }}</td>{% endfor %}<td></td><td></td></tr>
+  </tbody>
+</table>
+</div>
+<p class="muted small">Pasa el ratón por una celda sin valor para ver el motivo. Cada ficha despliega la fórmula y los datos de entrada de cada métrica.
+Los avisos llevan a la sección de calidad de datos: léelos antes de sacar conclusiones de una cifra.</p>
+
+<h2>Valoración frente a apalancamiento</h2>
+<div class="two">
+  <div>{{ study.chart }}</div>
+  <div>
+    <p>Cada punto es una empresa. A la derecha, más cara en relación con lo que genera (EV/EBITDA); arriba,
+    más endeudada en relación con lo que genera (deuda neta/EBITDA). Las líneas grises marcan la mediana del
+    grupo.</p>
+    {% if study.chart_left_out %}<p class="muted">Fuera del gráfico: {{ study.chart_left_out | join("; ") }}. Sus cifras están en la tabla y en sus avisos.</p>{% endif %}
+  </div>
+</div>
+
+{% if study.changes %}
+<h2>Qué ha cambiado desde el {{ previous_date }}</h2>
+<p class="muted">Las dos ejecuciones usan los mismos datos descargados, pero cada una solo ve lo que se había publicado en su fecha.
+Por eso la del {{ previous_date }} trabaja con informes anteriores.</p>
+<div class="scroll">
+<table>
+  <thead><tr><th>Empresa</th><th>Cifras usadas el {{ previous_date }}</th><th>Cifras usadas el {{ run_date }}</th>
+    <th class="num">Accionista</th><th class="num">Cambio</th><th class="num">Acreedor</th><th class="num">Cambio</th></tr></thead>
+  <tbody>
+  {% for change in study.changes %}
+    <tr>
+      <td>{{ change.company.name }}</td>
+      <td class="small muted">{{ change.reference_before or "—" }}</td>
+      <td class="small">{{ change.reference_now }}</td>
+      <td class="num">{{ change.equity[0] }} → {{ change.equity[1] }}</td><td class="num">{{ change.equity[2] }}</td>
+      <td class="num">{{ change.credit[0] }} → {{ change.credit[1] }}</td><td class="num">{{ change.credit[2] }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endif %}
+
+<h3>Alertas a {{ run_date }}</h3>
+{% set alerts = [] %}
+{% for company in study.run.companies %}{% for alert in company.alerts %}{% set _ = alerts.append((company, alert)) %}{% endfor %}{% endfor %}
+{% if alerts %}
+<ul class="alerts">
+  {% for company, alert in alerts %}<li><strong>{{ company.issuer_id }}</strong> · {{ alert.rule_label }}: {{ alert.message }}</li>{% endfor %}
+</ul>
+{% else %}<p class="muted">Ninguna.</p>{% endif %}
+
+{% if study.data %}
+<h2>Calidad y trazabilidad de los datos</h2>
+<p class="muted">Lo que se ha comprobado o supuesto para cada empresa. Las etiquetas son los conceptos XBRL de
+la SEC de los que sale cada partida; «publicaciones corregidas» cuenta las cifras que una empresa cambió en un
+informe posterior (la herramienta guarda las dos versiones y usa la que se conocía en cada fecha).</p>
+{% for quality in study.data.companies %}
+<div class="company" id="q-{{ quality.issuer_id }}">
+  <h3>{{ quality.name }} <span class="muted small">{{ quality.issuer_id }}</span></h3>
+  <p class="small">
+    {% if quality.latest_filing %}Último informe registrado: {{ quality.latest_filing.form }} del periodo cerrado el
+    {{ quality.latest_filing.period_end | fecha }}, presentado el {{ quality.latest_filing.filed | fecha }}.{% endif %}
+    Último periodo en los datos estructurados: {{ quality.latest_period_in_data | fecha }}.
+    Cotizaciones: {{ quality.prices }} sesiones{% if quality.last_price %}, la última del {{ quality.last_price.price_date | fecha }}
+    ({{ quality.last_price.close | num(2) }} {{ quality.last_price.currency }}){% endif %};
+    {% if quality.compared_days %}contrastadas con Yahoo Finance en {{ quality.compared_days }} sesiones, diferencia máxima
+    {{ (quality.max_price_difference * 100) | num(2) }} %.{% else %}sin contraste.{% endif %}
+  </p>
+  {% if quality.warnings %}
+  <ul class="warn">{% for warning in quality.warnings %}<li>{{ warning }}</li>{% endfor %}</ul>
+  {% else %}<p class="small ok-text">Sin avisos.</p>{% endif %}
+  <details>
+    <summary>Origen de cada partida y desglose de la deuda</summary>
+    <div class="two">
+      <table>
+        <thead><tr><th>Partida</th><th>Etiqueta XBRL</th><th>Último periodo</th><th class="num">Correcciones</th></tr></thead>
+        <tbody>
+        {% for entry in quality.lineage %}
+          <tr><td>{{ entry.item.label }}</td>
+            <td><code>{{ entry.source }}</code>{% if entry.note %}<br><span class="muted small">{{ entry.note }}</span>{% endif %}</td>
+            <td class="small">{% if entry.latest %}{{ entry.latest[0].value }} {{ entry.latest[1] | fecha }}{% else %}—{% endif %}</td>
+            <td class="num">{{ entry.restatements }}</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      <div>
+      {% for day, components in quality.debt_breakdown | dictsort %}
+        <table>
+          <thead><tr><th colspan="2">Deuda financiera a {{ day | fecha }} (millones)</th></tr></thead>
+          <tbody>
+          {% for component in components %}
+            <tr><td>{{ component.line }}<br><span class="muted small">{{ component.tag or "no presentada en ese balance: cuenta como cero" }}</span></td>
+              <td class="num">{{ component.value | num(0) if component.value is not none else "0" }}</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      {% endfor %}
+      </div>
+    </div>
+  </details>
+</div>
+{% endfor %}
+
+<h3>Tipos de cambio</h3>
+<ul>{% for fx in study.data.fx %}<li>{{ fx.currency }}/EUR del BCE: {{ fx.days }} días, del {{ fx.first | fecha }} al {{ fx.last | fecha }}.</li>{% endfor %}</ul>
+{% endif %}
+
+<h2>Método y límites</h2>
+<ul>
+  <li><strong>Lectura a fecha.</strong> Cada cifra lleva la fecha en que la SEC recibió el informe. Una ejecución solo usa lo
+  presentado hasta su fecha de análisis, y las cifras corregidas después se guardan como una publicación nueva.</li>
+  <li><strong>Periodos.</strong> Se usan los periodos acumulados desde el inicio del ejercicio (primer trimestre, semestre,
+  nueve meses y año), identificados por sus fechas. Los doce últimos meses se calculan como año anterior + acumulado actual −
+  mismo acumulado un año antes; funciona con cierres en mayo o junio y con años de 52/53 semanas.</li>
+  <li><strong>EBITDA.</strong> Resultado operativo publicado más amortizaciones del estado de flujos. Incluye los deterioros y
+  costes de reestructuración que la empresa haya registrado: puede ser bastante menor que el EBITDA «ajustado» que comunica.</li>
+  <li><strong>Deuda.</strong> Las líneas de deuda que cada empresa presenta en su balance (préstamos, papel comercial,
+  vencimientos a un año y deuda a largo), revisadas a mano en <code>estudio-real/universo.yaml</code>. Los arrendamientos solo
+  cuentan cuando la empresa los incluye en esas líneas; los operativos nunca (su coste ya está en el EBITDA).</li>
+  <li><strong>Acciones.</strong> Las del balance al cierre si la empresa las publica; si no, las de la portada del informe, con
+  fecha algo posterior.</li>
+  <li><strong>Crédito.</strong> Sin diferenciales de bonos ni ratings: la puntuación de acreedor solo usa apalancamiento,
+  cobertura de intereses y deuda sobre capital. La alerta de rebaja de rating no puede saltar.</li>
+  <li><strong>Grupo pequeño.</strong> Con diez empresas, cada factor se compara con nueve: un cambio pequeño en una empresa
+  mueve los percentiles de las demás.</li>
+</ul>
+
+{% if study.data %}
+<h2>Fuentes y condiciones de uso</h2>
+<ul>
+  <li><strong>SEC EDGAR</strong> (data.sec.gov): datos públicos de la administración de EE. UU.</li>
+  <li><strong>Banco Central Europeo</strong> (data-api.ecb.europa.eu): reutilización libre citando la fuente.</li>
+  <li><strong>Nasdaq y Yahoo Finance</strong>: cotizaciones de servicios web sin licencia de datos. Valen para esta prueba
+  interna; para un uso habitual hace falta un proveedor con licencia. Nada de esto se publica ni se sube al repositorio.</li>
+</ul>
+<details>
+  <summary>Las {{ study.data.sources | length }} descargas de esta carga</summary>
+  <ul class="small">{% for source, url in study.data.sources %}<li>{{ source }}: <code>{{ url }}</code></li>{% endfor %}</ul>
+</details>
+{% endif %}
+{% endblock %}

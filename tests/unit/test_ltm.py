@@ -99,3 +99,21 @@ def test_balance_is_the_value_at_the_period_close() -> None:
     )
     missing = facts.balance(FinancialItem.CASH, FiscalPeriod.FY, date(2024, 12, 31))
     assert missing.status is Status.MISSING
+
+
+def test_ltm_with_quarters_of_12_and_16_weeks() -> None:
+    # 52-week year closing on the last Saturday of December, quarters of 12, 12, 12 and 16 weeks:
+    # the 36-week "9M" period ends in early September, three weeks after "December + 9 months".
+    facts = IssuerFacts(
+        [
+            revenue(900.0, date(2024, 12, 28)),
+            revenue(600.0, date(2024, 9, 7), FiscalPeriod.NINE_MONTHS),
+            revenue(1000.0, date(2025, 12, 27)),
+            revenue(660.0, date(2025, 9, 6), FiscalPeriod.NINE_MONTHS),
+            revenue(700.0, date(2026, 9, 5), FiscalPeriod.NINE_MONTHS),
+        ]
+    )
+    # FY 2025 + 9M 2026 - 9M 2025 = 1000 + 700 - 660
+    assert facts.ltm(REVENUE, FiscalPeriod.NINE_MONTHS, date(2026, 9, 5)).value == 1040.0
+    # One year earlier: FY 2024 + 9M 2025 - 9M 2024 = 900 + 660 - 600
+    assert facts.ltm(REVENUE, FiscalPeriod.NINE_MONTHS, date(2025, 9, 6)).value == 960.0

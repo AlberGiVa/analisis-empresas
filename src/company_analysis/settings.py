@@ -41,10 +41,13 @@ class Settings(BaseSettings):
     config_path: Path = Path("config/analysis.yaml")
     sample_data_dir: Path = Path("data/sample")
     import_dir: Path = Path("data/import")  # Excel workbooks with real data (ignored by git)
+    study_dir: Path = Path("estudio-real")  # isolated study with real data from public sources
     # How the tool identifies itself to public APIs (the SEC asks for a name and a contact email).
     http_user_agent: str = "Luceiro Capital - prototipo de analisis"
 
-    @field_validator("db_path", "output_dir", "config_path", "sample_data_dir", "import_dir")
+    @field_validator(
+        "db_path", "output_dir", "config_path", "sample_data_dir", "import_dir", "study_dir"
+    )
     @classmethod
     def _resolve_against_root(cls, value: Path, info: ValidationInfo) -> Path:
         if value.is_absolute():

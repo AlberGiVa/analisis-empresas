@@ -2,12 +2,17 @@
 
 from collections.abc import Iterable
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, timedelta
 
 from company_analysis.figures import Figure, Status
 from company_analysis.formatting import format_date
 from company_analysis.models import FinancialFact, FinancialItem, FiscalPeriod
 from company_analysis.normalization.fiscal import PERIOD_TOLERANCE, add_months
+
+# The full year before an interim period may close several weeks away from "interim end minus N
+# months": some companies report quarters of 12 and 16 weeks (a 36-week "9M" period). Fiscal years
+# close twelve months apart, so a one-month window cannot pick the wrong year.
+PREVIOUS_YEAR_TOLERANCE = timedelta(days=31)
 
 
 @dataclass(frozen=True)
@@ -51,15 +56,17 @@ class IssuerFacts:
         return ReferencePeriod(period, end, published)
 
     def find(
-        self, item: FinancialItem, fiscal_period: FiscalPeriod, period_end: date
+        self,
+        item: FinancialItem,
+        fiscal_period: FiscalPeriod,
+        period_end: date,
+        tolerance: timedelta = PERIOD_TOLERANCE,
     ) -> FinancialFact | None:
         """Fact for a period, tolerating closing dates a few days apart."""
         candidates = [
             fact
             for (period, end, fact_item), fact in self._facts.items()
-            if period is fiscal_period
-            and fact_item is item
-            and abs(end - period_end) <= PERIOD_TOLERANCE
+            if period is fiscal_period and fact_item is item and abs(end - period_end) <= tolerance
         ]
         return min(candidates, key=lambda fact: abs(fact.period_end - period_end), default=None)
 
@@ -78,16 +85,21 @@ class IssuerFacts:
         """
         label = label or f"{item.label} LTM"
         if fiscal_period is FiscalPeriod.FY:
-            parts = [(FiscalPeriod.FY, period_end, 1.0)]
+            parts = [(FiscalPeriod.FY, period_end, 1.0, PERIOD_TOLERANCE)]
         else:
             parts = [
-                (FiscalPeriod.FY, add_months(period_end, -fiscal_period.months), 1.0),
-                (fiscal_period, period_end, 1.0),
-                (fiscal_period, add_months(period_end, -12), -1.0),
+                (
+                    FiscalPeriod.FY,
+                    add_months(period_end, -fiscal_period.months),
+                    1.0,
+                    PREVIOUS_YEAR_TOLERANCE,
+                ),
+                (fiscal_period, period_end, 1.0, PERIOD_TOLERANCE),
+                (fiscal_period, add_months(period_end, -12), -1.0, PERIOD_TOLERANCE),
             ]
         total, missing = 0.0, []
-        for period, end, sign in parts:
-            fact = self.find(item, period, end)
+        for period, end, sign, tolerance in parts:
+            fact = self.find(item, period, end, tolerance)
             if fact is None:
                 missing.append(_describe(period, end))
             else:

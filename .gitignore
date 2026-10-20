@@ -26,3 +26,7 @@ __pycache__/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Estudio con datos reales: descargas, base de datos y salidas nunca van al repositorio
+/estudio-real/datos/
+/estudio-real/salida/

@@ -1,0 +1,197 @@
+# Universo del estudio con datos reales: consumo básico de EE. UU.
+#
+# Por qué este grupo: diez emisores grandes que tienen a la vez acciones cotizadas y deuda
+# corporativa en el mercado, que es exactamente lo que el fondo analiza desde las dos vistas. Son
+# comparables entre sí (mismo sector y negocio maduro) y publican sus cuentas en la SEC con la fecha
+# exacta de cada informe, lo que permite una lectura a fecha estricta. Incluyen calendarios fiscales
+# distintos (cierre en mayo, junio, diciembre y años de 52/53 semanas) para probar la herramienta.
+#
+# Identificadores verificados el 20/10/2026: ISIN con OpenFIGI, LEI con GLEIF (Kraft Heinz, por
+# nombre: GLEIF no le asocia el ISIN), CIK y mercado con la SEC y Yahoo Finance.
+#
+# Deuda: cada empresa presenta su deuda en líneas distintas del balance. Para cada una se listan las
+# líneas que la componen y, entre corchetes, las etiquetas XBRL con que aparecen (alternativas: la
+# misma línea puede llevar otra etiqueta en algún informe). Se han revisado comprobando que las
+# líneas suman sin duplicar (por ejemplo, el papel comercial ya está dentro de la deuda a corto de
+# PepsiCo) y que la serie es continua trimestre a trimestre. Los arrendamientos solo se incluyen
+# cuando la empresa los presenta dentro de su deuda.
+#
+# Excluidas tras revisar sus datos: Hershey (dos clases de acciones: los datos estructurados solo
+# dan una y la capitalización saldría mal) y Clorox (no publica resultado operativo, así que no hay
+# EBIT ni EBITDA comparables).
+
+name: "Consumo básico de EE. UU."
+description: >-
+  Diez fabricantes de alimentación, bebidas y productos de hogar e higiene de EE. UU. con acciones
+  y bonos en el mercado. Cuentas de la SEC (normas contables de EE. UU., sin ajustes), cotizaciones
+  de cierre diarias y tipos de cambio del BCE.
+history_start: 2023-01-01
+
+companies:
+  # --- Alimentación y bebidas -------------------------------------------------------------------
+  - id: KO
+    name: The Coca-Cola Company
+    cik: "0000021344"
+    ticker: KO
+    isin: US1912161007
+    lei: UWJKFUJFZ02DKWI3RY53
+    exchange: XNYS
+    country: US
+    sector: consumer
+    industry: food_beverage
+    currency: USD
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Préstamos y pagarés", tags: [NotesAndLoansPayable, ShortTermBorrowings]}
+      - {line: "Vencimientos a un año de la deuda a largo", tags: [LongTermDebtAndCapitalLeaseObligationsCurrent, LongTermDebtCurrent]}
+      - {line: "Deuda a largo plazo", tags: [LongTermDebtAndCapitalLeaseObligations, LongTermDebtNoncurrent], required: true}
+
+  - id: PEP
+    name: PepsiCo, Inc.
+    cik: "0000077476"
+    ticker: PEP
+    isin: US7134481081
+    lei: FJSUNZKFNQ5YPJ5OT455
+    exchange: XNAS
+    country: US
+    sector: consumer
+    industry: food_beverage
+    currency: USD
+    fiscal_year_end_month: 12  # último sábado de diciembre; trimestres de 12, 12, 12 y 16 semanas
+    debt:
+      - {line: "Deuda a corto plazo (incluye papel comercial y vencimientos a un año)", tags: [ShortTermBorrowings, DebtCurrent]}
+      - {line: "Deuda a largo plazo", tags: [LongTermDebtAndCapitalLeaseObligations, LongTermDebtNoncurrent], required: true}
+
+  - id: MDLZ
+    name: Mondelez International, Inc.
+    cik: "0001103982"
+    ticker: MDLZ
+    isin: US6092071058
+    lei: 549300DV9GIB88LZ5P30
+    exchange: XNAS
+    country: US
+    sector: consumer
+    industry: food_beverage
+    currency: USD
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Préstamos a corto plazo", tags: [ShortTermBorrowings]}
+      - {line: "Vencimientos a un año de la deuda a largo", tags: [LongTermDebtAndCapitalLeaseObligationsCurrent, LongTermDebtCurrent]}
+      - {line: "Deuda a largo plazo", tags: [LongTermDebtAndCapitalLeaseObligations, LongTermDebtNoncurrent], required: true}
+
+  - id: KHC
+    name: The Kraft Heinz Company
+    cik: "0001637459"
+    ticker: KHC
+    isin: US5007541064
+    lei: 9845007488EC87F5AF14
+    exchange: XNYS
+    country: US
+    sector: consumer
+    industry: food_beverage
+    currency: USD
+    fiscal_year_end_month: 12  # último sábado de diciembre
+    debt:
+      - {line: "Papel comercial y otra deuda a corto", tags: [CommercialPaper, ShortTermBorrowings]}
+      - {line: "Vencimientos a un año de la deuda a largo", tags: [LongTermDebtAndCapitalLeaseObligationsCurrent, LongTermDebtCurrent]}
+      - {line: "Deuda a largo plazo", tags: [LongTermDebtAndCapitalLeaseObligations, LongTermDebtNoncurrent], required: true}
+
+  - id: GIS
+    name: General Mills, Inc.
+    cik: "0000040704"
+    ticker: GIS
+    isin: US3703341046
+    lei: 2TGYMUGI08PO8X8L6150
+    exchange: XNYS
+    country: US
+    sector: consumer
+    industry: food_beverage
+    currency: USD
+    fiscal_year_end_month: 5  # último domingo de mayo
+    debt:
+      - {line: "Pagarés a corto plazo", tags: [ShortTermBorrowings]}
+      - {line: "Vencimientos a un año de la deuda a largo", tags: [LongTermDebtAndCapitalLeaseObligationsCurrent, LongTermDebtCurrent]}
+      - {line: "Deuda a largo plazo", tags: [LongTermDebtAndCapitalLeaseObligations, LongTermDebtNoncurrent], required: true}
+
+  - id: KDP
+    name: Keurig Dr Pepper Inc.
+    cik: "0001418135"
+    ticker: KDP
+    isin: US49271V1008
+    lei: DYTQ8KRTKO7Y2BVU5K74
+    exchange: XNAS
+    country: US
+    sector: consumer
+    industry: food_beverage
+    currency: USD
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Préstamos a corto y vencimientos a un año", tags: [DebtCurrent]}
+      - {line: "Obligaciones a largo plazo", tags: [LongTermDebtNoncurrent], required: true}
+
+  # --- Hogar e higiene ---------------------------------------------------------------------------
+  - id: PG
+    name: The Procter & Gamble Company
+    cik: "0000080424"
+    ticker: PG
+    isin: US7427181091
+    lei: 2572IBTT8CCZW6AU4141
+    exchange: XNYS
+    country: US
+    sector: consumer
+    industry: consumer_products
+    currency: USD
+    fiscal_year_end_month: 6
+    debt:
+      - {line: "Deuda con vencimiento a un año", tags: [DebtCurrent]}
+      - {line: "Deuda a largo plazo", tags: [LongTermDebtNoncurrent], required: true}
+
+  - id: CL
+    name: Colgate-Palmolive Company
+    cik: "0000021665"
+    ticker: CL
+    isin: US1941621039
+    lei: YMEGZFW4SBUSS5BQXF88
+    exchange: XNYS
+    country: US
+    sector: consumer
+    industry: consumer_products
+    currency: USD
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Préstamos y pagarés", tags: [ShortTermBankLoansAndNotesPayable]}
+      - {line: "Vencimientos a un año de la deuda a largo", tags: [LongTermDebtCurrent]}
+      - {line: "Deuda a largo plazo", tags: [LongTermDebtNoncurrent], required: true}
+
+  - id: KMB
+    name: Kimberly-Clark Corporation
+    cik: "0000055785"
+    ticker: KMB
+    isin: US4943681035
+    lei: MP3J6QPYPGN75NVW2S34
+    exchange: XNAS
+    country: US
+    sector: consumer
+    industry: consumer_products
+    currency: USD
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Deuda con vencimiento a un año", tags: [DebtCurrent, LongTermDebtAndCapitalLeaseObligationsCurrent]}
+      - {line: "Deuda a largo plazo", tags: [LongTermDebtAndCapitalLeaseObligations], required: true}
+
+  - id: CHD
+    name: Church & Dwight Co., Inc.
+    cik: "0000313927"
+    ticker: CHD
+    isin: US1713401024
+    lei: POOXSI30AWAQGYJZC921
+    exchange: XNYS
+    country: US
+    sector: consumer
+    industry: consumer_products
+    currency: USD
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Préstamos a corto plazo", tags: [ShortTermBorrowings]}
+      - {line: "Vencimientos a un año de la deuda a largo", tags: [LongTermDebtCurrent]}
+      - {line: "Deuda a largo plazo", tags: [LongTermDebtNoncurrent], required: true}
