@@ -26,10 +26,11 @@ Esas pruebas y bloqueos generaron avisos que revisó el departamento de informá
 - **Lanzadores sin uso.** `scripts/remove_unused_launchers.py` borra los lanzadores que uv genera
   al instalar paquetes. Solo quedan `python.exe`, `pythonw.exe` (PSF) y `ruff.exe` (firmado).
 - **Atajo `analisis.cmd`** en la raíz: en Windows equivale a
-  `uv run python -m company_analysis`.
+  `uv run python -m company_analysis`. Es un script de `cmd.exe`, no un ejecutable.
+- **Sin comando instalado.** El proyecto no declara un comando `analisis` en `pyproject.toml`:
+  uv generaría un `analisis.exe` sin firma cada vez que reinstala el proyecto.
 
 ## Consecuencias
 - Tras cada `uv sync` que instale o actualice paquetes conviene ejecutar
   `uv run python scripts/remove_unused_launchers.py`.
-- El comando `analisis` se mantiene en `pyproject.toml` para los equipos sin esta restricción.
 - Inventario de ejecutables y su función: ver el README ("Problemas conocidos").

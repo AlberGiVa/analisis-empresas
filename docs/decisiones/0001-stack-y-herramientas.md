@@ -19,7 +19,8 @@ departamento de informática preguntó por qué descargar Python si ya había un
 - **uv.** Se instala con `py -m pip install --user uv`: su carpeta ya está en el PATH y no
   requiere permisos de administrador. Sus ejecutables están firmados digitalmente.
 - **Estructura.** Carpeta `src/` con el paquete `company_analysis` y el backend de construcción
-  `uv_build`. El comando de la CLI es `analisis`, con subcomandos en español porque son interfaz.
+  `uv_build`. La CLI se ejecuta con `python -m company_analysis` (atajo `.\analisis` en Windows),
+  con subcomandos en español porque son interfaz.
 - **Añadidos al stack, sin sustituir ninguna pieza:**
   - PyYAML, para leer la configuración de la metodología.
   - pandas-stubs y types-PyYAML, para que mypy pueda trabajar en modo estricto.

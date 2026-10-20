@@ -27,7 +27,7 @@ uv run python -m company_analysis --help      # CLI (atajo en Windows: .\analisi
 - Python 3.14 del equipo (oficial, firmado). uv nunca descarga intérpretes (`[tool.uv]` en
   `pyproject.toml`); no lo cambies sin hablar con informática.
 - Usa siempre `python -m …`: el antivirus del equipo (Panda) bloquea los lanzadores `.exe` que
-  uv genera (`pytest.exe`, `analisis.exe`…). Tras instalar paquetes, bórralos con
+  uv genera (`pytest.exe`, `mypy.exe`…). Tras instalar paquetes, bórralos con
   `uv run python scripts/remove_unused_launchers.py`. `ruff.exe` está firmado y sí se usa.
 - El hook `.githooks/pre-commit` ejecuta formato, lint, tipos y tests; se activa con
   `git config core.hooksPath .githooks`.
@@ -45,7 +45,7 @@ uv run python -m company_analysis --help      # CLI (atajo en Windows: .\analisi
 | `normalization/` | Periodo de referencia, LTM, divisas (`FxTable`), alineación de ejercicios y la "foto" de cada empresa a una fecha (`CompanySnapshot`). |
 | `metrics/` | Registro central de métricas (renta variable, crédito y magnitudes en euros), su cálculo (`compute_metrics`) y el generador de `docs/metricas.md`. |
 | `formatting.py` | Números y fechas en formato español para mensajes e informes. |
-| `cli.py` | Comando `analisis` (Typer); subcomandos y mensajes en español. |
+| `cli.py` | CLI con Typer (`python -m company_analysis`, atajo `.\analisis`); subcomandos y mensajes en español. |
 
 Datos: `data/sample/` (sintéticos, versionados; ver su README) y `data/*.duckdb` (local, ignorado).
 
