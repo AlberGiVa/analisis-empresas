@@ -1,0 +1,5 @@
+# Finales de línea LF en todos los ficheros de texto, también en Windows, para que los
+# datos de ejemplo regenerados coincidan byte a byte con los versionados.
+* text=auto eol=lf
+# Los scripts de cmd.exe necesitan CRLF.
+*.cmd text eol=crlf

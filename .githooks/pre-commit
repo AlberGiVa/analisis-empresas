@@ -1,0 +1,9 @@
+#!/bin/sh
+# Comprobaciones de calidad antes de cada commit: formato, lint, tipos y tests.
+# Se activa una vez por copia del repositorio con: git config core.hooksPath .githooks
+# Se usa "python -m" porque algunos antivirus bloquean los lanzadores .exe que genera uv.
+set -e
+uv run ruff format --check .
+uv run ruff check .
+uv run python -m mypy
+uv run python -m pytest -q

@@ -1,0 +1,28 @@
+# Entorno de Python y cachés
+.venv/
+__pycache__/
+*.py[cod]
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+
+# Secretos: solo se versiona .env.example
+.env
+
+# Datos: nunca se versionan datos reales de mercado (sus licencias suelen prohibirlo).
+# Lo único que entra en el repositorio son los datos sintéticos de data/sample/.
+/data/*
+!/data/sample/
+*.duckdb
+*.duckdb.wal
+
+# Salidas generadas (fichas, ranking)
+/output/
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Sistema
+.DS_Store
+Thumbs.db
+desktop.ini
