@@ -16,6 +16,7 @@ Run it with ``uv run python -m company_analysis.web construir`` (Spanish CLI).
 """
 
 import os
+import re
 import shutil
 import tempfile
 import webbrowser
@@ -137,6 +138,69 @@ SHOWCASES = {  # language: (file, sidebar line after which the way back is added
     ),
 }
 LOGO = "luceiro-logo.webp"
+# The showcase's last section explains how to run the tool on this computer. On the website it
+# is replaced by links to the website itself: whoever reads it online cannot run commands.
+LOCAL_SECTION = re.compile(r'<section class="block wrap" id="probar">.*?</section>', re.DOTALL)
+WEB_SECTION = {  # language: (local menu entry, website menu entry, section)
+    "es": (
+        '<a href="#probar">Probarlo hoy</a>',
+        '<a href="#probar">Verlo en la web</a>',
+        """<section class="block wrap" id="probar">
+      <div class="sec-head">
+        <p class="eyebrow">En esta web</p>
+        <h2>Verlo en la web</h2>
+        <p class="lead">Todo lo que describe esta presentación funciona ya en esta misma web, sin
+        instalar nada. Se actualiza sola cada día laborable con datos públicos.</p>
+      </div>
+      <div class="cmds">
+        <div class="cmd card">
+          <p><a href="reales/index.html"><strong>Empresas reales →</strong></a></p>
+          <p>Empresas de EE. UU. con sus cuentas oficiales de la SEC: comparables, cambios entre dos
+          fechas, alertas y la calidad y el origen de cada dato.</p></div>
+        <div class="cmd card">
+          <p><a href="ejemplo/index.html"><strong>Casos de ejemplo →</strong></a></p>
+          <p>Una empresa ficticia por cada caso que trata la herramienta, con cotizaciones, bonos y
+          ratings.</p></div>
+        <div class="cmd card">
+          <p><a href="como-funciona.html"><strong>Cómo funciona →</strong></a></p>
+          <p>Cómo se lee una puntuación y la fórmula de cada métrica.</p></div>
+        <div class="cmd card">
+          <p><a href="configuracion.html"><strong>Configuración →</strong></a></p>
+          <p>El estilo de la web (Luceiro, Terminal o Prensa), el modo claro u oscuro y el
+          idioma.</p></div>
+      </div>
+    </section>""",
+    ),
+    "en": (
+        '<a href="#probar">Try it today</a>',
+        '<a href="#probar">See it on the website</a>',
+        """<section class="block wrap" id="probar">
+      <div class="sec-head">
+        <p class="eyebrow">On this website</p>
+        <h2>See it on the website</h2>
+        <p class="lead">Everything this presentation describes already works on this website,
+        with nothing to install. It updates itself every working day with public data.</p>
+      </div>
+      <div class="cmds">
+        <div class="cmd card">
+          <p><a href="reales/index.html"><strong>Real companies →</strong></a></p>
+          <p>US companies with their official SEC accounts: peers, changes between two dates,
+          alerts, and the quality and origin of every figure.</p></div>
+        <div class="cmd card">
+          <p><a href="ejemplo/index.html"><strong>Sample cases →</strong></a></p>
+          <p>One fictitious company for each case the tool handles, with share prices, bonds and
+          ratings.</p></div>
+        <div class="cmd card">
+          <p><a href="como-funciona.html"><strong>How it works →</strong></a></p>
+          <p>How to read a score and the formula of every metric.</p></div>
+        <div class="cmd card">
+          <p><a href="configuracion.html"><strong>Settings →</strong></a></p>
+          <p>The website's style (Luceiro, Terminal or Press), light or dark mode
+          and language.</p></div>
+      </div>
+    </section>""",
+    ),
+}
 ENGLISH = "en"  # folder of the English version
 LANGUAGE_LINK = "#cambiar-idioma"  # replaced by the same page in the other language
 SWITCH_TO_ENGLISH = (
@@ -360,13 +424,21 @@ def write_logo(site: Path) -> None:
     logo.write_bytes((files("company_analysis.reports") / "static" / LOGO).read_bytes())
 
 
-def showcase_page(path: Path, anchor: str, back: str) -> str:
-    """The self-contained showcase page, kept from search engines and with a way back."""
+def showcase_page(path: Path, anchor: str, back: str, language: str) -> str:
+    """The self-contained showcase page, kept from search engines, with a way back and with its
+    "run it on this computer" section turned into links to the website."""
     if not path.is_file():
         raise WebError(f"Falta la página de presentación {path}.")
     html = path.read_text(encoding="utf-8")
-    if anchor not in html or '<meta charset="utf-8">' not in html:
-        raise WebError(f"{path.name} ha cambiado: no se encuentra dónde poner la vuelta a la web.")
+    menu, web_menu, section = WEB_SECTION[language]
+    if (
+        anchor not in html
+        or '<meta charset="utf-8">' not in html
+        or menu not in html
+        or len(LOCAL_SECTION.findall(html)) != 1
+    ):
+        raise WebError(f"{path.name} ha cambiado: no se encuentra dónde adaptarla a la web.")
+    html = LOCAL_SECTION.sub(lambda _: section, html).replace(menu, web_menu, 1)
     return html.replace(
         '<meta charset="utf-8">',
         '<meta charset="utf-8"><meta name="robots" content="noindex, nofollow">',
@@ -444,11 +516,13 @@ def build_site(
         write_pages(site, sample=sample, study=study, data=data)
         write_logo(site)
         pages = {
-            "es": showcase_page(settings.project_root / SHOWCASES["es"][0], *SHOWCASES["es"][1:])
+            "es": showcase_page(
+                settings.project_root / SHOWCASES["es"][0], *SHOWCASES["es"][1:], "es"
+            )
         }
         try:
             pages["en"] = showcase_page(
-                settings.project_root / SHOWCASES["en"][0], *SHOWCASES["en"][1:]
+                settings.project_root / SHOWCASES["en"][0], *SHOWCASES["en"][1:], "en"
             )
         except WebError as error:  # the English site then shows the Spanish presentation
             console.print(f"[yellow]Presentación en inglés no disponible:[/yellow] {error}")

@@ -163,3 +163,14 @@ def test_a_folder_that_is_not_a_built_website_is_never_replaced(
     (built / "sobrante.html").write_text("de una versión anterior", encoding="utf-8")
     _build(built, snapshot)  # a website built before is replaced entirely
     assert not (built / "sobrante.html").exists()
+
+
+def test_the_presentation_links_to_the_website_instead_of_local_commands(site: Path) -> None:
+    for page, title in (
+        ("presentacion.html", "Verlo en la web"),
+        ("en/presentacion.html", "See it on the website"),
+    ):
+        html = (site / page).read_text(encoding="utf-8")
+        assert f"<h2>{title}</h2>" in html, page
+        assert ".\analisis demo" not in html, page
+        assert 'href="configuracion.html"' in html, page
