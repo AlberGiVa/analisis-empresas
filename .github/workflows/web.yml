@@ -4,7 +4,8 @@
 # la publicación de los tipos del BCE) y a mano desde la pestaña Actions («Run workflow»). Antes de
 # publicar pasa formato, lint, tipos y tests. Si algo falla, no se publica nada y sigue en línea la
 # versión anterior. Los datos se descargan al construir: nunca se guardan en el repositorio.
-# Decisión 0018.
+# Las acciones de terceros van fijadas por su commit (con la versión al lado), no por una etiqueta
+# que se pueda mover. Decisión 0018.
 name: Web pública
 
 on:
@@ -28,11 +29,11 @@ jobs:
     env:
       TZ: Europe/Madrid   # fechas y horas de la web en hora peninsular
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.14"
-      - uses: astral-sh/setup-uv@v10
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
           version: "0.13.3"
       - name: Instalar dependencias
@@ -52,8 +53,8 @@ jobs:
         run: |
           if [ -n "$SEC_USER_AGENT" ]; then export ANALYSIS_HTTP_USER_AGENT="$SEC_USER_AGENT"; fi
           uv run python -m company_analysis.web construir --salida _site
-      - uses: actions/configure-pages@v6
-      - uses: actions/upload-pages-artifact@v5
+      - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: _site
 
@@ -68,4 +69,4 @@ jobs:
       url: ${{ steps.publicacion.outputs.page_url }}
     steps:
       - id: publicacion
-        uses: actions/deploy-pages@v5
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
