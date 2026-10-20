@@ -24,6 +24,8 @@
     <div class="kpi" data-kpi="GBP"><span class="k-nombre">EUR/GBP</span><span class="k-valor">—</span><span class="k-spark"></span><span class="k-cambio"></span><span class="k-fecha"></span></div>
     <div class="kpi" data-kpi="estr"><span class="k-nombre">€STR</span><span class="k-valor">—</span><span class="k-spark"></span><span class="k-cambio"></span><span class="k-fecha"></span></div>
     <div class="kpi" data-kpi="10Y"><span class="k-nombre">Bono AAA del euro a 10 años</span><span class="k-valor">—</span><span class="k-spark"></span><span class="k-cambio"></span><span class="k-fecha"></span></div>
+    <div class="kpi" data-kpi="prima"><span class="k-nombre">Prima de riesgo de España</span><span class="k-valor">—</span><span class="k-spark"></span><span class="k-cambio"></span><span class="k-fecha"></span></div>
+    <div class="kpi" data-kpi="dfr"><span class="k-nombre">Tipo de depósito del BCE</span><span class="k-valor">—</span><span class="k-spark"></span><span class="k-cambio"></span><span class="k-fecha"></span></div>
   </div>
 
   <section class="panel-card" id="fx-datos">
@@ -54,6 +56,25 @@
       <div class="panel-head"><h2>€STR</h2><span class="muted small">Tipo de interés a un día del euro</span></div>
       <div class="chart-box" id="grafico-estr"></div>
     </section>
+  </div>
+
+  <div class="mk-two">
+    <section class="panel-card">
+      <div class="panel-head"><h2>Deuda pública a 10 años</h2>
+        <div class="legend"><span><i class="c1"></i>España</span><span><i class="c2"></i>Alemania</span><span><i class="c3"></i>Italia</span><span><i class="c4"></i>Francia</span></div></div>
+      <div class="chart-box" id="grafico-bonos"></div>
+    </section>
+    <section class="panel-card">
+      <div class="panel-head"><h2>Prima de riesgo frente a Alemania</h2>
+        <div class="legend"><span><i class="c1"></i>España</span><span><i class="c3"></i>Italia</span></div></div>
+      <div class="chart-box" id="grafico-prima"></div>
+    </section>
+  </div>
+  <div hidden>
+    <span data-texto="pais-ES">España</span><span data-texto="pais-DE">Alemania</span>
+    <span data-texto="pais-IT">Italia</span><span data-texto="pais-FR">Francia</span>
+    <span data-texto="prima-ES">España</span><span data-texto="prima-IT">Italia</span>
+    <span data-texto="bonos">Deuda pública a 10 años</span><span data-texto="prima">Prima de riesgo frente a Alemania</span>
   </div>
 
   <section class="panel-card">

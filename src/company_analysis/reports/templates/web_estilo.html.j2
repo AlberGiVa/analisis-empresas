@@ -331,6 +331,15 @@
   .legend { display: flex; gap: 14px; font-size: 12px; color: var(--muted); }
   .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; background: var(--chart-dot); }
   .legend i.muted { background: var(--chart-median); }
+  /* Several series (sovereign yields by country): series 1 is the chart colour of the style */
+  :root { --c2: #5f6b78; --c3: #c0812a; --c4: #3b6fb6; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --c2: #a3adb8; --c3: #d9a24e; --c4: #7aa5e6; } }
+  :root[data-theme="dark"] { --c2: #a3adb8; --c3: #d9a24e; --c4: #7aa5e6; }
+  :root[data-estilo="terminal"] { --c2: #bdbdbd; --c3: #4fc3f7; --c4: #b388ff; }
+  .chart-line.chart-c2 { stroke: var(--c2); } .chart-line.chart-c3 { stroke: var(--c3); } .chart-line.chart-c4 { stroke: var(--c4); }
+  .chart-mark.chart-c2 { fill: var(--c2); } .chart-mark.chart-c3 { fill: var(--c3); } .chart-mark.chart-c4 { fill: var(--c4); }
+  .legend i.c1 { background: var(--chart-dot); } .legend i.c2 { background: var(--c2); }
+  .legend i.c3 { background: var(--c3); } .legend i.c4 { background: var(--c4); }
   @media (prefers-reduced-motion: reduce) {
     .chart-anim, .chart-dot, .kpi, .panel-card, .bar-fill { animation: none; stroke-dashoffset: 0 !important; }
     .ticker-track { animation: none; }

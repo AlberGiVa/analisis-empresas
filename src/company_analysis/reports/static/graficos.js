@@ -27,7 +27,7 @@
   }
   function day(iso) {
     var p = iso.split("-");
-    return p[2] + "/" + p[1] + "/" + p[0];
+    return p.length < 3 ? p[1] + "/" + p[0] : p[2] + "/" + p[1] + "/" + p[0];  /* monthly: MM/YYYY */
   }
   function el(name, attrs, parent) {
     var node = document.createElementNS(SVG, name);
@@ -114,7 +114,7 @@
           var xv = opts.xNumeric ? p[0] : Date.parse(p[0]);
           return (k ? "L" : "M") + sx(xv).toFixed(1) + "," + sy(p[1]).toFixed(1);
         }).join("");
-        var path = el("path", { d: d, class: "chart-line" + (s.muted ? " chart-line-muted" : "") + (s.dashed ? " chart-line-dashed" : "") }, svg);
+        var path = el("path", { d: d, class: "chart-line" + (s.muted ? " chart-line-muted" : "") + (s.dashed ? " chart-line-dashed" : "") + (s.color ? " chart-c" + s.color : "") }, svg);
         if (!animated && !s.dashed && path.getTotalLength) {  /* draw-in once, with the real length */
           var length = path.getTotalLength();
           path.style.strokeDasharray = length;
@@ -128,7 +128,7 @@
       var cross = el("line", { y1: top, y2: height - bottom, class: "chart-cross" }, svg);
       cross.style.display = "none";
       var marks = series.map(function (s) {
-        var m = el("circle", { r: 4.5, class: "chart-mark" + (s.muted ? " chart-dot-muted" : "") }, svg);
+        var m = el("circle", { r: 4.5, class: "chart-mark" + (s.muted ? " chart-dot-muted" : "") + (s.color ? " chart-c" + s.color : "") }, svg);
         m.style.display = "none";
         return m;
       });
@@ -347,6 +347,16 @@
       yFormat: function (v) { return num(v, 2) + " %"; }
     });
     var estrChart = estrBox && lineChart(estrBox, { height: 220, decimals: 3, yFormat: function (v) { return num(v, 3) + " %"; } });
+    var bondsBox = document.getElementById("grafico-bonos");
+    var spreadBox = document.getElementById("grafico-prima");
+    var bondsChart = bondsBox && lineChart(bondsBox, { height: 260, decimals: 2, yFormat: function (v) { return num(v, 2) + " %"; } });
+    var spreadChart = spreadBox && lineChart(spreadBox, { height: 260, decimals: 0, yFormat: function (v) { return num(v, 0) + " pb"; } });
+    function spread(country) {  /* country minus Germany, in basis points, month by month */
+      var de = {}, out = [];
+      (data.bonds.DE || []).forEach(function (p) { de[p[0]] = p[1]; });
+      (data.bonds[country] || []).forEach(function (p) { if (de[p[0]] !== undefined) out.push([p[0], (p[1] - de[p[0]]) * 100]); });
+      return out;
+    }
 
     function curveLatest() {
       var dates = curveDates(data.curve);
@@ -389,6 +399,19 @@
           value = num(points[points.length - 1][1], 3) + " %";
           deltaValue = points.length > 1 ? (points[points.length - 1][1] - points[points.length - 2][1]) * 100 : 0;
           delta = (deltaValue > 0 ? "+" : deltaValue < 0 ? "−" : "") + num(Math.abs(deltaValue), 1) + " pb";
+        } else if (kind === "dfr" && data.dfr.length) {
+          points = data.dfr;
+          value = num(points[points.length - 1][1], 2) + " %";
+          var yearAgo = valueBefore(points, 365);
+          deltaValue = yearAgo === null ? 0 : (points[points.length - 1][1] - yearAgo) * 100;
+          delta = (deltaValue > 0 ? "+" : deltaValue < 0 ? "−" : "") + num(Math.abs(deltaValue), 0) + " pb · 1A";
+        } else if (kind === "prima") {
+          points = spread("ES");
+          if (points.length) {
+            value = num(points[points.length - 1][1], 0) + " pb";
+            deltaValue = points.length > 1 ? points[points.length - 1][1] - points[points.length - 2][1] : 0;
+            delta = (deltaValue > 0 ? "+" : deltaValue < 0 ? "−" : "") + num(Math.abs(deltaValue), 0) + " pb";
+          }
         } else if (kind === "10Y") {
           var days = Object.keys(data.curve).sort();
           points = days.filter(function (d) { return data.curve[d]["10Y"] !== undefined; }).map(function (d) { return [d, data.curve[d]["10Y"]]; });
@@ -403,7 +426,7 @@
         setText(card, ".k-cambio", delta, deltaValue);
         setText(card, ".k-fecha", day(points[points.length - 1][0]));
         var sp = card.querySelector(".k-spark");
-        if (sp) sp.innerHTML = sparkSvg(lastDays(points, 92), 120, 34);
+        if (sp) sp.innerHTML = sparkSvg(lastDays(points, kind === "prima" ? 3 * 366 : 92), 120, 34);  /* monthly series: 3 years */
       });
       var heat = document.getElementById("mapa-fx");
       if (heat) {
@@ -446,6 +469,16 @@
         curveChart.set(list.reverse(), texto("curva", "Curva"));
       }
       if (estrChart && data.estr.length) estrChart.set([{ name: "€STR", points: lastDays(data.estr, 366) }], "€STR");
+      if (bondsChart && data.bonds) {
+        bondsChart.set(data.countries.filter(function (c) { return data.bonds[c] && data.bonds[c].length; }).map(function (c, i) {
+          return { name: texto("pais-" + c, c), points: lastDays(data.bonds[c], 5 * 366), color: data.countries.indexOf(c) + 1 };
+        }), texto("bonos", "Bonos"));
+      }
+      if (spreadChart && data.bonds) {
+        spreadChart.set(["ES", "IT"].map(function (c, i) {
+          return { name: texto("prima-" + c, c), points: lastDays(spread(c), 5 * 366), color: data.countries.indexOf(c) + 1 };
+        }).filter(function (s) { return s.points.length; }), texto("prima", "Prima"));
+      }
       document.querySelectorAll("tr[data-cur]").forEach(function (row) {
         var s = data.fx[row.getAttribute("data-cur")]; if (!s || !s.length) return;
         var v = s[s.length - 1][1];
@@ -481,12 +514,23 @@
     function live() {
       var long = new Date(Date.now() - 735 * DAY).toISOString().slice(0, 10);
       var short = new Date(Date.now() - 400 * DAY).toISOString().slice(0, 10);
+      var bondsStart = new Date(Date.now() - 6 * 366 * DAY).toISOString().slice(0, 7);
       Promise.allSettled([
+        ecb("/" + data.keys.dfr + "?startPeriod=" + short),
+        ecb("/" + data.keys.bonds + "?startPeriod=" + bondsStart),
         fxSeries(data.currencies, long),
         ecb("/EST/B.EU000A2X2A25.WT?startPeriod=" + short),
         ecb("/YC/B.U2.EUR.4F.G_N_A.SV_C_YM." + tenors.map(function (t) { return "SR_" + t; }).join("+") + "?startPeriod=" + short)
-      ]).then(function (r) {
+      ]).then(function (all) {
         var ok = false;
+        if (all[0].status === "fulfilled" && all[0].value.length) { data.dfr = all[0].value.map(function (x) { return [x.date, x.value]; }); ok = true; }
+        if (all[1].status === "fulfilled" && all[1].value.length) {
+          var b = {};
+          all[1].value.forEach(function (x) { var c = x.key.split(".")[2]; (b[c] = b[c] || []).push([x.date, x.value]); });
+          Object.keys(b).forEach(function (c) { b[c].sort(function (p, q) { return p[0] < q[0] ? -1 : 1; }); });
+          data.bonds = b; ok = true;
+        }
+        var r = all.slice(2);
         if (r[0].status === "fulfilled" && Object.keys(r[0].value).length) { data.fx = r[0].value; ok = true; }
         if (r[1].status === "fulfilled" && r[1].value.length) { data.estr = r[1].value.map(function (x) { return [x.date, x.value]; }); ok = true; }
         if (r[2].status === "fulfilled" && r[2].value.length) {

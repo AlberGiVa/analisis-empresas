@@ -361,12 +361,16 @@ def fx_rows(snapshot: Path) -> list[FxRow]:
 # --- Markets: live on the page, with the figures of the build as a fallback ----------------------
 CURVE_TENORS = ("3M", "6M", "1Y", "2Y", "3Y", "5Y", "7Y", "10Y", "15Y", "20Y", "30Y")
 ECB_DATA = "https://data-api.ecb.europa.eu/service/data"
+DEPOSIT_RATE = "FM/D.U2.EUR.4F.KR.DFR.LEV"  # ECB deposit facility rate (daily)
+BOND_COUNTRIES = ("ES", "DE", "IT", "FR")
+BONDS_10Y = f"IRS/M.{'+'.join(BOND_COUNTRIES)}.L.L40.CI.0000.EUR.N.Z"  # 10-year yields (monthly)
 
 
 def market_requests(today: date) -> list[Request]:
     """€STR and the euro AAA yield curve (ECB): optional, a failure never stops the website."""
     start = (today - timedelta(days=400)).isoformat()
     keys = "+".join(f"SR_{tenor}" for tenor in CURVE_TENORS)
+    bonds_start = (today - timedelta(days=6 * 366)).isoformat()[:7]  # monthly series: YYYY-MM
     return [
         Request(
             "mercados/estr.csv",
@@ -379,6 +383,20 @@ def market_requests(today: date) -> list[Request]:
             "mercados/curva.csv",
             f"{ECB_DATA}/YC/B.U2.EUR.4F.G_N_A.SV_C_YM.{keys}?startPeriod={start}&format=csvdata",
             "Banco Central Europeo (curva AAA del euro)",
+            "browser",
+            required=False,
+        ),
+        Request(
+            "mercados/dfr.csv",
+            f"{ECB_DATA}/{DEPOSIT_RATE}?startPeriod={start}&format=csvdata",
+            "Banco Central Europeo (tipo de la facilidad de depósito)",
+            "browser",
+            required=False,
+        ),
+        Request(
+            "mercados/bonos10.csv",
+            f"{ECB_DATA}/{BONDS_10Y}?startPeriod={bonds_start}&format=csvdata",
+            "Banco Central Europeo (deuda pública a 10 años)",
             "browser",
             required=False,
         ),
@@ -411,12 +429,20 @@ def market_data(snapshot: Path) -> dict[str, Any]:
     curve: dict[str, dict[str, float]] = {}
     for key, day, value in _ecb_csv(snapshot / "mercados" / "curva.csv"):
         curve.setdefault(day, {})[key.rsplit("SR_", 1)[-1]] = value
+    deposit = [(day, value) for _, day, value in _ecb_csv(snapshot / "mercados" / "dfr.csv")]
+    bonds: dict[str, list[tuple[str, float]]] = {}
+    for key, day, value in _ecb_csv(snapshot / "mercados" / "bonos10.csv"):
+        bonds.setdefault(key.split(".")[2], []).append((day, value))  # IRS.M.ES.L.L40…
     return {
         "fx": {cur: [list(p) for p in series if p[0] >= cut] for cur, series in fx.items()},
         "estr": [list(p) for p in sorted(estr)],
         "curve": dict(sorted(curve.items())),
+        "dfr": [list(p) for p in sorted(deposit)],
+        "bonds": {country: [list(p) for p in sorted(s)] for country, s in bonds.items()},
         "currencies": list(FX_CURRENCIES),
         "tenors": list(CURVE_TENORS),
+        "countries": list(BOND_COUNTRIES),
+        "keys": {"dfr": DEPOSIT_RATE, "bonds": BONDS_10Y},
     }
 
 
@@ -524,7 +550,7 @@ def write_logo(site: Path) -> None:
     """The logo and the charts script every page uses."""
     folder = site / "marca"
     folder.mkdir()
-    for name in (LOGO, "graficos.js"):
+    for name in (LOGO, "graficos.js", "prueba-indices.htm"):  # .htm: a test page, not translated
         (folder / name).write_bytes(
             (files("company_analysis.reports") / "static" / name).read_bytes()
         )
