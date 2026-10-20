@@ -86,6 +86,37 @@ Tiene su propia base de datos, metodología y carpeta de resultados, y genera un
 comparables, cambios entre dos fechas y la calidad y el origen de cada dato. Detalles en
 [estudio-real/README.md](estudio-real/README.md).
 
+## Web pública
+
+<!-- URL de la web: pendiente -->
+
+Una web estática en GitHub Pages para consultar la herramienta desde cualquier sitio: basta con la
+dirección de la web, sin usuario ni contraseña. Solo muestra datos que se pueden republicar:
+- **Empresas reales:** el estudio de las diez empresas, con las cuentas de la SEC y los tipos de
+  cambio del BCE. No hay cotizaciones, porque las condiciones de Nasdaq y Yahoo Finance no permiten
+  publicarlas. Por eso faltan la capitalización, el PER, el EV/EBITDA y el FCF yield, y la
+  puntuación de accionista es «sin valoración».
+- **Ejemplo:** las 20 empresas ficticias con todas las funciones (cotizaciones, bonos y ratings).
+- **Cómo funciona** (lectura de una puntuación, glosario, métricas, fuentes y límites) y
+  **Novedades**.
+
+El diario del analista nunca se publica.
+
+```powershell
+uv run python -m company_analysis.web construir --abrir   # la genera en _site\ y la abre
+```
+
+Se calcula en una carpeta temporal: no toca la base principal ni la del estudio.
+
+En GitHub se actualiza sola, con cada cambio y cada mañana de martes a sábado. Si falla una
+descarga, no se publica nada y sigue en línea la versión anterior. Dos avisos:
+- GitHub detiene las actualizaciones programadas tras 60 días sin actividad en el repositorio. Se
+  reactivan desde la pestaña Actions.
+- La SEC pide identificarse con un nombre y un correo de contacto. En GitHub se indican en el
+  secreto opcional `SEC_USER_AGENT`.
+
+Detalles en [docs/decisiones/0018-web-publica.md](docs/decisiones/0018-web-publica.md).
+
 ## Comprobaciones de calidad
 
 ```powershell
@@ -121,4 +152,5 @@ panel.
 - [docs/metricas.md](docs/metricas.md): diccionario de métricas.
 - [docs/decisiones/](docs/decisiones/): una nota por cada decisión de diseño relevante.
 - [docs/siguientes-pasos.md](docs/siguientes-pasos.md): ideas fuera del alcance actual.
+- [docs/novedades.yaml](docs/novedades.yaml): novedades de la herramienta, que se ven en la web.
 - [data/sample/README.md](data/sample/README.md): datos de ejemplo y sus casos límite.

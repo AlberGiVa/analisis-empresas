@@ -22,6 +22,8 @@ aquí en lugar de implementarse.
   - datos de dos clases de acciones (excluida Hershey) y empresas sin resultado operativo
     publicado (excluida Clorox);
   - EBITDA ajustado de un proveedor con licencia, para comparar con el contable;
+  - cotizaciones de una fuente con licencia que permita publicarlas, para que la web pública
+    (decisión 0018) muestre también la valoración: capitalización, PER, EV/EBITDA y FCF yield;
   - ampliar el universo, incluidas cotizadas europeas: ESMA o los registros nacionales no dan
     estados financieros estructurados como la SEC.
 - Proveedores con APIs públicas y gratuitas, sin licencia. Hay una prueba de conexión
@@ -74,6 +76,12 @@ aquí en lugar de implementarse.
 - Comparar dos ejecuciones en el panel (qué ha cambiado y por qué).
 - Exportación a Excel (.xlsx) con formato, además del CSV actual.
 - Lanzador del panel con doble clic para quien no use la consola.
+
+## Web
+- Dominio propio para la web pública (hoy usa la dirección que da GitHub Pages).
+- Buscador de empresas en la web.
+- Gráficos de evolución entre actualizaciones de la web (puntuaciones, apalancamiento,
+  rentabilidad).
 
 ## Uso
 - Uso compartido entre varios analistas: DuckDB admite un único escritor, así que un diario de

@@ -69,7 +69,15 @@ fichero, así que cualquier cifra del informe se puede rastrear hasta el fichero
   las demás.
 - **No es una recomendación de inversión:** describe y compara.
 
+## En la web pública
+
+La web pública usa este mismo universo, pero sin cotizaciones (Nasdaq y Yahoo Finance no permiten
+republicarlas) y con su propia metodología, [metodologia-web.yaml](metodologia-web.yaml), sin
+valoración en la puntuación de accionista. Se construye aparte: no toca `datos/` ni `salida/`.
+Detalles en la [decisión 0018](../docs/decisiones/0018-web-publica.md).
+
 ## Qué se versiona y qué no
 
-Se versionan este README, el universo, la metodología y el lanzador `estudio.cmd`. Las carpetas
-`datos/` (descargas y base de datos) y `salida/` (informes) contienen datos reales y git las ignora.
+Se versionan este README, el universo, la metodología, la de la web (`metodologia-web.yaml`) y el
+lanzador `estudio.cmd`. Las carpetas `datos/` (descargas y base de datos) y `salida/` (informes)
+contienen datos reales y git las ignora.

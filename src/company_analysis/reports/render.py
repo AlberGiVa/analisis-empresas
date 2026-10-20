@@ -22,6 +22,15 @@ class ReportFiles:
     fichas: tuple[Path, ...]
 
 
+@dataclass(frozen=True)
+class SiteNav:
+    """Navigation bar of the public website; local reports are written without it."""
+
+    links: tuple[tuple[str, str, str], ...]  # (key, label, path from the website root)
+    active: str  # key of the section the page belongs to
+    notice: str | None = None  # line under the bar, e.g. where the data come from
+
+
 def environment() -> Environment:
     """Jinja2 with autoescaping (notes typed by analysts are never interpreted as HTML)."""
     return Environment(
@@ -33,7 +42,7 @@ def environment() -> Environment:
     )
 
 
-def _common_context(view: RunView) -> dict[str, Any]:
+def _common_context(view: RunView, site: SiteNav | None = None) -> dict[str, Any]:
     record = view.record
     return {
         "view": view,
@@ -42,6 +51,8 @@ def _common_context(view: RunView) -> dict[str, Any]:
         "cutoff": f"{record.data_cutoff:%d/%m/%Y %H:%M}",
         "generated": f"{local_now():%d/%m/%Y %H:%M}",
         "disclaimer": view.disclaimer,
+        "site": site,
+        "site_root": "",  # each page sets the way back to the website root
     }
 
 
@@ -87,20 +98,25 @@ def ranking_frame(view: RunView) -> pd.DataFrame:
     return frame
 
 
-def write_reports(view: RunView, output_dir: Path) -> ReportFiles:
-    """Write ``<output_dir>/<run_id>/``: ranking.html, ranking.csv and fichas/<company>.html."""
-    directory = output_dir / view.record.run_id
+def write_reports(
+    view: RunView, output_dir: Path, *, folder: str | None = None, site: SiteNav | None = None
+) -> ReportFiles:
+    """Write ``<output_dir>/<folder>/``: ranking.html, ranking.csv and fichas/<company>.html.
+
+    The folder is the run identifier unless given (the website uses fixed folders).
+    """
+    directory = output_dir / (folder or view.record.run_id)
     fichas_dir = directory / "fichas"
     fichas_dir.mkdir(parents=True, exist_ok=True)
     env = environment()
-    context = _common_context(view)
+    context = _common_context(view, site)
     alerts: list[tuple[CompanyView, AlertLine]] = [
         (company, alert) for company in view.companies for alert in company.alerts
     ]
     ranking_html = directory / "ranking.html"
     ranking_html.write_text(
         env.get_template("ranking.html.j2").render(
-            **context,
+            **context | {"site_root": "../"},
             equity=view.ranking(ScoreType.EQUITY),
             credit=view.ranking(ScoreType.CREDIT),
             alerts=alerts,
@@ -116,6 +132,9 @@ def write_reports(view: RunView, output_dir: Path) -> ReportFiles:
     fichas = []
     for company in view.companies:
         path = directory / company.ficha_path
-        path.write_text(template.render(**context, company=company), encoding="utf-8")
+        path.write_text(
+            template.render(**context | {"site_root": "../../"}, company=company),
+            encoding="utf-8",
+        )
         fichas.append(path)
     return ReportFiles(directory, ranking_html, ranking_csv, tuple(fichas))

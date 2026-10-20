@@ -168,7 +168,7 @@ def show_company(view: RunView) -> None:
                 width="stretch",
             )
         else:
-            st.caption("La empresa no tiene bonos vivos.")
+            st.caption("No hay bonos vivos de la empresa en los datos cargados.")
     st.markdown("#### Alertas")
     for alert in company.alerts:
         st.warning(f"{alert.rule_label}: {alert.message}")

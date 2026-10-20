@@ -2,7 +2,7 @@
 {% block title %}Estudio con datos reales · {{ run_date }}{% endblock %}
 {% block content %}
 <style>
-  main { max-width: 1440px; }
+  main, .site-inner { max-width: 1440px; }
   .notice { margin: 14px 0 6px; padding: 12px 14px; border-left: 4px solid var(--warn-text); background: var(--warn-bg); }
   .notice p { margin: 4px 0; }
   .lead { max-width: 80ch; color: var(--text); }
@@ -16,11 +16,11 @@
   table.peers td:first-child { min-width: 170px; }
   .score { font-weight: 600; }
   svg.chart { width: 100%; max-width: 760px; height: auto; display: block; }
-  svg.chart .grid { stroke: #e6ece8; stroke-width: 1; }
-  svg.chart .median { stroke: #9aa7a0; stroke-width: 1; }
+  svg.chart .grid { stroke: var(--chart-grid); stroke-width: 1; }
+  svg.chart .median { stroke: var(--chart-median); stroke-width: 1; }
   svg.chart .tick { fill: var(--muted); font-size: 11px; }
   svg.chart .axis { fill: var(--muted); font-size: 12px; font-weight: 600; }
-  svg.chart .dot { fill: #0e7c4e; stroke: #fff; stroke-width: 2; }
+  svg.chart .dot { fill: var(--chart-dot); stroke: var(--bg); stroke-width: 2; }
   svg.chart .label { fill: var(--text); font-size: 12px; font-weight: 600; }
   .company { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; margin: 12px 0; }
   .company h3 { margin: 0 0 4px; }
@@ -46,17 +46,27 @@
 <p class="lead">{{ study.description }}</p>
 
 <div class="notice">
+  {% if study.with_prices %}
   <p><strong>Datos reales, uso interno.</strong> Cifras tal como las publican las empresas en la SEC
   (normas contables de EE. UU., sin los ajustes que ellas mismas presentan como «ajustados»),
   cotizaciones de cierre y tipos de cambio del BCE. Cada importe en euros usa el tipo de cambio de su
   fecha. No es una recomendación de inversión: describe y compara.</p>
+  {% else %}
+  <p><strong>Datos reales de fuentes de uso libre.</strong> Cifras tal como las publican las empresas en
+  la SEC (normas contables de EE. UU., sin los ajustes que ellas mismas presentan como «ajustados») y
+  tipos de cambio del BCE. Cada importe en euros usa el tipo de cambio de su fecha. No es una
+  recomendación de inversión: describe y compara.</p>
+  <p>Esta versión va sin cotizaciones: las condiciones de los servicios gratuitos que las ofrecen no
+  permiten republicarlas. Por eso no hay capitalización, PER, EV/EBITDA ni FCF yield, y la puntuación de
+  accionista solo mide rentabilidad y crecimiento.</p>
+  {% endif %}
   <p>La vista de acreedor usa solo fundamentales: no hay una fuente gratuita y fiable de diferenciales
   de bonos ni de ratings (ver «Método y límites»).</p>
 </div>
 
 <h2>Comparables</h2>
 <p class="muted">Últimos doce meses hasta el último informe publicado antes del {{ run_date }} (la columna
-«Cifras» dice cuál). Capitalización en millones de euros. Las puntuaciones comparan cada empresa con las
+«Cifras» dice cuál).{% if study.with_prices %} Capitalización en millones de euros.{% endif %} Las puntuaciones comparan cada empresa con las
 otras nueve: 100 es la mejor del grupo en cada factor.</p>
 <div class="scroll">
 <table class="peers">
@@ -90,13 +100,11 @@ otras nueve: 100 es la mejor del grupo en cada factor.</p>
 <p class="muted small">Pasa el ratón por una celda sin valor para ver el motivo. Cada ficha despliega la fórmula y los datos de entrada de cada métrica.
 Los avisos llevan a la sección de calidad de datos: léelos antes de sacar conclusiones de una cifra.</p>
 
-<h2>Valoración frente a apalancamiento</h2>
+<h2>{{ study.chart_title }}</h2>
 <div class="two">
   <div>{{ study.chart }}</div>
   <div>
-    <p>Cada punto es una empresa. A la derecha, más cara en relación con lo que genera (EV/EBITDA); arriba,
-    más endeudada en relación con lo que genera (deuda neta/EBITDA). Las líneas grises marcan la mediana del
-    grupo.</p>
+    <p>{{ study.chart_text }}</p>
     {% if study.chart_left_out %}<p class="muted">Fuera del gráfico: {{ study.chart_left_out | join("; ") }}. Sus cifras están en la tabla y en sus avisos.</p>{% endif %}
   </div>
 </div>
@@ -145,10 +153,12 @@ informe posterior (la herramienta guarda las dos versiones y usa la que se conoc
     {% if quality.latest_filing %}Último informe registrado: {{ quality.latest_filing.form }} del periodo cerrado el
     {{ quality.latest_filing.period_end | fecha }}, presentado el {{ quality.latest_filing.filed | fecha }}.{% endif %}
     Último periodo en los datos estructurados: {{ quality.latest_period_in_data | fecha }}.
+    {% if study.with_prices %}
     Cotizaciones: {{ quality.prices }} sesiones{% if quality.last_price %}, la última del {{ quality.last_price.price_date | fecha }}
     ({{ quality.last_price.close | num(2) }} {{ quality.last_price.currency }}){% endif %};
     {% if quality.compared_days %}contrastadas con Yahoo Finance en {{ quality.compared_days }} sesiones, diferencia máxima
     {{ (quality.max_price_difference * 100) | num(2) }} %.{% else %}sin contraste.{% endif %}
+    {% endif %}
   </p>
   {% if quality.warnings %}
   <ul class="warn">{% for warning in quality.warnings %}<li>{{ warning }}</li>{% endfor %}</ul>
@@ -201,8 +211,10 @@ informe posterior (la herramienta guarda las dos versiones y usa la que se conoc
   <li><strong>Deuda.</strong> Las líneas de deuda que cada empresa presenta en su balance (préstamos, papel comercial,
   vencimientos a un año y deuda a largo), revisadas a mano en <code>estudio-real/universo.yaml</code>. Los arrendamientos solo
   cuentan cuando la empresa los incluye en esas líneas; los operativos nunca (su coste ya está en el EBITDA).</li>
+  {% if study.with_prices %}
   <li><strong>Acciones.</strong> Las del balance al cierre si la empresa las publica; si no, las de la portada del informe, con
   fecha algo posterior.</li>
+  {% endif %}
   <li><strong>Crédito.</strong> Sin diferenciales de bonos ni ratings: la puntuación de acreedor solo usa apalancamiento,
   cobertura de intereses y deuda sobre capital. La alerta de rebaja de rating no puede saltar.</li>
   <li><strong>Grupo pequeño.</strong> Con diez empresas, cada factor se compara con nueve: un cambio pequeño en una empresa
@@ -214,8 +226,13 @@ informe posterior (la herramienta guarda las dos versiones y usa la que se conoc
 <ul>
   <li><strong>SEC EDGAR</strong> (data.sec.gov): datos públicos de la administración de EE. UU.</li>
   <li><strong>Banco Central Europeo</strong> (data-api.ecb.europa.eu): reutilización libre citando la fuente.</li>
+  {% if study.with_prices %}
   <li><strong>Nasdaq y Yahoo Finance</strong>: cotizaciones de servicios web sin licencia de datos. Valen para esta prueba
   interna; para un uso habitual hace falta un proveedor con licencia. Nada de esto se publica ni se sube al repositorio.</li>
+  {% else %}
+  <li><strong>Sin cotizaciones</strong>: los servicios gratuitos que las ofrecen no permiten republicar sus datos, así que
+  esta versión no las usa.</li>
+  {% endif %}
 </ul>
 <details>
   <summary>Las {{ study.data.sources | length }} descargas de esta carga</summary>

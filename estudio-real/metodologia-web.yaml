@@ -1,0 +1,77 @@
+# Metodología de la WEB PÚBLICA (python -m company_analysis.web). Es la del estudio
+# (metodologia.yaml) sin nada que dependa del precio de la acción:
+#
+#   - La web solo publica datos de fuentes que se pueden republicar: las cuentas de la SEC y los
+#     tipos de cambio del BCE. Las cotizaciones de Nasdaq y Yahoo Finance no (sus condiciones no lo
+#     permiten), así que no hay capitalización, valor de empresa, PER, EV/EBITDA ni FCF yield.
+#   - La puntuación de accionista se queda con la rentabilidad y el crecimiento. Es una vista más
+#     pobre que la del estudio, y así se indica en su nombre.
+#   - Desaparecen los filtros que necesitan una cotización (capitalización y FCF yield).
+#
+# Todo lo demás (antigüedad máxima de los datos, comparables, crédito y alertas) es igual.
+version: "2026.10-web-1"   # metodología del estudio 2026.10-estudio-1, sin cotizaciones
+
+# Antigüedad máxima (en días) de cada dato en la fecha de análisis. Un dato más antiguo se
+# marca como "dato desactualizado" y no se usa.
+normalization:
+  max_price_age_days: 10
+  max_quote_age_days: 10
+  max_fx_age_days: 7
+  max_financials_age_days: 480
+
+metrics:
+  notional_tax_rate: 0.25          # tipo impositivo teórico del ROIC
+  min_bonds_per_rating_bucket: 3   # bonos necesarios en un tramo para calcular su mediana
+  rating_buckets:                  # de mejor a peor; "worst" es el peor rating del tramo
+    - {name: "AAA-AA", worst: "AA-"}
+    - {name: "A", worst: "A-"}
+    - {name: "BBB", worst: "BBB-"}
+    - {name: "BB", worst: "BB-"}
+    - {name: "B", worst: "B-"}
+    - {name: "CCC o inferior", worst: "D"}
+
+# Puntuaciones (0-100) por percentiles. Cada factor se compara con las empresas de su sector
+# que tienen dato en ese factor si son al menos "min_peers"; si no, con todo el universo.
+# Los pesos son relativos y se reparten entre los factores con dato.
+scoring:
+  min_peers: 5   # el estudio tiene 10 empresas del mismo sector: todas se comparan entre sí
+  equity:
+    name: "Puntuación de accionista sin valoración"
+    min_coverage: 0.6   # peso mínimo con dato, sobre el peso de los factores que aplican
+    min_factors: 3      # número mínimo de factores con dato
+    # Sin cotizaciones (ver la cabecera): solo rentabilidad y crecimiento, con pesos iguales.
+    factors:
+      - {metric: roe, weight: 1}
+      - {metric: roic, weight: 1}
+      - {metric: ebitda_margin, weight: 1}
+      - {metric: revenue_growth, weight: 1}
+  credit:
+    name: "Puntuación de crédito"
+    min_coverage: 0.6
+    min_factors: 2
+    # Sin diferenciales de bonos (igual que el estudio): solo fundamentales.
+    factors:
+      - {metric: net_debt_to_ebitda, weight: 1}
+      - {metric: interest_coverage, weight: 1}
+      - {metric: debt_to_equity, weight: 1}
+
+# Filtros con nombre. Una empresa "cumple", "no cumple" o queda "indeterminada" si le falta
+# algún dato. Operadores: <, <=, >, >=. Los porcentajes se escriben como fracción (5 % = 0.05).
+screens:
+  - id: apalancamiento_moderado
+    name: "Apalancamiento moderado"
+    description: "Deuda neta/EBITDA de 2,5x o menos y cobertura de intereses de 5x o más."
+    conditions:
+      - {metric: net_debt_to_ebitda, operator: "<=", value: 2.5}
+      - {metric: interest_coverage, operator: ">=", value: 5}
+
+alerts:
+  rating_downgrade:
+    enabled: true
+    lookback_days: 182            # rebajas de rating en los últimos seis meses
+  leverage:
+    enabled: true
+    max_net_debt_to_ebitda: 3.5   # también salta con EBITDA negativo y deuda neta positiva
+  score_change:
+    enabled: true
+    min_change_points: 15         # frente a la ejecución anterior (por fecha de análisis)

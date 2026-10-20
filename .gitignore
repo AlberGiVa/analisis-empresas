@@ -30,3 +30,6 @@ desktop.ini
 # Estudio con datos reales: descargas, base de datos y salidas nunca van al repositorio
 /estudio-real/datos/
 /estudio-real/salida/
+
+# Web pública generada (GitHub Pages la construye en cada actualización)
+/_site/

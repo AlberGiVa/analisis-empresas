@@ -20,6 +20,7 @@ from company_analysis.clock import utc_now
 from company_analysis.providers.public.universe import Universe
 
 MANIFEST = "manifest.json"
+PRICES_FOLDER = "precios/"  # share prices: their terms do not allow republishing them
 TIMEOUT_SECONDS = 60
 BROWSER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"  # Nasdaq and Yahoo reject other agents
 
@@ -65,8 +66,8 @@ class Snapshot:
         return not any(failure.required for failure in self.failures)
 
 
-def plan(universe: Universe, until: date) -> list[Request]:
-    """Every file the study needs."""
+def plan(universe: Universe, until: date, *, prices: bool = True) -> list[Request]:
+    """Every file the study needs; without share prices, only sources that may be republished."""
     start = universe.history_start
     requests: list[Request] = []
     for company in universe.companies:
@@ -84,8 +85,12 @@ def plan(universe: Universe, until: date) -> list[Request]:
                 "SEC EDGAR (registro de informes)",
                 "sec",
             ),
+        ]
+        if not prices:
+            continue
+        requests += [
             Request(
-                f"precios/{company.id}.nasdaq.json",
+                f"{PRICES_FOLDER}{company.id}.nasdaq.json",
                 f"https://api.nasdaq.com/api/quote/{urllib.parse.quote(company.ticker)}/historical?"
                 + urllib.parse.urlencode(
                     {
@@ -99,7 +104,7 @@ def plan(universe: Universe, until: date) -> list[Request]:
                 "browser",
             ),
             Request(
-                f"precios/{company.id}.yahoo.json",
+                f"{PRICES_FOLDER}{company.id}.yahoo.json",
                 f"https://query1.finance.yahoo.com/v8/finance/chart/{urllib.parse.quote(company.ticker)}?"
                 + urllib.parse.urlencode(
                     {
@@ -192,6 +197,7 @@ def download(
     manifest = {
         "creado": utc_now().isoformat(timespec="seconds"),
         "identificacion_sec": sec_agent,
+        "cotizaciones": any(request.path.startswith(PRICES_FOLDER) for request in requests),
         "ficheros": [asdict(f) for f in files],
         "fallos": [asdict(f) for f in failures],
     }

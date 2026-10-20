@@ -1,0 +1,94 @@
+{% extends "web_base.html.j2" %}
+{% block title %}Análisis de empresas{% endblock %}
+{% block content %}
+<style>
+  .hero { padding: 12px 0 8px; max-width: 72ch; }
+  .hero h1 { font-size: 30px; line-height: 1.2; margin: 6px 0 10px; }
+  .hero .lead { font-size: 16px; margin: 0 0 10px; }
+  .sections { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin: 20px 0 8px; }
+  .section-card { display: flex; flex-direction: column; gap: 8px; border: 1px solid var(--line); border-radius: 10px;
+                  padding: 18px; background: var(--soft); min-width: 0; }
+  .section-card h2 { margin: 0; padding: 0; border: none; font-size: 19px; }
+  .section-card p { margin: 0; }
+  .facts { display: flex; flex-wrap: wrap; gap: 6px 16px; color: var(--muted); font-size: 13px; }
+  .facts strong { color: var(--text); font-variant-numeric: tabular-nums; }
+  .go { margin-top: auto; padding-top: 6px; font-weight: 600; }
+  .go a { text-decoration: none; }
+  .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+  .step { min-width: 0; }
+  .step h3 { margin: 0 0 4px; }
+  .step p { margin: 0; color: var(--muted); }
+  .news { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
+  .news .day { color: var(--muted); font-size: 12px; }
+</style>
+
+<section class="hero">
+  <p class="eyebrow">Fondo multiactivos · herramienta de análisis</p>
+  <h1>Cada empresa, vista como accionista y como acreedor</h1>
+  <p class="lead">Métricas con su fórmula, puntuaciones que se desglosan factor a factor y alertas sobre
+  hechos concretos. Apoya al gestor: nunca recomienda comprar ni vender.</p>
+  <p class="meta">Actualizada el {{ generated }}. Se actualiza sola cada día laborable.</p>
+</section>
+
+<div class="sections">
+  <article class="section-card">
+    <p class="eyebrow">Empresas reales</p>
+    <h2>{{ study.title }}</h2>
+    <p>{{ study.run.companies | length }} empresas con sus cuentas oficiales de la SEC y los tipos de cambio
+    del BCE. Análisis a {{ real_date }}{% if real_previous %}, comparado con el {{ real_previous }}{% endif %}.</p>
+    <p class="facts"><span><strong>{{ real_alerts | length }}</strong> alerta{{ "s" if real_alerts | length != 1 }}</span>
+      <span><strong>{{ quality_warnings }}</strong> aviso{{ "s" if quality_warnings != 1 }} de calidad del dato</span>
+      <span>Sin cotizaciones</span></p>
+    <p class="go"><a href="reales/index.html">Ver las empresas reales →</a></p>
+  </article>
+  <article class="section-card">
+    <p class="eyebrow">Ejemplo completo</p>
+    <h2>{{ sample.companies | length }} empresas ficticias</h2>
+    <p>Datos inventados con todo lo que hace la herramienta: cotizaciones, bonos, ratings y diferenciales,
+    y casos difíciles a propósito. Análisis a {{ sample_date }}.</p>
+    <p class="facts"><span><strong>{{ sample_alerts | length }}</strong> alerta{{ "s" if sample_alerts | length != 1 }}</span>
+      <span>Bonos y ratings incluidos</span></p>
+    <p class="go"><a href="ejemplo/ranking.html">Ver el ejemplo →</a></p>
+  </article>
+</div>
+
+<h2>Alertas de las empresas reales a {{ real_date }}</h2>
+{% if real_alerts %}
+<ul class="alerts">
+  {% for company, alert in real_alerts %}
+  <li><a href="reales/{{ company.ficha_path }}">{{ company.name }}</a> · <strong>{{ alert.rule_label }}.</strong> {{ alert.message }}</li>
+  {% endfor %}
+</ul>
+{% else %}
+<p class="muted">Ninguna.</p>
+{% endif %}
+
+<h2>Cómo se lee, en un minuto</h2>
+<div class="steps">
+  <div class="step">
+    <h3>Puntuación de 0 a 100</h3>
+    <p>Dice cómo queda la empresa frente a sus comparables en cada factor: 100 es la mejor del grupo. Hay una
+    puntuación de accionista y otra de acreedor, por separado.</p>
+  </div>
+  <div class="step">
+    <h3>Cobertura</h3>
+    <p>Qué parte de los factores tenía dato. Si falta demasiado, la puntuación no se muestra: un dato que falta
+    nunca se inventa, se marca con su motivo.</p>
+  </div>
+  <div class="step">
+    <h3>Alertas y avisos</h3>
+    <p>Las alertas señalan hechos concretos (deuda alta, un cambio grande de puntuación). Los avisos de calidad
+    dicen qué cifra mirar con cuidado antes de sacar conclusiones.</p>
+  </div>
+</div>
+<p><a href="como-funciona.html">Más detalle: métricas, fórmulas y fuentes →</a></p>
+
+<h2>Novedades</h2>
+<ul class="news">
+  {% for entry in news %}
+  <li><span class="day">{{ entry.day_text }}</span><br><strong>{{ entry.title }}.</strong> {{ entry.text }}
+    {% if entry.link %}<a href="{{ entry.link }}">Ver</a>{% endif %}</li>
+  {% endfor %}
+</ul>
+<p><a href="novedades.html">Todas las novedades →</a></p>
+{% endblock %}

@@ -23,7 +23,7 @@ from company_analysis.models import (
     FxRate,
 )
 from company_analysis.providers.base import DataProvider
-from company_analysis.providers.public.downloads import read_manifest
+from company_analysis.providers.public.downloads import PRICES_FOLDER, read_manifest
 from company_analysis.providers.public.market import (
     YAHOO_EXCHANGE_MIC,
     ecb_rates,
@@ -85,6 +85,7 @@ class PublicDataResult:
     sources: list[tuple[str, str]]  # (source, url) of every file used
     companies: list[CompanyQuality]
     fx: list[FxCoverage]
+    with_prices: bool = True  # False: only sources that may be republished (the public website)
 
 
 def _json(folder: Path, relative: str) -> Any:
@@ -108,7 +109,7 @@ def latest_filing(submissions: Mapping[str, Any]) -> Filing | None:
 
 
 def _company(
-    folder: Path, company: CompanyEntry
+    folder: Path, company: CompanyEntry, *, with_prices: bool
 ) -> tuple[list[FinancialFact], list[EquityPrice], CompanyQuality]:
     companyfacts = _json(folder, f"sec/{company.id}.companyfacts.json")
     submissions = _json(folder, f"sec/{company.id}.submissions.json")
@@ -120,13 +121,17 @@ def _company(
         debt_lines=company.debt_lines(),
         overrides=company.tags,
     )
-    prices = nasdaq_prices(
-        _json(folder, f"precios/{company.id}.nasdaq.json"),
-        isin=company.isin,
-        currency=company.currency,
-    )
-    yahoo_path = folder / f"precios/{company.id}.yahoo.json"
-    yahoo = json.loads(yahoo_path.read_text(encoding="utf-8")) if yahoo_path.is_file() else {}
+    prices: list[EquityPrice] = []
+    yahoo: Mapping[str, Any] = {}
+    if with_prices:
+        prices = nasdaq_prices(
+            _json(folder, f"{PRICES_FOLDER}{company.id}.nasdaq.json"),
+            isin=company.isin,
+            currency=company.currency,
+        )
+        yahoo_path = folder / f"{PRICES_FOLDER}{company.id}.yahoo.json"
+        if yahoo_path.is_file():
+            yahoo = json.loads(yahoo_path.read_text(encoding="utf-8"))
     compared, worst, worst_day = price_differences(prices, yahoo_closes(yahoo))
     filing = latest_filing(submissions)
     periods = [entry.latest[1] for entry in extraction.lineage if entry.latest is not None]
@@ -144,7 +149,7 @@ def _company(
         max_price_difference=worst,
         max_difference_day=worst_day,
     )
-    _review(company, quality, yahoo)
+    _review(company, quality, yahoo, with_prices=with_prices)
     unusual = unusual_quarter_warnings(extraction.facts, company.currency)
     quality.warnings.extend(unusual)
     quality.distorted_ebitda = bool(unusual)
@@ -212,7 +217,13 @@ def unusual_quarter_warnings(facts: Sequence[FinancialFact], currency: str) -> l
     ]
 
 
-def _review(company: CompanyEntry, quality: CompanyQuality, yahoo: Mapping[str, Any]) -> None:
+def _review(
+    company: CompanyEntry,
+    quality: CompanyQuality,
+    yahoo: Mapping[str, Any],
+    *,
+    with_prices: bool,
+) -> None:
     """Warnings the analyst should read before trusting the figures."""
     warnings = quality.warnings
     filing, in_data = quality.latest_filing, quality.latest_period_in_data
@@ -238,6 +249,8 @@ def _review(company: CompanyEntry, quality: CompanyQuality, yahoo: Mapping[str, 
                 f"Deuda a {day:%d/%m/%Y}: {', '.join(missing)} no aparece en ese balance y cuenta "
                 "como cero."
             )
+    if not with_prices:
+        return
     if quality.compared_days == 0:
         warnings.append("No se han podido contrastar las cotizaciones con una segunda fuente.")
     elif quality.max_price_difference and quality.max_price_difference > PRICE_TOLERANCE:
@@ -253,11 +266,12 @@ def _review(company: CompanyEntry, quality: CompanyQuality, yahoo: Mapping[str, 
 
 def build(universe: Universe, folder: Path) -> PublicDataResult:
     manifest = read_manifest(folder)
+    with_prices = manifest.get("cotizaciones", True) is not False  # older snapshots had prices
     facts: list[FinancialFact] = []
     prices: list[EquityPrice] = []
     companies: list[CompanyQuality] = []
     for company in universe.companies:
-        company_facts, company_prices, quality = _company(folder, company)
+        company_facts, company_prices, quality = _company(folder, company, with_prices=with_prices)
         facts += company_facts
         prices += company_prices
         companies.append(quality)
@@ -290,6 +304,7 @@ def build(universe: Universe, folder: Path) -> PublicDataResult:
         sources=sources,
         companies=companies,
         fx=coverage,
+        with_prices=with_prices,
     )
 
 

@@ -91,7 +91,7 @@
 
 <h2>Bonos vivos</h2>
 {% if company.bonds %}
-<table>
+<div class="scroll"><table>
   <thead><tr><th>ISIN</th><th>Divisa</th><th>Prelación</th><th class="num">Cupón</th><th class="num">Vencimiento</th>
       <th>Rating</th><th class="num">Rentabilidad</th><th class="num">Diferencial</th><th>Frente a la mediana de su tramo de rating</th></tr></thead>
   <tbody>
@@ -109,9 +109,9 @@
     </tr>
   {% endfor %}
   </tbody>
-</table>
+</table></div>
 {% else %}
-<p class="muted">La empresa no tiene bonos vivos.</p>
+<p class="muted">No hay bonos vivos de la empresa en los datos cargados.</p>
 {% endif %}
 
 <h2>Alertas</h2>
@@ -125,7 +125,7 @@
 
 <h2>Filtros</h2>
 {% if company.screens %}
-<table>
+<div class="scroll"><table>
   <thead><tr><th>Filtro</th><th>Resultado</th><th>Condiciones</th></tr></thead>
   <tbody>
   {% for screen in company.screens %}
@@ -136,14 +136,14 @@
     </tr>
   {% endfor %}
   </tbody>
-</table>
+</table></div>
 {% else %}
 <p class="muted">No hay filtros configurados.</p>
 {% endif %}
 
 <h2>Histórico anual (millones de {{ company.history.currency }})</h2>
 {% if company.history.years %}
-<table>
+<div class="scroll"><table>
   <thead>
     <tr><th></th>{% for year in company.history.years %}<th class="num">{{ year }}<br><span class="muted">{{ company.history.periods[loop.index0] }}</span></th>{% endfor %}</tr>
   </thead>
@@ -152,12 +152,13 @@
     <tr><td>{{ label }}</td>{% for value in values %}<td class="num">{{ value }}</td>{% endfor %}</tr>
   {% endfor %}
   </tbody>
-</table>
+</table></div>
 <p class="muted">Cada ejercicio se rotula con el año natural en el que cae la mayoría de sus meses.</p>
 {% else %}
 <p class="muted">Sin ejercicios publicados.</p>
 {% endif %}
 
+{% if not site %}{# the analyst's journal is internal: never on the public website #}
 <h2>Diario del analista</h2>
 {% if company.notes %}
 {% for note in company.notes %}
@@ -165,5 +166,6 @@
 {% endfor %}
 {% else %}
 <p class="muted">Sin notas. Añade una con: .\analisis nota nueva {{ company.issuer_id }} "texto"</p>
+{% endif %}
 {% endif %}
 {% endblock %}

@@ -244,8 +244,12 @@ def write_universe(root: Path) -> Path:
     return path
 
 
-def write_snapshot(folder: Path) -> Path:
-    """A downloaded snapshot (with its manifest) as the downloader would leave it."""
+def write_snapshot(folder: Path, *, prices: bool = True) -> Path:
+    """A downloaded snapshot (with its manifest) as the downloader would leave it.
+
+    With ``prices=False`` it is a download without share prices: no ``precios/`` files and the
+    manifest says so. Otherwise the manifest has no ``cotizaciones`` key, like older downloads.
+    """
     files: list[dict[str, Any]] = []
 
     def put(relative: str, content: str) -> None:
@@ -259,9 +263,16 @@ def write_snapshot(folder: Path) -> Path:
     for identifier, _, _, scale in COMPANIES:
         put(f"sec/{identifier}.companyfacts.json", json.dumps(companyfacts(scale)))
         put(f"sec/{identifier}.submissions.json", json.dumps(submissions()))
-        put(f"precios/{identifier}.nasdaq.json", json.dumps(nasdaq(PRICE_DAYS, 50.0 * scale)))
-        put(f"precios/{identifier}.yahoo.json", json.dumps(yahoo(PRICE_DAYS, 50.0 * scale)))
+        if prices:
+            put(f"precios/{identifier}.nasdaq.json", json.dumps(nasdaq(PRICE_DAYS, 50.0 * scale)))
+            put(f"precios/{identifier}.yahoo.json", json.dumps(yahoo(PRICE_DAYS, 50.0 * scale)))
     put("bce/USD.csv", ecb_csv(trading_days(date(2023, 1, 2), date(2026, 8, 14)), 1.10))
-    manifest = {"creado": "2026-08-15T08:00:00+00:00", "ficheros": files, "fallos": []}
+    manifest: dict[str, Any] = {
+        "creado": "2026-08-15T08:00:00+00:00",
+        "ficheros": files,
+        "fallos": [],
+    }
+    if not prices:
+        manifest["cotizaciones"] = False
     (folder / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
     return folder

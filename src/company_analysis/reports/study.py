@@ -17,9 +17,9 @@ from markupsafe import Markup, escape
 
 from company_analysis.formatting import format_date, format_number
 from company_analysis.metrics import MetricTable, get_metric
-from company_analysis.metrics.base import format_value
+from company_analysis.metrics.base import Unit, format_value
 from company_analysis.providers.public.provider import PublicDataResult
-from company_analysis.reports.render import _common_context, environment
+from company_analysis.reports.render import SiteNav, _common_context, environment
 from company_analysis.reports.views import CompanyView, RunView
 from company_analysis.storage.runs import load_metric_table
 
@@ -35,8 +35,41 @@ COLUMNS: tuple[tuple[str, str], ...] = (  # (metric, short header; the full name
     ("interest_coverage", "Cobertura"),
     ("debt_to_equity", "Deuda/capital"),
 )
+# Columns that need a share price: left out when the data have none (the public website).
+PRICE_COLUMNS = frozenset({"market_cap_eur", "ev_to_ebitda", "pe_ratio", "fcf_yield"})
 REFERENCE = re.compile(r"^(\S+) cerrado el (\d{2}/\d{2}/\d{4})")
-CHART_X, CHART_Y = "ev_to_ebitda", "net_debt_to_ebitda"
+
+
+@dataclass(frozen=True)
+class Chart:
+    x: str  # metric on each axis
+    y: str
+    x_label: str
+    y_label: str
+    title: str
+    text: str  # how to read it
+
+
+CHART_WITH_PRICES = Chart(
+    "ev_to_ebitda",
+    "net_debt_to_ebitda",
+    "EV/EBITDA",
+    "Deuda neta/EBITDA",
+    "Valoración frente a apalancamiento",
+    "Cada punto es una empresa. A la derecha, más cara en relación con lo que genera (EV/EBITDA); "
+    "arriba, más endeudada en relación con lo que genera (deuda neta/EBITDA). Las líneas grises "
+    "marcan la mediana del grupo.",
+)
+CHART_WITHOUT_PRICES = Chart(
+    "ebitda_margin",
+    "net_debt_to_ebitda",
+    "Margen EBITDA",
+    "Deuda neta/EBITDA",
+    "Rentabilidad frente a apalancamiento",
+    "Cada punto es una empresa. A la derecha, más margen EBITDA (lo que queda de cada euro "
+    "vendido antes de amortizaciones, intereses e impuestos); arriba, más endeudada en relación "
+    "con lo que genera (deuda neta/EBITDA). Las líneas grises marcan la mediana del grupo.",
+)
 
 
 @dataclass(frozen=True)
@@ -57,7 +90,7 @@ class PeerRow:
     company: CompanyView
     period: str  # short form of the reference period, e.g. "Q1 03/04/2026"
     cells: tuple[Cell, ...]
-    market_cap: float
+    size: float  # orders the companies of an industry: capitalisation, or revenue without prices
     warnings: int  # data-quality warnings of the company (see the quality section)
 
 
@@ -81,8 +114,11 @@ class StudyView:
     medians: tuple[str, ...]
     changes: tuple[Change, ...]
     chart: Markup
+    chart_title: str
+    chart_text: str
     chart_left_out: tuple[str, ...]  # companies not drawn, and why
     data: PublicDataResult | None
+    with_prices: bool
 
 
 def _cell(metrics: MetricTable, issuer_id: str, metric_id: str) -> Cell:
@@ -92,9 +128,11 @@ def _cell(metrics: MetricTable, issuer_id: str, metric_id: str) -> Cell:
     return Cell(format_value(result.value, get_metric(metric_id).unit), True, None)
 
 
-def _medians(metrics: MetricTable, issuer_ids: Sequence[str]) -> tuple[str, ...]:
+def _medians(
+    metrics: MetricTable, issuer_ids: Sequence[str], columns: Sequence[str]
+) -> tuple[str, ...]:
     texts = []
-    for metric_id, _ in COLUMNS:
+    for metric_id in columns:
         values = [
             value
             for issuer_id in issuer_ids
@@ -163,8 +201,19 @@ def _overlaps(a: tuple[float, float, float, float], b: tuple[float, float, float
     return a[0] < b[2] and b[0] < a[2] and a[1] < b[3] and b[1] < a[3]
 
 
+def _tick_text(value: float, unit: Unit) -> str:
+    if unit is Unit.PERCENT:
+        return f"{format_number(value * 100, 0)} %"
+    return f"{format_number(value, 1)}x"
+
+
 def chart_svg(
-    points: Sequence[tuple[str, str, float, float]], x_label: str, y_label: str
+    points: Sequence[tuple[str, str, float, float]],
+    x_label: str,
+    y_label: str,
+    *,
+    x_unit: Unit = Unit.MULTIPLE,
+    y_unit: Unit = Unit.MULTIPLE,
 ) -> Markup:
     """Scatter of two metrics, one labelled dot per company, with the group medians.
 
@@ -192,13 +241,13 @@ def chart_svg(
     parts.extend(
         f'<line x1="{sx(tick):.1f}" x2="{sx(tick):.1f}" y1="{top}" y2="{height - bottom}" '
         f'class="grid"/><text x="{sx(tick):.1f}" y="{height - bottom + 16}" '
-        f'text-anchor="middle" class="tick">{format_number(tick, 1)}x</text>'
+        f'text-anchor="middle" class="tick">{_tick_text(tick, x_unit)}</text>'
         for tick in x_ticks
     )
     parts.extend(
         f'<line x1="{left}" x2="{width - right}" y1="{sy(tick):.1f}" y2="{sy(tick):.1f}" '
         f'class="grid"/><text x="{left - 8}" y="{sy(tick) + 4:.1f}" text-anchor="end" '
-        f'class="tick">{format_number(tick, 1)}x</text>'
+        f'class="tick">{_tick_text(tick, y_unit)}</text>'
         for tick in y_ticks
     )
     mx, my = median(xs), median(ys)
@@ -232,7 +281,8 @@ def chart_svg(
                 break
         placed.append(box)
         parts.append(
-            f"<g><title>{escape(name)}: {format_number(x, 1)}x · {format_number(y, 1)}x</title>"
+            f"<g><title>{escape(name)}: {format_value(x, x_unit)} · {format_value(y, y_unit)}"
+            "</title>"
             f'<circle cx="{px:.1f}" cy="{py:.1f}" r="5" class="dot"/>'
             f'<text x="{px + dx:.1f}" y="{py + dy:.1f}" class="label" '
             f'text-anchor="{anchor}">{escape(identifier)}</text></g>'
@@ -251,13 +301,16 @@ def build_study_view(
     description: str,
 ) -> StudyView:
     metrics = load_metric_table(conn, run.record.run_id)
+    with_prices = data.with_prices if data else True
+    columns = [(m, h) for m, h in COLUMNS if with_prices or m not in PRICE_COLUMNS]
+    size = "market_cap_eur" if with_prices else "revenue_ltm_eur"
     warnings = {q.issuer_id: len(q.warnings) for q in data.companies} if data else {}
     rows = [
         PeerRow(
             company=company,
             period=_short_reference(company.reference_text),
-            cells=tuple(_cell(metrics, company.issuer_id, metric) for metric, _ in COLUMNS),
-            market_cap=metrics.result(company.issuer_id, "market_cap_eur").value or 0.0,
+            cells=tuple(_cell(metrics, company.issuer_id, metric) for metric, _ in columns),
+            size=metrics.result(company.issuer_id, size).value or 0.0,
             warnings=warnings.get(company.issuer_id, 0),
         )
         for company in run.companies
@@ -269,17 +322,18 @@ def build_study_view(
             tuple(
                 sorted(
                     (row for row in rows if row.company.industry_label == industry),
-                    key=lambda row: -row.market_cap,
+                    key=lambda row: -row.size,
                 )
             ),
         )
         for industry in industries
     )
     distorted = {q.issuer_id for q in data.companies if q.distorted_ebitda} if data else set()
+    chart = CHART_WITH_PRICES if with_prices else CHART_WITHOUT_PRICES
     points, left_out = [], []
     for company in run.companies:
-        x = metrics.result(company.issuer_id, CHART_X).value
-        y = metrics.result(company.issuer_id, CHART_Y).value
+        x = metrics.result(company.issuer_id, chart.x).value
+        y = metrics.result(company.issuer_id, chart.y).value
         if x is None or y is None or x <= 0:
             left_out.append(f"{company.issuer_id} (sin uno de los dos datos o con EBITDA negativo)")
         elif company.issuer_id in distorted:
@@ -293,13 +347,22 @@ def build_study_view(
         previous=previous,
         title=title,
         description=description,
-        columns=tuple(Column(header, get_metric(metric).name) for metric, header in COLUMNS),
+        columns=tuple(Column(header, get_metric(metric).name) for metric, header in columns),
         groups=groups,
-        medians=_medians(metrics, [c.issuer_id for c in run.companies]),
+        medians=_medians(metrics, [c.issuer_id for c in run.companies], [m for m, _ in columns]),
         changes=_changes(run, previous),
-        chart=chart_svg(points, "EV/EBITDA", "Deuda neta/EBITDA"),
+        chart=chart_svg(
+            points,
+            chart.x_label,
+            chart.y_label,
+            x_unit=get_metric(chart.x).unit,
+            y_unit=get_metric(chart.y).unit,
+        ),
+        chart_title=chart.title,
+        chart_text=chart.text,
         chart_left_out=tuple(left_out),
         data=data,
+        with_prices=with_prices,
     )
 
 
@@ -307,14 +370,20 @@ def _date_text(value: date | None) -> str:
     return format_date(value) if value else "—"
 
 
-def write_study_report(view: StudyView, directory: Path) -> Path:
-    """Write ``estudio.html`` next to the run's ranking and fichas (links are relative)."""
+def write_study_report(
+    view: StudyView,
+    directory: Path,
+    *,
+    filename: str = "estudio.html",
+    site: SiteNav | None = None,
+) -> Path:
+    """Write the report next to the run's ranking and fichas (links are relative)."""
     env = environment()
     env.filters["fecha"] = _date_text
     env.filters["num"] = format_number
     directory.mkdir(parents=True, exist_ok=True)
-    path = directory / "estudio.html"
-    context = _common_context(view.run)
+    path = directory / filename
+    context = _common_context(view.run, site) | {"site_root": "../"}
     previous_date = format_date(view.previous.record.as_of_date) if view.previous else None
     path.write_text(
         env.get_template("estudio.html.j2").render(

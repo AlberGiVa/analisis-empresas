@@ -1,0 +1,23 @@
+{% extends "web_base.html.j2" %}
+{% block title %}Novedades{% endblock %}
+{% block content %}
+<style>
+  .news { list-style: none; padding: 0; margin: 0; max-width: 75ch; }
+  .news li { padding: 14px 0; border-bottom: 1px solid var(--line); }
+  .news .day { color: var(--muted); font-size: 12px; }
+  .news h2 { margin: 2px 0 4px; padding: 0; border: none; font-size: 16px; }
+  .news p { margin: 0; }
+</style>
+<p class="eyebrow">Qué hay de nuevo</p>
+<h1>Novedades</h1>
+<p class="meta">Lo que se puede hacer o ver con cada cambio de la herramienta, del más reciente al más antiguo.</p>
+<ul class="news">
+  {% for entry in news %}
+  <li>
+    <span class="day">{{ entry.day_text }}</span>
+    <h2>{{ entry.title }}</h2>
+    <p>{{ entry.text }}{% if entry.link %} <a href="{{ entry.link }}">Ver</a>{% endif %}</p>
+  </li>
+  {% endfor %}
+</ul>
+{% endblock %}

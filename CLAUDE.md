@@ -15,7 +15,8 @@ análisis de empresas: cada emisor se ve como accionista y como acreedor.
 - Trazabilidad: cada ejecución queda registrada (fecha, datos usados, versión de la
   configuración) y los datos históricos no se sobrescriben (solo inserción).
 - Los datos reales de mercado nunca se suben al repositorio; solo los sintéticos de `data/sample/`.
-- Sencillez: sin microservicios, Docker, autenticación ni despliegue.
+- Sencillez: sin microservicios, Docker ni autenticación. Lo único publicado es una web estática
+  (GitHub Pages) con datos republicables.
 
 ## Comandos
 ```powershell
@@ -30,6 +31,7 @@ uv run python -m mypy                            # tipos (modo estricto)
 .\analisis plantilla [--ejemplo] ; .\analisis importar data\import\libro.xlsx   # datos reales
 uv run python scripts/probar_apis.py             # prueba de conexión a las APIs públicas (no guarda nada)
 estudio-real\estudio todo | descargar | cargar | ejecutar | informe | panel   # estudio con datos reales (aislado)
+uv run python -m company_analysis.web construir [--abrir]   # web pública (GitHub Pages): solo datos republicables
 ```
 - `.\analisis` equivale a `uv run python -m company_analysis`.
 - Python 3.14 del equipo (oficial, firmado). uv nunca descarga intérpretes (`[tool.uv]` en
@@ -56,8 +58,9 @@ Las fichas y el panel leen esos resultados guardados (`reports`, `app`).
 | `config.py`, `config_loader.py` | Metodología de `config/analysis.yaml`: modelos, validación y huella. |
 | `models/` | Modelos de dominio validados (pydantic): emisores, instrumentos, estados financieros en formato largo, mercado y `DataBundle` (lote autocontenido). |
 | `providers/` | Interfaz `DataProvider`, `SampleProvider` (CSV de `data/sample`), generador determinista de datos sintéticos y `WorkbookProvider` (plantilla de Excel para datos reales; `docs/importar-datos.md`). |
-| `providers/public/` | Datos reales de fuentes públicas (SEC EDGAR, Nasdaq/Yahoo, BCE): descarga a carpetas con fecha y manifiesto, lectura a fecha de la SEC y revisión de calidad. Solo lo usa el estudio. |
+| `providers/public/` | Datos reales de fuentes públicas (SEC EDGAR, Nasdaq/Yahoo, BCE): descarga a carpetas con fecha y manifiesto, lectura a fecha de la SEC y revisión de calidad. Solo lo usan el estudio y la web. |
 | `study.py` | Estudio con datos reales, aislado en `estudio-real/` (rutas fijas en el código; nunca toca la base principal). Decisión 0017. |
+| `web.py` | Web pública estática (GitHub Pages): ejemplo completo y empresas reales sin cotizaciones, construida en una carpeta temporal. Decisión 0018. |
 | `storage/` | DuckDB: migraciones SQL, carga solo por inserción, lectura a fecha (`read_bundle`) y ejecuciones con sus resultados (`runs.py`). |
 | `figures.py` | `Status` y `Figure`: un valor o el motivo por el que no está disponible. |
 | `normalization/` | Periodo de referencia, LTM, divisas (`FxTable`), alineación de ejercicios y `CompanySnapshot`. |
@@ -72,7 +75,8 @@ Las fichas y el panel leen esos resultados guardados (`reports`, `app`).
 
 Datos y salidas: `data/sample/` (sintéticos, versionados), `data/*.duckdb` y `output/<ejecución>/`
 (locales, ignorados por git). El estudio real guarda descargas, base e informes en
-`estudio-real/datos/` y `estudio-real/salida/`, también ignorados: nunca subas datos reales.
+`estudio-real/datos/` y `estudio-real/salida/`, también ignorados: nunca subas datos reales. La web
+se genera en `_site/` (ignorada) y la publica GitHub Actions (`.github/workflows/web.yml`).
 
 ## Convenciones
 - Código, nombres y comentarios en inglés; documentación y textos de interfaz en español.
