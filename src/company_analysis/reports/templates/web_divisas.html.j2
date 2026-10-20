@@ -1,0 +1,38 @@
+{% extends "web_base.html.j2" %}
+{% block title %}Divisas{% endblock %}
+{% block content %}
+<style>
+  .fx td, .fx th { vertical-align: middle; }
+  .fx .code { font-family: var(--font-mono); font-weight: 600; }
+  .fx .up { color: var(--ok-text); }
+  .fx .down { color: var(--bad-text); }
+  .spark { width: 140px; height: 36px; display: block; }
+  .spark polyline { fill: none; stroke: var(--chart-dot); stroke-width: 1.6; stroke-linejoin: round; }
+</style>
+<p class="eyebrow">Mercados</p>
+<h1>Divisas</h1>
+<p class="meta">Tipos de referencia del BCE: unidades de cada divisa por euro{% if fx %}, a {{ fx[0].day.strftime("%d/%m/%Y") }}{% endif %}.</p>
+{% if fx %}
+<div class="scroll">
+<table class="fx">
+  <thead><tr><th>Divisa</th><th></th><th class="num">Por euro</th><th class="num">Euros por unidad</th>
+    <th class="num">1 semana</th><th class="num">1 mes</th><th class="num">1 año</th><th class="num">En el año</th><th>Último año</th></tr></thead>
+  <tbody>
+  {% for row in fx %}
+    <tr>
+      <td class="code">{{ row.currency }}</td>
+      <td>{{ row.name }}</td>
+      <td class="num">{{ row.rate_text }}</td>
+      <td class="num">{{ row.inverse_text }}</td>
+      {% for text, direction in row.changes %}<td class="num {{ direction }}">{{ text }}</td>{% endfor %}
+      <td>{{ row.spark }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+<p class="muted small">Una subida significa que el euro se aprecia frente a esa divisa.</p>
+{% else %}
+<p class="muted">Sin tipos de cambio en esta actualización.</p>
+{% endif %}
+{% endblock %}

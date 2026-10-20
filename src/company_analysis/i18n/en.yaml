@@ -23,6 +23,43 @@
 # data-quality warning; ejecución = run; lectura a fecha = point-in-time reading.
 
 exact:
+  # Panel, Divisas y Academy
+  "Panel": "Dashboard"
+  "Panel · Luceiro Capital": "Dashboard · Luceiro Capital"
+  "Empresas": "Companies"
+  "Divisas": "Currencies"
+  "Ejemplos": "Examples"
+  "Academy": "Academy"
+  "Mercados": "Markets"
+  "Ver todas": "See all"
+  "Ver empresas": "See companies"
+  "Por euro": "Per euro"
+  "Euros por unidad": "Euros per unit"
+  "1 semana": "1 week"
+  "1 mes": "1 month"
+  "1 año": "1 year"
+  "En el año": "Year to date"
+  "Último año": "Last year"
+  "Una subida significa que el euro se aprecia frente a esa divisa.": "A rise means the euro strengthens against that currency."
+  "Sin tipos de cambio en esta actualización.": "No exchange rates in this update."
+  "Dólar estadounidense": "US dollar"
+  "Libra esterlina": "Pound sterling"
+  "Franco suizo": "Swiss franc"
+  "Yen japonés": "Japanese yen"
+  "Dólar canadiense": "Canadian dollar"
+  "Dólar australiano": "Australian dollar"
+  "Corona sueca": "Swedish krona"
+  "Corona noruega": "Norwegian krone"
+  "Corona danesa": "Danish krone"
+  "Esloti polaco": "Polish zloty"
+  "Calidad del dato": "Data quality"
+  "Ver los avisos y el origen de cada cifra": "See the warnings and the origin of every figure"
+  "Los términos y las métricas que aparecen en las tablas.": "The terms and metrics used in the tables."
+  "Cómo leer una puntuación": "How to read a score"
+  "De 0 a 100: compara la empresa con las de su sector en cada factor; 100 es la mejor del grupo.": "From 0 to 100: it compares the company with those of its sector on each factor; 100 is the best of the group."
+  "Hay una puntuación de accionista y otra de acreedor, por separado.": "There is a shareholder score and a creditor score, kept separate."
+  "Si faltan demasiados datos, no se muestra: nunca se inventa una cifra.": "If too much data is missing, it is not shown: a figure is never made up."
+  "Métricas": "Metrics"
   # --- Navegación, cabecera y pie comunes ---------------------------------------------------------
   "Inicio": "Home"
   "Empresas reales": "Real companies"
@@ -704,6 +741,11 @@ patterns:
     en: "Compared with {p} · updated on {g} at {t}"
   - es: 'actualizada el (?P<g>\d\d/\d\d/\d{4}) a las (?P<t>\d\d:\d\d)'
     en: "Updated on {g} at {t}"
+  # Panel y Divisas
+  - es: 'Actualizado el (?P<g>\d\d/\d\d/\d{4}) a las (?P<t>\d\d:\d\d) · empresas a (?P<d>\d\d/\d\d/\d{4})'
+    en: "Updated on {g} at {t} · companies as of {d}"
+  - es: 'Tipos de referencia del BCE: unidades de cada divisa por euro, a (?P<d>\d\d/\d\d/\d{4})\.'
+    en: "ECB reference rates: units of each currency per euro, as of {d}."
   - es: '(?P<n>\d+) empresas de EE\. UU\. de varios sectores con sus cuentas oficiales y los tipos de cambio del BCE\. Análisis a (?P<d>\d\d/\d\d/\d{4})(?P<cmp>, comparado con el \d\d/\d\d/\d{4})?\. Sin cotizaciones: sus condiciones no permiten publicarlas\.'
     en: "{n} US companies from several sectors with their official accounts and ECB exchange rates. Analysis as of {d}{cmp}. No share prices: their terms do not allow publishing them."
   - es: ', comparado con el (?P<p>\d\d/\d\d/\d{4})'

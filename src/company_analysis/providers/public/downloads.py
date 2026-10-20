@@ -66,8 +66,14 @@ class Snapshot:
         return not any(failure.required for failure in self.failures)
 
 
-def plan(universe: Universe, until: date, *, prices: bool = True) -> list[Request]:
-    """Every file the study needs; without share prices, only sources that may be republished."""
+def plan(
+    universe: Universe, until: date, *, prices: bool = True, currencies: Sequence[str] = ()
+) -> list[Request]:
+    """Every file the study needs; without share prices, only sources that may be republished.
+
+    ``currencies`` adds ECB exchange rates beyond those of the universe (optional files: one that
+    fails does not stop the load).
+    """
     start = universe.history_start
     requests: list[Request] = []
     for company in universe.companies:
@@ -118,7 +124,8 @@ def plan(universe: Universe, until: date, *, prices: bool = True) -> list[Reques
                 required=False,
             ),
         ]
-    for currency in universe.currencies:
+    needed = set(universe.currencies)
+    for currency in sorted(needed | set(currencies)):
         requests.append(
             Request(
                 f"bce/{currency}.csv",
@@ -126,6 +133,7 @@ def plan(universe: Universe, until: date, *, prices: bool = True) -> list[Reques
                 + urllib.parse.urlencode({"startPeriod": start.isoformat(), "format": "csvdata"}),
                 "Banco Central Europeo (tipos de cambio)",
                 "browser",
+                required=currency in needed,
             )
         )
     return requests

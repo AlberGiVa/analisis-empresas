@@ -1,34 +1,35 @@
-"""Public website: the tool's results, open to anyone with the link (GitHub Pages).
+"""Public website: tables and views of the tool, open to anyone with the link (GitHub Pages).
 
-A static site with these sections, plus how to read the results:
-- the real-data study, only with sources that may be republished (SEC and ECB): no share prices,
-  whose terms forbid it, and the methodology of ``estudio-real/metodologia-web.yaml``;
-- the sample data (fictitious companies), which show every feature of the tool;
-- the showcase page (``docs/muestra-luceiro-capital.html``), published as ``presentacion.html``.
+- Panel: the day at a glance (companies, alerts, currencies).
+- Empresas: real US companies with sources that may be republished (SEC accounts, no share prices,
+  methodology ``estudio-real/metodologia-web.yaml``), with a sheet per company.
+- Divisas: euro exchange rates of the ECB.
+- Ejemplos: one fictitious company per case the tool handles.
+- Academy: terms and metric formulas, for whoever wants them.
 
-Every page wears the Luceiro Capital identity of the showcase (logo, colours and typefaces).
-
-The analyst's journal is never published. Everything is computed in a temporary folder: building
-never touches the main database nor the study's. GitHub Actions builds and publishes it
-(``.github/workflows/web.yml``). Decision 0018.
+Every page wears the Luceiro Capital identity, in Spanish and English (``en/``). The analyst's
+journal and the technical documentation of the tool are never published. Everything is computed in
+a temporary folder; GitHub Actions builds and publishes it (``.github/workflows/web.yml``).
+Decision 0018.
 
 Run it with ``uv run python -m company_analysis.web construir`` (Spanish CLI).
 """
 
 import os
-import re
 import shutil
 import tempfile
 import webbrowser
+from bisect import bisect_right
 from collections.abc import Sequence
 from dataclasses import dataclass, replace
-from datetime import date
+from datetime import date, timedelta
 from importlib.resources import files
 from pathlib import Path
 from typing import Annotated, Any
 
 import duckdb
 import typer
+from markupsafe import Markup
 from pydantic import ValidationError
 from rich.console import Console
 
@@ -36,14 +37,16 @@ from company_analysis.cli import fail, parse_date
 from company_analysis.clock import local_now, local_today
 from company_analysis.config import ScoreModelConfig
 from company_analysis.config_loader import ConfigError, LoadedConfig, load_config
-from company_analysis.formatting import format_date
+from company_analysis.formatting import format_date, format_number
 from company_analysis.i18n import CatalogError, Translator, load_catalog, untranslated_report
 from company_analysis.metrics import MetricCategory, all_metrics, get_metric
 from company_analysis.metrics.base import MetricDefinition
+from company_analysis.models import FxRate
 from company_analysis.pipeline import AnalysisError, run_analysis
 from company_analysis.provenance import git_commit
 from company_analysis.providers import SampleProvider
 from company_analysis.providers.public.downloads import download, plan
+from company_analysis.providers.public.market import ecb_rates
 from company_analysis.providers.public.provider import (
     PublicDataProvider,
     PublicDataResult,
@@ -69,11 +72,11 @@ app = typer.Typer(
 console = Console(soft_wrap=True)
 
 SECTIONS: tuple[tuple[str, str, str], ...] = (  # (key, label, page from the website root)
-    ("inicio", "Inicio", "index.html"),
-    ("reales", "Empresas reales", "reales/index.html"),
-    ("ejemplo", "Casos de ejemplo", "ejemplo/index.html"),
-    ("como-funciona", "Cómo funciona", "como-funciona.html"),
-    ("presentacion", "Presentación", "presentacion.html"),
+    ("inicio", "Panel", "index.html"),
+    ("reales", "Empresas", "reales/index.html"),
+    ("divisas", "Divisas", "divisas.html"),
+    ("ejemplo", "Ejemplos", "ejemplo/index.html"),
+    ("academy", "Academy", "academy.html"),
     ("configuracion", "Configuración", "configuracion.html"),
 )
 REAL_NOTICE = (
@@ -124,83 +127,7 @@ SAMPLE_CASES: tuple[tuple[str, str, str], ...] = (
 )
 MARKER = ".web-generada"  # marks a folder this command may replace
 WEB_METHODOLOGY = "metodologia-web.yaml"
-# The showcase page (one self-contained file) is published as is, with a way back to the website.
-SHOWCASES = {  # language: (file, sidebar line after which the way back is added, its text)
-    "es": (
-        Path("docs") / "muestra-luceiro-capital.html",
-        '<p class="side-kicker">Análisis de empresas · muestra</p>',
-        "← Volver a la web",
-    ),
-    "en": (
-        Path("docs") / "muestra-luceiro-capital.en.html",
-        '<p class="side-kicker">Company analysis · showcase</p>',
-        "← Back to the website",
-    ),
-}
 LOGO = "luceiro-logo.webp"
-# The showcase's last section explains how to run the tool on this computer. On the website it
-# is replaced by links to the website itself: whoever reads it online cannot run commands.
-LOCAL_SECTION = re.compile(r'<section class="block wrap" id="probar">.*?</section>', re.DOTALL)
-WEB_SECTION = {  # language: (local menu entry, website menu entry, section)
-    "es": (
-        '<a href="#probar">Probarlo hoy</a>',
-        '<a href="#probar">Verlo en la web</a>',
-        """<section class="block wrap" id="probar">
-      <div class="sec-head">
-        <p class="eyebrow">En esta web</p>
-        <h2>Verlo en la web</h2>
-        <p class="lead">Todo lo que describe esta presentación funciona ya en esta misma web, sin
-        instalar nada. Se actualiza sola cada día laborable con datos públicos.</p>
-      </div>
-      <div class="cmds">
-        <div class="cmd card">
-          <p><a href="reales/index.html"><strong>Empresas reales →</strong></a></p>
-          <p>Empresas de EE. UU. con sus cuentas oficiales de la SEC: comparables, cambios entre dos
-          fechas, alertas y la calidad y el origen de cada dato.</p></div>
-        <div class="cmd card">
-          <p><a href="ejemplo/index.html"><strong>Casos de ejemplo →</strong></a></p>
-          <p>Una empresa ficticia por cada caso que trata la herramienta, con cotizaciones, bonos y
-          ratings.</p></div>
-        <div class="cmd card">
-          <p><a href="como-funciona.html"><strong>Cómo funciona →</strong></a></p>
-          <p>Cómo se lee una puntuación y la fórmula de cada métrica.</p></div>
-        <div class="cmd card">
-          <p><a href="configuracion.html"><strong>Configuración →</strong></a></p>
-          <p>El estilo de la web (Luceiro, Terminal o Prensa), el modo claro u oscuro y el
-          idioma.</p></div>
-      </div>
-    </section>""",
-    ),
-    "en": (
-        '<a href="#probar">Try it today</a>',
-        '<a href="#probar">See it on the website</a>',
-        """<section class="block wrap" id="probar">
-      <div class="sec-head">
-        <p class="eyebrow">On this website</p>
-        <h2>See it on the website</h2>
-        <p class="lead">Everything this presentation describes already works on this website,
-        with nothing to install. It updates itself every working day with public data.</p>
-      </div>
-      <div class="cmds">
-        <div class="cmd card">
-          <p><a href="reales/index.html"><strong>Real companies →</strong></a></p>
-          <p>US companies with their official SEC accounts: peers, changes between two dates,
-          alerts, and the quality and origin of every figure.</p></div>
-        <div class="cmd card">
-          <p><a href="ejemplo/index.html"><strong>Sample cases →</strong></a></p>
-          <p>One fictitious company for each case the tool handles, with share prices, bonds and
-          ratings.</p></div>
-        <div class="cmd card">
-          <p><a href="como-funciona.html"><strong>How it works →</strong></a></p>
-          <p>How to read a score and the formula of every metric.</p></div>
-        <div class="cmd card">
-          <p><a href="configuracion.html"><strong>Settings →</strong></a></p>
-          <p>The website's style (Luceiro, Terminal or Press), light or dark mode
-          and language.</p></div>
-      </div>
-    </section>""",
-    ),
-}
 ENGLISH = "en"  # folder of the English version
 LANGUAGE_LINK = "#cambiar-idioma"  # replaced by the same page in the other language
 SWITCH_TO_ENGLISH = (
@@ -305,7 +232,7 @@ def build_real(
             "empresas y los tipos de cambio (sin cotizaciones)…"
         )
         downloaded = download(
-            plan(universe, local_today(), prices=False),
+            plan(universe, local_today(), prices=False, currencies=FX_CURRENCIES),
             work / "crudo",
             sec_agent=settings.http_user_agent,
         )
@@ -337,6 +264,94 @@ def build_real(
     write_reports(view, site, folder="reales", site=section)
     write_study_report(study, site / "reales", filename="index.html", site=section)
     return study, data
+
+
+# --- Currencies ----------------------------------------------------------------------------------
+FX_CURRENCIES = ("USD", "GBP", "CHF", "JPY", "CAD", "AUD", "SEK", "NOK", "DKK", "PLN")
+CURRENCY_NAMES = {
+    "USD": "Dólar estadounidense",
+    "GBP": "Libra esterlina",
+    "CHF": "Franco suizo",
+    "JPY": "Yen japonés",
+    "PLN": "Esloti polaco",
+    "CAD": "Dólar canadiense",
+    "AUD": "Dólar australiano",
+    "SEK": "Corona sueca",
+    "NOK": "Corona noruega",
+    "DKK": "Corona danesa",
+}
+FX_BACK = (7, 30, 365)  # days back for the changes: a week, a month, a year (plus year to date)
+
+
+@dataclass(frozen=True)
+class FxRow:
+    currency: str
+    name: str
+    day: date
+    rate_text: str  # units of the currency per euro (ECB convention)
+    inverse_text: str  # euros per unit
+    changes: tuple[tuple[str, str], ...]  # (text, "up"/"down"/"") per period
+    spark: Markup
+
+
+def _rate_at(series: Sequence[FxRate], day: date) -> float | None:
+    """Rate of the last business day on or before ``day``."""
+    index = bisect_right([rate.rate_date for rate in series], day) - 1
+    return series[index].units_per_eur if index >= 0 else None
+
+
+def _change(now: float, before: float | None) -> tuple[str, str]:
+    if before is None or before <= 0:
+        return ("—", "")
+    change = now / before - 1
+    text = f"{format_number(change * 100, 2)} %"
+    if change > 0:
+        return (f"+{text}", "up")
+    return (text.replace("-", "−"), "down" if change < 0 else "")
+
+
+def sparkline(values: Sequence[float], width: int = 140, height: int = 36) -> Markup:
+    """A one-year line, scaled to its own range (the table carries the figures)."""
+    if len(values) < 2:
+        return Markup("")
+    low, high = min(values), max(values)
+    span = (high - low) or 1.0
+    step = width / (len(values) - 1)
+    points = " ".join(
+        f"{i * step:.1f},{height - 3 - (v - low) / span * (height - 6):.1f}"
+        for i, v in enumerate(values)
+    )
+    return Markup(
+        f'<svg class="spark" viewBox="0 0 {width} {height}" aria-hidden="true">'
+        f'<polyline points="{points}"/></svg>'
+    )
+
+
+def fx_rows(snapshot: Path) -> list[FxRow]:
+    """Latest ECB rate of every currency in the download, with its changes and a year of history."""
+    rows = []
+    for path in sorted((snapshot / "bce").glob("*.csv")):
+        series = ecb_rates(path.read_text(encoding="utf-8"))
+        if not series:
+            continue
+        last = series[-1]
+        now = last.units_per_eur
+        references = [_rate_at(series, last.rate_date - timedelta(days=d)) for d in FX_BACK]
+        references.append(_rate_at(series, date(last.rate_date.year - 1, 12, 31)))
+        year = [r.units_per_eur for r in series if r.rate_date > last.rate_date - timedelta(365)]
+        rows.append(
+            FxRow(
+                currency=last.currency,
+                name=CURRENCY_NAMES.get(last.currency, last.currency),
+                day=last.rate_date,
+                rate_text=format_number(now, 4),
+                inverse_text=format_number(1 / now, 4),
+                changes=tuple(_change(now, before) for before in references),
+                spark=sparkline(year),
+            )
+        )
+    order = {currency: index for index, currency in enumerate(FX_CURRENCIES)}
+    return sorted(rows, key=lambda row: (order.get(row.currency, len(order)), row.currency))
 
 
 # --- Pages ---------------------------------------------------------------------------------------
@@ -377,6 +392,7 @@ def write_pages(
         "disclaimer": DISCLAIMER,
     }
     real_alerts = [(c, alert) for c in study.run.companies for alert in c.alerts]
+    fx = fx_rows(data.snapshot)
     sample_alerts = [(c, alert) for c in sample.companies for alert in c.alerts]
     pages: dict[str, tuple[str, str, dict[str, Any]]] = {  # file: (template, section, context)
         "index.html": (
@@ -394,11 +410,13 @@ def write_pages(
                 "sample_alerts": sample_alerts,
                 "quality_warnings": sum(len(q.warnings) for q in data.companies),
                 "metrics_count": len(all_metrics()),
+                "fx": fx,
             },
         ),
-        "como-funciona.html": (
-            "web_como_funciona.html.j2",
-            "como-funciona",
+        "divisas.html": ("web_divisas.html.j2", "divisas", {"fx": fx}),
+        "academy.html": (
+            "web_academy.html.j2",
+            "academy",
             {
                 "methodologies": [
                     ("Empresas reales", study.run.record.config_version, study.run.config),
@@ -424,34 +442,7 @@ def write_logo(site: Path) -> None:
     logo.write_bytes((files("company_analysis.reports") / "static" / LOGO).read_bytes())
 
 
-def showcase_page(path: Path, anchor: str, back: str, language: str) -> str:
-    """The self-contained showcase page, kept from search engines, with a way back and with its
-    "run it on this computer" section turned into links to the website."""
-    if not path.is_file():
-        raise WebError(f"Falta la página de presentación {path}.")
-    html = path.read_text(encoding="utf-8")
-    menu, web_menu, section = WEB_SECTION[language]
-    if (
-        anchor not in html
-        or '<meta charset="utf-8">' not in html
-        or menu not in html
-        or len(LOCAL_SECTION.findall(html)) != 1
-    ):
-        raise WebError(f"{path.name} ha cambiado: no se encuentra dónde adaptarla a la web.")
-    html = LOCAL_SECTION.sub(lambda _: section, html).replace(menu, web_menu, 1)
-    return html.replace(
-        '<meta charset="utf-8">',
-        '<meta charset="utf-8"><meta name="robots" content="noindex, nofollow">',
-        1,
-    ).replace(
-        anchor,
-        f'{anchor}\n    <a href="index.html" style="font-weight:600;text-decoration:none;'
-        f'margin-top:-10px">{back}</a>',
-        1,
-    )
-
-
-def write_english(site: Path, translator: Translator, showcase: str) -> None:
+def write_english(site: Path, translator: Translator) -> None:
     """``en/``: every page of the Spanish site, translated; other files copied as they are."""
     target = site / ENGLISH
     for path in sorted(p for p in site.rglob("*") if p.is_file()):
@@ -460,9 +451,7 @@ def write_english(site: Path, translator: Translator, showcase: str) -> None:
             continue
         destination = target / relative
         destination.parent.mkdir(parents=True, exist_ok=True)
-        if relative == Path("presentacion.html"):
-            destination.write_text(showcase, encoding="utf-8")
-        elif path.suffix == ".html":
+        if path.suffix == ".html":
             english = translator.document(path.read_text(encoding="utf-8"))
             destination.write_text(
                 english.replace(SWITCH_TO_ENGLISH, SWITCH_TO_SPANISH), encoding="utf-8"
@@ -515,23 +504,11 @@ def build_site(
         sample = build_sample(work, site, settings)
         write_pages(site, sample=sample, study=study, data=data)
         write_logo(site)
-        pages = {
-            "es": showcase_page(
-                settings.project_root / SHOWCASES["es"][0], *SHOWCASES["es"][1:], "es"
-            )
-        }
-        try:
-            pages["en"] = showcase_page(
-                settings.project_root / SHOWCASES["en"][0], *SHOWCASES["en"][1:], "en"
-            )
-        except WebError as error:  # the English site then shows the Spanish presentation
-            console.print(f"[yellow]Presentación en inglés no disponible:[/yellow] {error}")
-        (site / "presentacion.html").write_text(pages["es"], encoding="utf-8")
         translator = Translator(
             load_catalog(),
             keep={c.name for c in (*sample.companies, *study.run.companies)},
         )
-        write_english(site, translator, pages.get("en", pages["es"]))
+        write_english(site, translator)
         link_languages(site)
         (site / ".nojekyll").write_text("", encoding="utf-8")  # plain files, no Jekyll
         (site / MARKER).write_text(f"{local_now():%Y-%m-%d %H:%M}\n", encoding="utf-8")

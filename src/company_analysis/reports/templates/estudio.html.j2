@@ -43,8 +43,9 @@
   </div>
   <p class="meta"><a href="ranking.html">Ranking de la herramienta</a> · <a href="ranking.csv">CSV para Excel</a></p>
 </div>
-<p class="lead">{{ study.description }}</p>
+{% if not site %}<p class="lead">{{ study.description }}</p>{% endif %}
 
+{% if not site %}
 <div class="notice">
   {% if study.with_prices %}
   <p><strong>Datos reales, uso interno.</strong> Cifras tal como las publican las empresas en la SEC
@@ -63,11 +64,14 @@
   <p>La vista de acreedor usa solo fundamentales: no hay una fuente gratuita y fiable de diferenciales
   de bonos ni de ratings (ver «Método y límites»).</p>
 </div>
+{% endif %}
 
 <h2>Comparables</h2>
+{% if not site %}
 <p class="muted">Últimos doce meses hasta el último informe publicado antes del {{ run_date }} (la columna
 «Cifras» dice cuál).{% if study.with_prices %} Capitalización en millones de euros.{% endif %} Las puntuaciones comparan cada empresa con
 las de su sector que tienen dato (con todas, si son menos de {{ view.config.scoring.min_peers }}): 100 es la mejor del grupo en cada factor.</p>
+{% endif %}
 <div class="scroll">
 <table class="peers">
   <thead><tr>
@@ -97,22 +101,26 @@ las de su sector que tienen dato (con todas, si son menos de {{ view.config.scor
   </tbody>
 </table>
 </div>
+{% if not site %}
 <p class="muted small">Pasa el ratón por una celda sin valor para ver el motivo. Cada ficha despliega la fórmula y los datos de entrada de cada métrica.
 Los avisos llevan a la sección de calidad de datos: léelos antes de sacar conclusiones de una cifra.</p>
+{% endif %}
 
 <h2>{{ study.chart_title }}</h2>
 <div class="two">
   <div>{{ study.chart }}</div>
   <div>
-    <p>{{ study.chart_text }}</p>
+    {% if not site %}<p>{{ study.chart_text }}</p>{% endif %}
     {% if study.chart_left_out %}<p class="muted">Fuera del gráfico: {{ study.chart_left_out | join("; ") }}. Sus cifras están en la tabla y en sus avisos.</p>{% endif %}
   </div>
 </div>
 
 {% if study.changes %}
 <h2>Qué ha cambiado desde el {{ previous_date }}</h2>
+{% if not site %}
 <p class="muted">Las dos ejecuciones usan los mismos datos descargados, pero cada una solo ve lo que se había publicado en su fecha.
 Por eso la del {{ previous_date }} trabaja con informes anteriores.</p>
+{% endif %}
 <div class="scroll">
 <table>
   <thead><tr><th>Empresa</th><th>Cifras usadas el {{ previous_date }}</th><th>Cifras usadas el {{ run_date }}</th>
@@ -142,10 +150,14 @@ Por eso la del {{ previous_date }} trabaja con informes anteriores.</p>
 {% else %}<p class="muted">Ninguna.</p>{% endif %}
 
 {% if study.data %}
-<h2>Calidad y trazabilidad de los datos</h2>
+{% if site %}<h2>Calidad del dato</h2>
+<details><summary>Ver los avisos y el origen de cada cifra</summary>
+{% else %}<h2>Calidad y trazabilidad de los datos</h2>{% endif %}
+{% if not site %}
 <p class="muted">Lo que se ha comprobado o supuesto para cada empresa. Las etiquetas son los conceptos XBRL de
 la SEC de los que sale cada partida; «publicaciones corregidas» cuenta las cifras que una empresa cambió en un
 informe posterior (la herramienta guarda las dos versiones y usa la que se conocía en cada fecha).</p>
+{% endif %}
 {% for quality in study.data.companies %}
 <div class="company" id="q-{{ quality.issuer_id }}">
   <h3>{{ quality.name }} <span class="muted small">{{ quality.issuer_id }}</span></h3>
@@ -197,8 +209,10 @@ informe posterior (la herramienta guarda las dos versiones y usa la que se conoc
 
 <h3>Tipos de cambio</h3>
 <ul>{% for fx in study.data.fx %}<li>{{ fx.currency }}/EUR del BCE: {{ fx.days }} días, del {{ fx.first | fecha }} al {{ fx.last | fecha }}.</li>{% endfor %}</ul>
+{% if site %}</details>{% endif %}
 {% endif %}
 
+{% if not site %}
 <h2>Método y límites</h2>
 <ul>
   <li><strong>Lectura a fecha.</strong> Cada cifra lleva la fecha en que la SEC recibió el informe. Una ejecución solo usa lo
@@ -238,5 +252,6 @@ informe posterior (la herramienta guarda las dos versiones y usa la que se conoc
   <summary>Las {{ study.data.sources | length }} descargas de esta carga</summary>
   <ul class="small">{% for source, url in study.data.sources %}<li>{{ source }}: <code>{{ url }}</code></li>{% endfor %}</ul>
 </details>
+{% endif %}
 {% endif %}
 {% endblock %}

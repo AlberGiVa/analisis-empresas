@@ -94,14 +94,13 @@ Una web estática en GitHub Pages para consultar la herramienta desde cualquier 
 dirección de la web, sin usuario ni contraseña. Pide a los buscadores que no la muestren, así que
 llega quien tenga el enlace (no es una protección: cualquiera con la dirección puede entrar). Solo
 muestra datos que se pueden republicar:
-- **Empresas reales:** el estudio de las diez empresas, con las cuentas de la SEC y los tipos de
-  cambio del BCE. No hay cotizaciones, porque las condiciones de Nasdaq y Yahoo Finance no permiten
-  publicarlas. Por eso faltan la capitalización, el PER, el EV/EBITDA y el FCF yield, y la
-  puntuación de accionista es «sin valoración».
-- **Casos de ejemplo:** una empresa ficticia por cada caso que trata la herramienta (13), con cotizaciones,
-  bonos y ratings; se calculan con las 20 del ejemplo.
-- **Cómo funciona** (lectura de una puntuación, glosario, métricas, fuentes y límites),
-  y la **Presentación** (la muestra de `docs/`).
+- **Panel:** el día de un vistazo (empresas, alertas y divisas).
+- **Empresas:** comparables, cambios y alertas de las empresas reales, con las cuentas de la SEC y sin
+  cotizaciones (sus condiciones no permiten publicarlas), y una ficha por empresa.
+- **Divisas:** tipos de cambio del BCE con sus variaciones y un año de evolución.
+- **Ejemplos:** una empresa ficticia por cada caso que trata la herramienta (13).
+- **Academy:** glosario y métricas, sin más explicación técnica (la documentación de la herramienta no
+  se publica).
 
 Toda la web lleva la imagen de Luceiro Capital: logo, colores y tipografía. En **Configuración**
 cada visitante elige el estilo (Luceiro, Terminal o Prensa), el modo claro u oscuro, la densidad

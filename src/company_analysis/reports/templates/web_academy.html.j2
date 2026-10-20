@@ -1,0 +1,56 @@
+{% extends "web_base.html.j2" %}
+{% block title %}Academy{% endblock %}
+{% block content %}
+<style>
+  .prose { max-width: 75ch; }
+  dl.glossary { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; max-width: 90ch; }
+  dl.glossary dt { font-weight: 600; }
+  dl.glossary dd { margin: 0; }
+  .metric { border-bottom: 1px solid var(--line); padding: 4px 0; max-width: 90ch; }
+  .metric summary { padding: 4px 0; }
+  .metric .unit { color: var(--muted); font-size: 12px; }
+  .metric p, .metric ul { margin: 4px 0 8px; }
+  .formula { font-family: var(--font-mono); font-size: 13px; background: var(--soft);
+             padding: 6px 8px; border-radius: 6px; overflow-wrap: anywhere; }
+  @media (max-width: 560px) { dl.glossary { grid-template-columns: 1fr; } dl.glossary dd { margin-bottom: 6px; } }
+</style>
+
+<p class="eyebrow">Academy</p>
+<h1>Academy</h1>
+<p class="meta">Los términos y las métricas que aparecen en las tablas.</p>
+
+<h2>Cómo leer una puntuación</h2>
+<ul class="prose">
+  <li>De 0 a 100: compara la empresa con las de su sector en cada factor; 100 es la mejor del grupo.</li>
+  <li>Hay una puntuación de accionista y otra de acreedor, por separado.</li>
+  <li>Si faltan demasiados datos, no se muestra: nunca se inventa una cifra.</li>
+</ul>
+
+<h2>Glosario</h2>
+<dl class="glossary">
+  <dt>LTM</dt><dd>Últimos doce meses (<em>last twelve months</em>): la suma del último año de una magnitud, aunque no coincida con el ejercicio.</dd>
+  <dt>EBITDA</dt><dd>Resultado operativo antes de amortizaciones: aproxima la caja que genera el negocio.</dd>
+  <dt>Deuda neta</dt><dd>Deuda financiera menos caja y equivalentes.</dd>
+  <dt>EV</dt><dd>Valor de empresa (<em>enterprise value</em>): capitalización bursátil más deuda neta.</dd>
+  <dt>FCF</dt><dd>Flujo de caja libre (<em>free cash flow</em>): flujo de caja operativo menos inversiones en inmovilizado.</dd>
+  <dt>Diferencial</dt><dd>Rentabilidad extra de un bono sobre la referencia sin riesgo, en puntos básicos (100 pb = 1 %).</dd>
+  <dt>Tramo de rating</dt><dd>Grupo de calificaciones de la misma letra (A, BBB, BB…).</dd>
+  <dt>Prelación</dt><dd>Orden de cobro de un bono si la empresa no paga: garantizado, sénior, subordinado.</dd>
+  <dt>Percentil</dt><dd>Posición de un valor dentro de su grupo, de 0 a 100 (100 es el mejor).</dd>
+  <dt>Cobertura</dt><dd>Parte del peso de los factores aplicables que tiene dato.</dd>
+</dl>
+
+<h2>Métricas</h2>
+{% for label, metrics in metric_groups %}
+<h3>{{ label }}</h3>
+{% for metric in metrics %}
+<details class="metric">
+  <summary>{{ metric.name }} <span class="unit">· {{ metric.unit.symbol }} ·
+    {% if metric.higher_is_better is none %}informativa{% elif metric.higher_is_better %}más alto es mejor{% else %}más bajo es mejor{% endif %}</span></summary>
+  <p>{{ metric.description }}</p>
+  <p class="formula">{{ metric.formula }}</p>
+  <p>{{ metric.interpretation }}</p>
+</details>
+{% endfor %}
+{% endfor %}
+{% endblock %}
