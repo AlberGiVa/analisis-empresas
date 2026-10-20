@@ -48,7 +48,7 @@ class Figure:
             raise ValueError("A figure has a value if and only if its status is OK")
 
     @classmethod
-    def unavailable(cls, label: str, status: Status, detail: str) -> "Figure":
+    def unavailable(cls, label: str, status: Status, detail: str) -> Figure:
         return cls(label, None, status, detail)
 
     @property

@@ -32,6 +32,17 @@ class Unit(StrEnum):
         return _UNIT_SYMBOLS[self]
 
 
+def format_value(value: float, unit: Unit) -> str:
+    """Value in Spanish notation with its unit: ``12,3x``, ``5,2 %``, ``45 pb``, ``1.234 M EUR``."""
+    if unit is Unit.MULTIPLE:
+        return f"{format_number(value, 1)}x"
+    if unit is Unit.PERCENT:
+        return f"{format_number(value * 100, 1)} %"
+    if unit is Unit.BASIS_POINTS:
+        return f"{format_number(value, 0)} pb"
+    return f"{format_number(value, 0)} M EUR"
+
+
 _CATEGORY_LABELS = {
     MetricCategory.EQUITY: "Renta variable",
     MetricCategory.CREDIT: "Crédito",
@@ -61,17 +72,17 @@ class MetricResult:
     @classmethod
     def computed(
         cls, value: float, inputs: Mapping[str, float], detail: str | None = None
-    ) -> "MetricResult":
+    ) -> MetricResult:
         return cls(Status.OK, value, detail, dict(inputs))
 
     @classmethod
     def unavailable(
         cls, status: Status, detail: str, inputs: Mapping[str, float] | None = None
-    ) -> "MetricResult":
+    ) -> MetricResult:
         return cls(status, None, detail, dict(inputs or {}))
 
     @classmethod
-    def from_figure(cls, figure: Figure) -> "MetricResult":
+    def from_figure(cls, figure: Figure) -> MetricResult:
         """Propagate the reason why an input is unavailable."""
         return cls.unavailable(figure.status, figure.explanation())
 

@@ -24,10 +24,11 @@ uv run ruff format . ; uv run ruff check .    # formato y lint
 uv run python -m mypy                         # tipos (modo estricto)
 uv run python -m company_analysis --help      # CLI (atajo en Windows: .\analisis)
 ```
+- Python 3.14 del equipo (oficial, firmado). uv nunca descarga intérpretes (`[tool.uv]` en
+  `pyproject.toml`); no lo cambies sin hablar con informática.
 - Usa siempre `python -m …`: el antivirus del equipo (Panda) bloquea los lanzadores `.exe` que
-  uv genera (`pytest.exe`, `analisis.exe`…). `ruff.exe` sí arranca.
-- Si `.venv` se recrea y Python da "Acceso denegado", ejecuta
-  `& (uv python find --system 3.12) scripts/fix_windows_venv.py`.
+  uv genera (`pytest.exe`, `analisis.exe`…). Tras instalar paquetes, bórralos con
+  `uv run python scripts/remove_unused_launchers.py`. `ruff.exe` está firmado y sí se usa.
 - El hook `.githooks/pre-commit` ejecuta formato, lint, tipos y tests; se activa con
   `git config core.hooksPath .githooks`.
 

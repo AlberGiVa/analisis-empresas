@@ -1,30 +1,35 @@
 # 0002. Antivirus que bloquea ejecutables desconocidos
 
 - Fecha: 2026-10-20
-- Estado: aceptada
+- Estado: aceptada (revisada el mismo día, al pasar a Python 3.14)
 
 ## Contexto
-El equipo de desarrollo tiene un antivirus corporativo (Panda Security) que solo permite ejecutar
-programas cuyo fichero ya conoce. Se comprobó así:
+El equipo tiene un antivirus corporativo (Panda Security) que solo deja ejecutar programas cuyo
+fichero ya conoce. Se comprobó así:
 - una copia idéntica de `python.exe` arranca;
 - la misma copia con un byte añadido da "Acceso denegado".
 
-Quedan bloqueados dos tipos de ejecutables que uv genera:
-- el lanzador `.venv/Scripts/python.exe` del entorno virtual;
-- los lanzadores de los paquetes instalados (`pytest.exe`, `mypy.exe`, `streamlit.exe`, `analisis.exe`).
+Con el Python 3.12 descargado por uv, dos tipos de ejecutables quedaban bloqueados:
+- el lanzador del entorno virtual (`.venv\Scripts\python.exe`, sin firmar);
+- los lanzadores de comandos de las librerías (`pytest.exe`, `mypy.exe`, `streamlit.exe`…): un
+  ejecutable genérico con unas líneas de Python añadidas, distinto en cada caso.
 
-Los binarios distribuidos tal cual en los paquetes, como `ruff.exe`, sí arrancan. Es probable que
-los equipos de los analistas tengan la misma política.
+Esas pruebas y bloqueos generaron avisos que revisó el departamento de informática.
 
 ## Decisión
-- Todos los comandos documentados usan `python -m …` (`python -m pytest`, `python -m mypy`,
-  `python -m company_analysis`), que no dependen de los lanzadores `.exe`.
-- `analisis.cmd` en la raíz es un atajo para Windows de `uv run python -m company_analysis`.
-- `scripts/fix_windows_venv.py` sustituye el lanzador del entorno virtual por copias idénticas del
-  intérprete base y sus DLL. CPython sigue reconociendo el entorno virtual gracias a `pyvenv.cfg`.
-- El comando `analisis` se mantiene en `pyproject.toml` para los equipos sin esta restricción.
+- **Python del equipo.** Se usa el Python 3.14 instalado (firmado por la Python Software
+  Foundation). El lanzador del entorno virtual es entonces el oficial, también firmado, y el
+  antivirus lo deja ejecutar. uv tiene prohibido descargar intérpretes.
+- **Comandos con `python -m …`.** Todos los comandos documentados (`python -m pytest`,
+  `python -m mypy`, `python -m company_analysis`) ejecutan el código Python de las librerías sin
+  pasar por lanzadores `.exe`.
+- **Lanzadores sin uso.** `scripts/remove_unused_launchers.py` borra los lanzadores que uv genera
+  al instalar paquetes. Solo quedan `python.exe`, `pythonw.exe` (PSF) y `ruff.exe` (firmado).
+- **Atajo `analisis.cmd`** en la raíz: en Windows equivale a
+  `uv run python -m company_analysis`.
 
 ## Consecuencias
-- Si se borra o se recrea `.venv`, hay que volver a ejecutar `scripts/fix_windows_venv.py`.
-- Una alternativa más limpia es pedir al departamento de sistemas que autorice los ejecutables de
-  la carpeta del proyecto o del entorno virtual.
+- Tras cada `uv sync` que instale o actualice paquetes conviene ejecutar
+  `uv run python scripts/remove_unused_launchers.py`.
+- El comando `analisis` se mantiene en `pyproject.toml` para los equipos sin esta restricción.
+- Inventario de ejecutables y su función: ver el README ("Problemas conocidos").

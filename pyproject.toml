@@ -3,7 +3,7 @@ name = "company-analysis"
 version = "0.1.0"
 description = "Herramienta interna de análisis de empresas para un fondo multiactivos (vista de acción y de crédito)."
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.14"
 dependencies = [
     "duckdb>=1.5",
     "jinja2>=3.1",
@@ -33,9 +33,14 @@ dev = [
 requires = ["uv_build>=0.13.3,<0.14.0"]
 build-backend = "uv_build"
 
+[tool.uv]
+# Use the Python already installed on the computer (official, signed build); never download one.
+python-preference = "only-system"
+python-downloads = "never"
+
 [tool.ruff]
 line-length = 100
-target-version = "py312"
+target-version = "py314"
 src = ["src"]
 
 [tool.ruff.lint]
@@ -72,7 +77,7 @@ allowed-confusables = ["×", "−", "–", "’"]
 "tests/*" = ["DTZ001"]
 
 [tool.mypy]
-python_version = "3.12"
+python_version = "3.14"
 strict = true
 warn_unreachable = true
 plugins = ["pydantic.mypy"]
