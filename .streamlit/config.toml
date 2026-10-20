@@ -1,6 +1,8 @@
-# Panel local: sin envío de estadísticas de uso a terceros y sin preguntas al arrancar.
+# Panel local: solo accesible desde este equipo, sin consultas a servicios externos ni envío de
+# estadísticas de uso, y sin preguntas al arrancar.
 [browser]
 gatherUsageStats = false
 
 [server]
+address = "localhost"
 headless = true

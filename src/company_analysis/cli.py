@@ -231,14 +231,17 @@ def reports_command(
     """Genera el ranking (HTML y CSV para Excel) y una ficha HTML por empresa."""
     settings = Settings()
     with database(settings) as conn:
-        if ejecucion is None:
-            latest = latest_completed_run(conn)
-            if latest is None:
-                fail("Todavía no hay ejecuciones completadas: ejecuta antes 'ejecutar'.")
-            ejecucion = latest.run_id
-        files = generate_reports(conn, ejecucion, settings)
-    console.print(f"Informes de la ejecución {ejecucion}:")
+        run_id = ejecucion or latest_run_id(conn)
+        files = generate_reports(conn, run_id, settings)
+    console.print(f"Informes de la ejecución {run_id}:")
     print_reports(files)
+
+
+def latest_run_id(conn: duckdb.DuckDBPyConnection) -> str:
+    latest = latest_completed_run(conn)
+    if latest is None:
+        fail("Todavía no hay ejecuciones completadas: ejecuta antes 'ejecutar'.")
+    return latest.run_id
 
 
 @app.command("demo")
@@ -353,6 +356,15 @@ def _wait_for_port(port: int, timeout: float) -> bool:
     return False
 
 
+def panel_command_line(port: int) -> list[str]:
+    """Streamlit, reachable only from this computer (no network exposure, no external lookups)."""
+    return [
+        sys.executable, "-m", "streamlit", "run", str(DASHBOARD),
+        "--server.address", "localhost", "--server.port", str(port),
+        "--server.headless", "true", "--browser.gatherUsageStats", "false",
+    ]  # fmt: skip
+
+
 @app.command("panel")
 def panel_command(
     puerto: Annotated[int, typer.Option(help="Puerto local del panel.")] = 8501,
@@ -363,13 +375,8 @@ def panel_command(
     if not settings.db_path.exists():
         fail("Todavía no hay datos: ejecuta antes 'demo' (o 'cargar' y 'ejecutar').")
     url = f"http://localhost:{puerto}"
-    command = [
-        sys.executable, "-m", "streamlit", "run", str(DASHBOARD),
-        "--server.port", str(puerto), "--server.headless", "true",
-        "--browser.gatherUsageStats", "false",
-    ]  # fmt: skip
     typer.echo(f"Abriendo el panel en {url} (Ctrl+C para cerrarlo)…")
-    process = subprocess.Popen(command, cwd=settings.project_root)
+    process = subprocess.Popen(panel_command_line(puerto), cwd=settings.project_root)
     try:
         if navegador and _wait_for_port(puerto, timeout=60):
             webbrowser.open(url)

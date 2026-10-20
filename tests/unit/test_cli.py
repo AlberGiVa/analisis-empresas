@@ -4,7 +4,8 @@ import pytest
 from typer.testing import CliRunner
 
 from company_analysis import __version__
-from company_analysis.cli import app
+from company_analysis.cli import app, panel_command_line
+from company_analysis.settings import PROJECT_ROOT
 
 runner = CliRunner()
 
@@ -68,3 +69,13 @@ def test_run_errors_are_explained(isolated_db: Path) -> None:
     bad_date = runner.invoke(app, ["ejecutar", "--fecha", "30/06/2026"])
     assert bad_date.exit_code == 1
     assert "Fecha no válida" in bad_date.output
+
+
+def test_panel_is_only_reachable_from_this_computer() -> None:
+    """Streamlit must not listen on the network nor look up the public IP address."""
+    command = panel_command_line(8501)
+    assert command[command.index("--server.address") + 1] == "localhost"
+    assert command[command.index("--browser.gatherUsageStats") + 1] == "false"
+    config = (PROJECT_ROOT / ".streamlit" / "config.toml").read_text(encoding="utf-8")
+    assert 'address = "localhost"' in config
+    assert "gatherUsageStats = false" in config

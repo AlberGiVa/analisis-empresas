@@ -30,6 +30,8 @@ la vista de acción y la de crédito lado a lado, un ranking y un panel con filt
 - **Panel Streamlit de solo lectura.**
   - Conexiones cortas de solo lectura, para no bloquear la CLI.
   - Caché que se invalida cuando cambia la base.
+  - Solo accesible desde el propio equipo (`server.address = "localhost"`): no escucha en la red
+    ni consulta servicios externos para averiguar la IP pública, como hace Streamlit por defecto.
   - Sin envío de estadísticas de uso (`.streamlit/config.toml`).
   - `analisis panel` lo arranca y abre el navegador cuando el servidor está listo.
 
