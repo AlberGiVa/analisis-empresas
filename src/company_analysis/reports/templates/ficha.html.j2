@@ -86,31 +86,33 @@
   <section>
     <h2>Vista del acreedor</h2>
     {{ factor_table(company.credit) }}
-    <h3>Bonos vivos</h3>
-    {% if company.bonds %}
-    <table>
-      <thead><tr><th>ISIN</th><th>Prelación</th><th class="num">Cupón</th><th class="num">Vencimiento</th>
-          <th>Rating</th><th class="num">Rentab.</th><th class="num">Diferencial</th><th>Frente a su tramo</th></tr></thead>
-      <tbody>
-      {% for bond in company.bonds %}
-        <tr>
-          <td>{{ bond.isin }} <span class="muted">{{ bond.currency }}</span></td>
-          <td>{{ bond.seniority }}</td>
-          <td class="num">{{ bond.coupon_text }}</td>
-          <td class="num">{{ bond.maturity_text }}</td>
-          <td>{{ bond.rating_text }}</td>
-          <td class="num">{{ bond.yield_text }}</td>
-          <td class="num">{{ bond.spread_text }}</td>
-          <td>{{ bond.comparison_text }}</td>
-        </tr>
-      {% endfor %}
-      </tbody>
-    </table>
-    {% else %}
-    <p class="muted">La empresa no tiene bonos vivos.</p>
-    {% endif %}
   </section>
 </div>
+
+<h2>Bonos vivos</h2>
+{% if company.bonds %}
+<table>
+  <thead><tr><th>ISIN</th><th>Divisa</th><th>Prelación</th><th class="num">Cupón</th><th class="num">Vencimiento</th>
+      <th>Rating</th><th class="num">Rentabilidad</th><th class="num">Diferencial</th><th>Frente a la mediana de su tramo de rating</th></tr></thead>
+  <tbody>
+  {% for bond in company.bonds %}
+    <tr>
+      <td>{{ bond.isin }}</td>
+      <td>{{ bond.currency }}</td>
+      <td>{{ bond.seniority }}</td>
+      <td class="num">{{ bond.coupon_text }}</td>
+      <td class="num">{{ bond.maturity_text }}</td>
+      <td>{{ bond.rating_text }}</td>
+      <td class="num">{{ bond.yield_text }}</td>
+      <td class="num">{{ bond.spread_text }}</td>
+      <td>{{ bond.comparison_text }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="muted">La empresa no tiene bonos vivos.</p>
+{% endif %}
 
 <h2>Alertas</h2>
 {% if company.alerts %}

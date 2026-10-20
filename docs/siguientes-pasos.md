@@ -28,6 +28,8 @@ aquí en lugar de implementarse.
 - Pesos por bloques temáticos (valoración, rentabilidad, crecimiento) en lugar de por factor.
 - Alerta específica de "ángel caído" (paso de grado de inversión a high yield), hoy solo indicado
   en el mensaje de la rebaja.
+- Ranking de crédito: decidir si las empresas sin bonos vivos deben puntuar. Hoy puntúan solo por
+  sus fundamentales (en los datos de ejemplo, la empresa sin deuda encabeza ese ranking).
 
 ## Trazabilidad
 - Comando para reproducir una ejecución pasada (misma fecha, mismo corte de datos y su
