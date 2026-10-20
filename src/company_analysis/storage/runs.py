@@ -11,9 +11,16 @@ import duckdb
 
 from company_analysis.config import ScoreType
 from company_analysis.figures import Status
-from company_analysis.metrics import MetricTable
+from company_analysis.metrics import EntityLevel, MetricResult, MetricRow, MetricTable
 from company_analysis.scoring import ReferenceGroup, Score, ScoreComponent
-from company_analysis.screening import Alert, PreviousScores, ScreenResult
+from company_analysis.screening import (
+    Alert,
+    AlertRule,
+    ConditionResult,
+    PreviousScores,
+    ScreenOutcome,
+    ScreenResult,
+)
 from company_analysis.storage.database import insert_rows
 
 
@@ -289,3 +296,54 @@ def previous_scores(conn: duckdb.DuckDBPyConnection, as_of: date) -> PreviousSco
         return None
     scores = {(s.issuer_id, s.score_type): s for s in load_scores(conn, record.run_id)}
     return PreviousScores(record.run_id, record.as_of_date, record.config_hash, scores)
+
+
+def load_metric_table(conn: duckdb.DuckDBPyConnection, run_id: str) -> MetricTable:
+    """Metric results of a run, with their inputs, as they were stored."""
+    rows = conn.execute(
+        "SELECT metric_id, issuer_id, level, entity_id, status, value, detail, inputs"
+        " FROM metric_values WHERE run_id = ? ORDER BY rowid",
+        [run_id],
+    ).fetchall()
+    return MetricTable(
+        MetricRow(
+            metric_id,
+            issuer_id,
+            EntityLevel(level),
+            entity_id,
+            MetricResult(Status(status), value, detail, json.loads(inputs)),
+        )
+        for metric_id, issuer_id, level, entity_id, status, value, detail, inputs in rows
+    )
+
+
+def load_screen_results(conn: duckdb.DuckDBPyConnection, run_id: str) -> list[ScreenResult]:
+    rows = conn.execute(
+        "SELECT issuer_id, screen_id, outcome, conditions FROM screen_results"
+        " WHERE run_id = ? ORDER BY rowid",
+        [run_id],
+    ).fetchall()
+    return [
+        ScreenResult(
+            issuer_id,
+            screen_id,
+            ScreenOutcome(outcome),
+            tuple(
+                ConditionResult(c["description"], ScreenOutcome(c["outcome"]), c["detail"])
+                for c in json.loads(conditions)
+            ),
+        )
+        for issuer_id, screen_id, outcome, conditions in rows
+    ]
+
+
+def load_alerts(conn: duckdb.DuckDBPyConnection, run_id: str) -> list[Alert]:
+    rows = conn.execute(
+        "SELECT rule, issuer_id, entity_id, message, details FROM alerts"
+        " WHERE run_id = ? ORDER BY alert_id",
+        [run_id],
+    ).fetchall()
+    return [
+        Alert(AlertRule(rule), issuer_id, entity_id, message, json.loads(details))
+        for rule, issuer_id, entity_id, message, details in rows
+    ]

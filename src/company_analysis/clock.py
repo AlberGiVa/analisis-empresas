@@ -8,6 +8,11 @@ def utc_now() -> datetime:
     return datetime.now(UTC).replace(tzinfo=None)
 
 
+def local_now() -> datetime:
+    """Current time in the computer's local timezone (for messages shown to people)."""
+    return datetime.now(UTC).astimezone()
+
+
 def local_today() -> date:
     """Today's date in the computer's local timezone."""
-    return datetime.now(UTC).astimezone().date()
+    return local_now().date()

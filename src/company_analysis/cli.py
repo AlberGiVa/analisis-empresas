@@ -1,8 +1,14 @@
 """Command line interface. Command names, help and messages are in Spanish (user interface)."""
 
+import socket
+import subprocess
+import sys
+import time
+import webbrowser
 from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import date
+from enum import StrEnum
 from typing import Annotated, NoReturn
 
 import duckdb
@@ -12,14 +18,20 @@ from rich.console import Console
 from rich.table import Table
 
 from company_analysis import __version__
+from company_analysis.app import DASHBOARD
+from company_analysis.clock import local_today
 from company_analysis.config import ScoreType
 from company_analysis.config_loader import ConfigError, LoadedConfig, load_config
 from company_analysis.formatting import format_date
+from company_analysis.journal import Decision, JournalError, add_entry, list_entries
 from company_analysis.pipeline import AnalysisError, RunOutcome, run_analysis
+from company_analysis.provenance import current_user
 from company_analysis.providers import PROVIDERS, create_provider
+from company_analysis.providers.sample_generator import DEMO_AS_OF_DATES
+from company_analysis.reports import ReportError, ReportFiles, build_run_view, write_reports
 from company_analysis.settings import Settings
 from company_analysis.storage import latest_price_date, open_database, save_bundle
-from company_analysis.storage.runs import list_runs
+from company_analysis.storage.runs import latest_completed_run, list_runs
 
 app = typer.Typer(
     name="analisis",
@@ -27,7 +39,11 @@ app = typer.Typer(
     no_args_is_help=True,
     add_completion=False,
 )
-console = Console()
+note_app = typer.Typer(
+    help="Diario del analista: tesis de inversión y notas por empresa.", no_args_is_help=True
+)
+app.add_typer(note_app, name="nota")
+console = Console(soft_wrap=True)  # long paths are never broken across lines
 
 COLLECTION_LABELS = {
     "issuers": "emisores",
@@ -38,6 +54,27 @@ COLLECTION_LABELS = {
     "bond_quotes": "cotizaciones de bonos",
     "ratings": "ratings",
     "fx_rates": "tipos de cambio",
+}
+
+
+class DecisionOption(StrEnum):
+    """Decisions as typed in the command line (Spanish)."""
+
+    NINGUNA = "ninguna"
+    SEGUIMIENTO = "seguimiento"
+    INVERTIR = "invertir"
+    MANTENER = "mantener"
+    REDUCIR = "reducir"
+    DESINVERTIR = "desinvertir"
+
+
+_DECISIONS = {
+    DecisionOption.NINGUNA: Decision.NONE,
+    DecisionOption.SEGUIMIENTO: Decision.WATCH,
+    DecisionOption.INVERTIR: Decision.INVEST,
+    DecisionOption.MANTENER: Decision.HOLD,
+    DecisionOption.REDUCIR: Decision.REDUCE,
+    DecisionOption.DESINVERTIR: Decision.DIVEST,
 }
 
 
@@ -83,6 +120,16 @@ def analyse(conn: duckdb.DuckDBPyConnection, as_of: date, config: LoadedConfig) 
         fail(f"La ejecución no se ha completado (queda registrada como fallida): {error}")
 
 
+def generate_reports(
+    conn: duckdb.DuckDBPyConnection, run_id: str, settings: Settings
+) -> ReportFiles:
+    try:
+        view = build_run_view(conn, run_id)
+    except ReportError as error:
+        fail(str(error))
+    return write_reports(view, settings.output_dir)
+
+
 def print_run(outcome: RunOutcome) -> None:
     record = outcome.record
     shown = {
@@ -102,6 +149,12 @@ def print_run(outcome: RunOutcome) -> None:
     console.print(f"  Alertas: {len(outcome.alerts)}")
     for alert in outcome.alerts:
         console.print(f"   - {alert.issuer_id} · {alert.rule.label}: {alert.message}")
+
+
+def print_reports(files: ReportFiles) -> None:
+    console.print(f"  Ranking: {files.ranking_html}")
+    console.print(f"  Ranking para Excel: {files.ranking_csv}")
+    console.print(f"  Fichas ({len(files.fichas)}): {files.directory / 'fichas'}")
 
 
 @app.callback()
@@ -166,6 +219,104 @@ def run_command(
     print_run(outcome)
 
 
+@app.command("fichas")
+def reports_command(
+    ejecucion: Annotated[
+        str | None,
+        typer.Option(
+            "--ejecucion", help="Identificador de la ejecución. Por defecto, la última completada."
+        ),
+    ] = None,
+) -> None:
+    """Genera el ranking (HTML y CSV para Excel) y una ficha HTML por empresa."""
+    settings = Settings()
+    with database(settings) as conn:
+        if ejecucion is None:
+            latest = latest_completed_run(conn)
+            if latest is None:
+                fail("Todavía no hay ejecuciones completadas: ejecuta antes 'ejecutar'.")
+            ejecucion = latest.run_id
+        files = generate_reports(conn, ejecucion, settings)
+    console.print(f"Informes de la ejecución {ejecucion}:")
+    print_reports(files)
+
+
+@app.command("demo")
+def demo_command() -> None:
+    """Todo de una vez con los datos de ejemplo: carga, análisis a dos fechas, ranking y fichas."""
+    settings = Settings()
+    config = methodology(settings)
+    provider = create_provider("ejemplo", settings)
+    bundle = provider.fetch()
+    with database(settings) as conn:
+        loaded = save_bundle(conn, bundle, provider.name)
+        state = "cargados" if loaded.created else "ya estaban cargados"
+        console.print(f"Datos de ejemplo {state} (lote {loaded.batch.load_id}).")
+        outcomes = [analyse(conn, as_of, config) for as_of in DEMO_AS_OF_DATES]
+        files = generate_reports(conn, outcomes[-1].record.run_id, settings)
+    for outcome in outcomes:
+        print_run(outcome)
+    console.print("[bold]Informes de la última ejecución[/bold]")
+    print_reports(files)
+    console.print("Para abrir el panel: .\\analisis panel")
+
+
+@note_app.command("nueva")
+def new_note(
+    empresa: Annotated[
+        str, typer.Argument(help="Identificador de la empresa (por ejemplo, VALD).")
+    ],
+    texto: Annotated[str, typer.Argument(help="Texto de la nota, entre comillas.")],
+    decision: Annotated[
+        DecisionOption, typer.Option(help="Decisión del analista.")
+    ] = DecisionOption.NINGUNA,
+    autor: Annotated[
+        str | None, typer.Option(help="Autor. Por defecto, el usuario del equipo.")
+    ] = None,
+    fecha: Annotated[
+        str | None, typer.Option(help="Fecha de la nota (AAAA-MM-DD). Por defecto, hoy.")
+    ] = None,
+) -> None:
+    """Añade una nota o tesis de inversión al diario (las notas nunca se modifican)."""
+    settings = Settings()
+    entry_date = parse_date(fecha) if fecha else local_today()
+    with database(settings) as conn:
+        try:
+            entry = add_entry(
+                conn,
+                issuer_id=empresa.upper(),
+                text=texto,
+                author=autor or current_user(),
+                decision=_DECISIONS[decision],
+                entry_date=entry_date,
+            )
+        except JournalError as error:
+            fail(str(error))
+    typer.echo(
+        f"Nota guardada para {entry.issuer_id} ({format_date(entry.entry_date)}, "
+        f"{entry.author}, {entry.decision.label})."
+    )
+
+
+@note_app.command("listar")
+def list_notes(
+    empresa: Annotated[
+        str | None, typer.Argument(help="Identificador de la empresa. Sin él, todas.")
+    ] = None,
+) -> None:
+    """Muestra las notas del diario, de la más reciente a la más antigua."""
+    settings = Settings()
+    with database(settings) as conn:
+        entries = list_entries(conn, empresa.upper() if empresa else None)
+    if not entries:
+        typer.echo("No hay notas.")
+    for entry in entries:
+        typer.echo(
+            f"{format_date(entry.entry_date)} · {entry.issuer_id} · {entry.author} · "
+            f"{entry.decision.label}: {entry.text}"
+        )
+
+
 @app.command("ejecuciones")
 def list_runs_command() -> None:
     """Muestra el registro de ejecuciones: fecha, datos usados, configuración y código."""
@@ -189,3 +340,39 @@ def list_runs_command() -> None:
             run.triggered_by,
         )
     console.print(table)
+
+
+def _wait_for_port(port: int, timeout: float) -> bool:
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        try:
+            with socket.create_connection(("127.0.0.1", port), timeout=1):
+                return True
+        except OSError:
+            time.sleep(0.5)
+    return False
+
+
+@app.command("panel")
+def panel_command(
+    puerto: Annotated[int, typer.Option(help="Puerto local del panel.")] = 8501,
+    navegador: Annotated[bool, typer.Option(help="Abrir el navegador automáticamente.")] = True,
+) -> None:
+    """Abre el panel con el ranking y el detalle de cada empresa. Ciérralo con Ctrl+C."""
+    settings = Settings()
+    if not settings.db_path.exists():
+        fail("Todavía no hay datos: ejecuta antes 'demo' (o 'cargar' y 'ejecutar').")
+    url = f"http://localhost:{puerto}"
+    command = [
+        sys.executable, "-m", "streamlit", "run", str(DASHBOARD),
+        "--server.port", str(puerto), "--server.headless", "true",
+        "--browser.gatherUsageStats", "false",
+    ]  # fmt: skip
+    typer.echo(f"Abriendo el panel en {url} (Ctrl+C para cerrarlo)…")
+    process = subprocess.Popen(command, cwd=settings.project_root)
+    try:
+        if navegador and _wait_for_port(puerto, timeout=60):
+            webbrowser.open(url)
+        process.wait()
+    except KeyboardInterrupt:
+        process.terminate()

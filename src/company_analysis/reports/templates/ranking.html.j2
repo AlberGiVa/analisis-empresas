@@ -1,0 +1,68 @@
+{% extends "base.html.j2" %}
+{% block title %}Ranking · {{ run_date }}{% endblock %}
+
+{% macro ranking_table(companies, score_type) %}
+<table>
+  <thead>
+    <tr><th class="num">#</th><th>Empresa</th><th>Sector</th><th>País</th>
+        <th class="num">Puntuación</th><th class="num">Cobertura</th><th class="num">Alertas</th></tr>
+  </thead>
+  <tbody>
+  {% set position = namespace(value=0) %}
+  {% for company in companies %}
+    {% set score = company.equity if score_type == "equity" else company.credit %}
+    {% if score.value is not none %}{% set position.value = position.value + 1 %}{% endif %}
+    <tr>
+      <td class="num">{{ position.value if score.value is not none else "—" }}</td>
+      <td><a href="{{ company.ficha_path }}">{{ company.name }}</a> <span class="muted">{{ company.issuer_id }}</span></td>
+      <td>{{ company.sector_label }}</td>
+      <td>{{ company.country }}</td>
+      <td class="num">{% if score.value is not none %}{{ score.value_text }}{% else %}<span class="badge">No disponible</span>{% endif %}</td>
+      <td class="num">{{ score.coverage_text }}</td>
+      <td class="num">{{ company.alerts | length or "" }}</td>
+    </tr>
+    {% if score.reason %}<tr class="reason"><td></td><td colspan="6">{{ score.reason }}</td></tr>{% endif %}
+  {% endfor %}
+  </tbody>
+</table>
+{% endmacro %}
+
+{% block content %}
+<header class="header">
+  <div>
+    <p class="eyebrow">Ranking · análisis a {{ run_date }}</p>
+    <h1>Análisis de empresas del fondo multiactivos</h1>
+    <p class="meta">{{ companies_count }} empresas · {{ alerts_count }} alertas ·
+      descarga para Excel: <a href="ranking.csv">ranking.csv</a></p>
+  </div>
+</header>
+
+<div class="views">
+  <section>
+    <h2>{{ view.config.scoring.equity.name }}</h2>
+    {{ ranking_table(equity, "equity") }}
+  </section>
+  <section>
+    <h2>{{ view.config.scoring.credit.name }}</h2>
+    {{ ranking_table(credit, "credit") }}
+  </section>
+</div>
+
+<h2>Alertas de la ejecución</h2>
+{% if alerts %}
+<ul class="alerts">
+  {% for company, alert in alerts %}
+  <li><a href="{{ company.ficha_path }}">{{ company.name }}</a> · <strong>{{ alert.rule_label }}.</strong> {{ alert.message }}</li>
+  {% endfor %}
+</ul>
+{% else %}
+<p class="muted">Sin alertas en esta ejecución.</p>
+{% endif %}
+
+<h2>Cómo leer las puntuaciones</h2>
+<p>Cada factor se compara con las empresas de su sector que tienen dato (o con todo el universo si
+el sector tiene menos de {{ view.config.scoring.min_peers }}) y se expresa como percentil: 100 es la
+mejor del grupo. La puntuación es la media ponderada de esos percentiles. La cobertura es la parte
+del peso de los factores aplicables que tenía dato; por debajo del mínimo, la puntuación no se
+muestra. El detalle de cada factor está en la ficha de la empresa.</p>
+{% endblock %}

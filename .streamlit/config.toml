@@ -1,0 +1,6 @@
+# Panel local: sin envío de estadísticas de uso a terceros y sin preguntas al arrancar.
+[browser]
+gatherUsageStats = false
+
+[server]
+headless = true

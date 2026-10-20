@@ -1,0 +1,167 @@
+{% extends "base.html.j2" %}
+{% block title %}{{ company.name }} · Ficha{% endblock %}
+
+{% macro factor_table(score) %}
+<table>
+  <thead>
+    <tr><th>Factor</th><th class="num">Valor</th><th>Comparado con</th>
+        <th class="num">Percentil</th><th class="num">Peso</th><th class="num">Aporta</th></tr>
+  </thead>
+  <tbody>
+  {% for factor in score.factors %}
+    <tr>
+      <td>{{ factor.metric.name }}</td>
+      <td class="num">
+        {% if factor.metric.value is not none %}{{ factor.metric.value_text }}{% endif %}
+        {% if factor.metric.status_label %}<span class="badge">{{ factor.metric.status_label }}</span>{% endif %}
+      </td>
+      <td>{{ factor.reference_text or "—" }}</td>
+      <td class="num">{{ factor.percentile_text or "—" }}</td>
+      <td class="num">{{ factor.weight_text }}</td>
+      <td class="num">{{ factor.contribution_text or "—" }}</td>
+    </tr>
+    {% if factor.metric.status_label and factor.metric.detail %}
+    <tr class="reason"><td colspan="6">{{ factor.metric.detail }}</td></tr>
+    {% endif %}
+  {% endfor %}
+  </tbody>
+</table>
+<details>
+  <summary>Fórmulas y datos de entrada</summary>
+  {% for factor in score.factors %}
+  <p><strong>{{ factor.metric.name }}</strong>: {{ factor.metric.formula }}</p>
+  {% if factor.metric.inputs %}
+  <dl class="inputs">
+    {% for label, value in factor.metric.inputs %}<dt>{{ label }}</dt><dd>{{ value }}</dd>{% endfor %}
+  </dl>
+  {% endif %}
+  {% endfor %}
+</details>
+{% endmacro %}
+
+{% block content %}
+<header class="header">
+  <div>
+    <p class="eyebrow">Ficha de empresa · análisis a {{ run_date }}</p>
+    <h1>{{ company.name }}</h1>
+    <p class="meta">{{ company.issuer_id }} · {{ company.sector_label }} · {{ company.industry_label }}
+      · {{ company.country }} · divisa de reporte {{ company.currency }}{% if company.lei %} · LEI {{ company.lei }}{% endif %}</p>
+    <p class="meta">Acción: {{ company.listing_text }} · Cotización: {{ company.price_text }}</p>
+    <p class="meta">Periodo de referencia: {{ company.reference_text }}</p>
+  </div>
+  <a class="back" href="../ranking.html">← Volver al ranking</a>
+</header>
+
+<section class="summary">
+  {% for score in [company.equity, company.credit] %}
+  <div class="card{% if score.value is none %} card-muted{% endif %}">
+    <p class="card-label">{{ score.title }}</p>
+    <p class="card-value">{{ score.value_text }}</p>
+    <p class="card-note">Cobertura {{ score.coverage_text }}{% if score.reason %} · {{ score.reason }}{% endif %}</p>
+  </div>
+  {% endfor %}
+  <div class="card">
+    <p class="card-label">Alertas</p>
+    <p class="card-value">{{ company.alerts | length }}</p>
+    <p class="card-note">Filtros que cumple: {{ company.screens | selectattr("outcome", "equalto", "pass") | list | length }} de {{ company.screens | length }}</p>
+  </div>
+</section>
+
+<div class="views">
+  <section>
+    <h2>Vista del accionista</h2>
+    {{ factor_table(company.equity) }}
+    <h3>Magnitudes en euros</h3>
+    <table>
+      <tbody>
+      {% for line in company.magnitudes %}
+        <tr>
+          <td>{{ line.name }}</td>
+          <td class="num">{% if line.value is not none %}{{ line.value_text }}{% else %}<span class="badge">{{ line.status_label }}</span>{% endif %}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </section>
+  <section>
+    <h2>Vista del acreedor</h2>
+    {{ factor_table(company.credit) }}
+    <h3>Bonos vivos</h3>
+    {% if company.bonds %}
+    <table>
+      <thead><tr><th>ISIN</th><th>Prelación</th><th class="num">Cupón</th><th class="num">Vencimiento</th>
+          <th>Rating</th><th class="num">Rentab.</th><th class="num">Diferencial</th><th>Frente a su tramo</th></tr></thead>
+      <tbody>
+      {% for bond in company.bonds %}
+        <tr>
+          <td>{{ bond.isin }} <span class="muted">{{ bond.currency }}</span></td>
+          <td>{{ bond.seniority }}</td>
+          <td class="num">{{ bond.coupon_text }}</td>
+          <td class="num">{{ bond.maturity_text }}</td>
+          <td>{{ bond.rating_text }}</td>
+          <td class="num">{{ bond.yield_text }}</td>
+          <td class="num">{{ bond.spread_text }}</td>
+          <td>{{ bond.comparison_text }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="muted">La empresa no tiene bonos vivos.</p>
+    {% endif %}
+  </section>
+</div>
+
+<h2>Alertas</h2>
+{% if company.alerts %}
+<ul class="alerts">
+  {% for alert in company.alerts %}<li><strong>{{ alert.rule_label }}.</strong> {{ alert.message }}</li>{% endfor %}
+</ul>
+{% else %}
+<p class="muted">Sin alertas en esta ejecución.</p>
+{% endif %}
+
+<h2>Filtros</h2>
+{% if company.screens %}
+<table>
+  <thead><tr><th>Filtro</th><th>Resultado</th><th>Condiciones</th></tr></thead>
+  <tbody>
+  {% for screen in company.screens %}
+    <tr>
+      <td>{{ screen.name }}</td>
+      <td><span class="badge badge-{{ screen.outcome }}">{{ screen.outcome_label }}</span></td>
+      <td>{% for condition in screen.conditions %}{{ condition.description }}: {{ condition.detail }}{% if not loop.last %}<br>{% endif %}{% endfor %}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="muted">No hay filtros configurados.</p>
+{% endif %}
+
+<h2>Histórico anual (millones de {{ company.history.currency }})</h2>
+{% if company.history.years %}
+<table>
+  <thead>
+    <tr><th></th>{% for year in company.history.years %}<th class="num">{{ year }}<br><span class="muted">{{ company.history.periods[loop.index0] }}</span></th>{% endfor %}</tr>
+  </thead>
+  <tbody>
+  {% for label, values in company.history.rows %}
+    <tr><td>{{ label }}</td>{% for value in values %}<td class="num">{{ value }}</td>{% endfor %}</tr>
+  {% endfor %}
+  </tbody>
+</table>
+<p class="muted">Cada ejercicio se rotula con el año natural en el que cae la mayoría de sus meses.</p>
+{% else %}
+<p class="muted">Sin ejercicios publicados.</p>
+{% endif %}
+
+<h2>Diario del analista</h2>
+{% if company.notes %}
+{% for note in company.notes %}
+<p><strong>{{ note.date_text }} · {{ note.author }}</strong> · <span class="badge">{{ note.decision_label }}</span><br>{{ note.text }}</p>
+{% endfor %}
+{% else %}
+<p class="muted">Sin notas. Añade una con: .\analisis nota nueva {{ company.issuer_id }} "texto"</p>
+{% endif %}
+{% endblock %}

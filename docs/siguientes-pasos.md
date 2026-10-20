@@ -34,6 +34,16 @@ aquí en lugar de implementarse.
   configuración guardada) y comparar los resultados.
 - Archivado de ejecuciones antiguas si la base crece mucho.
 
+## Fichas y panel
+- Añadir notas al diario desde el panel (hoy solo desde la CLI, para que el panel no escriba).
+- Gráficos de evolución (cotización, diferencial, puntuaciones entre ejecuciones) en fichas y
+  panel.
+- Comparar dos ejecuciones en el panel (qué ha cambiado y por qué).
+- Exportación a Excel (.xlsx) con formato, además del CSV actual.
+- Lanzador del panel con doble clic para quien no use la consola.
+
 ## Uso
 - Uso compartido entre varios analistas: DuckDB admite un único escritor, así que un diario de
   notas común requeriría otro almacenamiento.
+- Pedir a informática que autorice los ejecutables del entorno, o mantener el procedimiento actual
+  (Python oficial y `python -m`).

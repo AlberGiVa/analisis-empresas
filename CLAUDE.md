@@ -2,10 +2,11 @@
 
 ## Propósito
 Herramienta interna de un fondo multiactivos (acciones y bonos corporativos) que sistematiza el
-análisis de empresas: cada emisor se ve como accionista y como acreedor. Usuarios: gestores y
-analistas que no programan y hoy trabajan con Excel. Universo: cotizadas europeas y
-estadounidenses de mediana y gran capitalización. Moneda base: EUR. Encargo original:
-`docs/encargo-inicial.md`.
+análisis de empresas: cada emisor se ve como accionista y como acreedor.
+- Usuarios: gestores y analistas que no programan y hoy trabajan con Excel.
+- Universo: cotizadas europeas y estadounidenses de mediana y gran capitalización.
+- Moneda base: EUR.
+- Encargo original: `docs/encargo-inicial.md`.
 
 ## Principios (no negociables)
 - Apoya al gestor, no decide: métricas, puntuaciones y alertas; nunca recomendaciones.
@@ -18,44 +19,54 @@ estadounidenses de mediana y gran capitalización. Moneda base: EUR. Encargo ori
 
 ## Comandos
 ```powershell
-uv sync                                       # instalar
-uv run python -m pytest                       # tests
-uv run ruff format . ; uv run ruff check .    # formato y lint
-uv run python -m mypy                         # tipos (modo estricto)
-uv run python -m company_analysis --help      # CLI (atajo en Windows: .\analisis)
-uv run python -m company_analysis cargar      # carga los datos de ejemplo
-uv run python -m company_analysis ejecutar --fecha 2026-06-30   # análisis a una fecha
-uv run python -m company_analysis ejecuciones # registro de ejecuciones
+uv sync                                          # instalar
+uv run python scripts/remove_unused_launchers.py # tras instalar: borra lanzadores .exe sin uso
+uv run python -m pytest                          # tests
+uv run ruff format . ; uv run ruff check .       # formato y lint
+uv run python -m mypy                            # tipos (modo estricto)
+.\analisis demo                                  # carga ejemplo, 2 ejecuciones, ranking y fichas
+.\analisis cargar | ejecutar [--fecha AAAA-MM-DD] | fichas | ejecuciones | panel
+.\analisis nota nueva VALD "texto" --decision seguimiento ; .\analisis nota listar VALD
 ```
+- `.\analisis` equivale a `uv run python -m company_analysis`.
 - Python 3.14 del equipo (oficial, firmado). uv nunca descarga intérpretes (`[tool.uv]` en
   `pyproject.toml`); no lo cambies sin hablar con informática.
 - Usa siempre `python -m …`: el antivirus del equipo (Panda) bloquea los lanzadores `.exe` que
-  uv genera (`pytest.exe`, `mypy.exe`…). Tras instalar paquetes, bórralos con
-  `uv run python scripts/remove_unused_launchers.py`. `ruff.exe` está firmado y sí se usa.
+  genera uv. El proyecto no declara comandos instalables por ese motivo.
 - El hook `.githooks/pre-commit` ejecuta formato, lint, tipos y tests; se activa con
   `git config core.hooksPath .githooks`.
 
 ## Arquitectura (`src/company_analysis/`)
+Flujo de una ejecución (`pipeline.py`):
+1. Lectura a fecha (`storage`).
+2. "Foto" de cada empresa (`normalization`).
+3. Métricas (`metrics`).
+4. Puntuaciones (`scoring`).
+5. Filtros y alertas (`screening`).
+6. Registro de la ejecución y sus resultados (`storage/runs.py`).
+
+Las fichas y el panel leen esos resultados guardados (`reports`, `app`).
+
 | Módulo | Responsabilidad |
 |---|---|
 | `settings.py` | Rutas y secretos desde `.env` (prefijo `ANALYSIS_`). |
-| `clock.py` | Fechas y horas; en la base, marcas de tiempo UTC sin zona. |
+| `config.py`, `config_loader.py` | Metodología de `config/analysis.yaml`: modelos, validación y huella. |
 | `models/` | Modelos de dominio validados (pydantic): emisores, instrumentos, estados financieros en formato largo, mercado y `DataBundle` (lote autocontenido). |
 | `providers/` | Interfaz `DataProvider`, `SampleProvider` (CSV de `data/sample`) y generador determinista de datos sintéticos. |
-| `storage/` | DuckDB: migraciones SQL, carga solo por inserción en lotes, lectura a fecha (`read_bundle`) y registro de ejecuciones con sus resultados (`storage/runs.py`). |
+| `storage/` | DuckDB: migraciones SQL, carga solo por inserción, lectura a fecha (`read_bundle`) y ejecuciones con sus resultados (`runs.py`). |
 | `figures.py` | `Status` y `Figure`: un valor o el motivo por el que no está disponible. |
-| `config.py` | Metodología configurable (antigüedad máxima, tipo impositivo, tramos de rating…). |
-| `normalization/` | Periodo de referencia, LTM, divisas (`FxTable`), alineación de ejercicios y la "foto" de cada empresa a una fecha (`CompanySnapshot`). |
-| `metrics/` | Registro central de métricas (renta variable, crédito y magnitudes en euros), su cálculo (`compute_metrics`) y el generador de `docs/metricas.md`. |
-| `config_loader.py` | Lee `config/analysis.yaml`, valida que las métricas existen y calcula la huella de la configuración. |
-| `scoring/` | Percentiles por sector (o universo) y puntuaciones de renta variable y crédito con su desglose y cobertura. |
-| `screening/` | Filtros con nombre (cumple / no cumple / indeterminado) y reglas de alerta. |
-| `pipeline.py` | Una ejecución completa: lee a fecha, normaliza, calcula, puntúa, filtra, alerta y lo registra todo. |
-| `provenance.py` | Versión del código, commit de git y usuario de cada ejecución. |
-| `formatting.py` | Números y fechas en formato español para mensajes e informes. |
-| `cli.py` | CLI con Typer (`python -m company_analysis`, atajo `.\analisis`); subcomandos y mensajes en español. |
+| `normalization/` | Periodo de referencia, LTM, divisas (`FxTable`), alineación de ejercicios y `CompanySnapshot`. |
+| `metrics/` | Registro central de métricas (renta variable, crédito, magnitudes en euros) y generador de `docs/metricas.md`. |
+| `scoring/` | Percentiles por sector (o universo) y puntuaciones con desglose y cobertura. |
+| `screening/` | Filtros con nombre y reglas de alerta. |
+| `pipeline.py`, `provenance.py` | Ejecución completa y su procedencia (código, commit, usuario). |
+| `journal.py` | Diario del analista (solo inserción; la decisión es siempre del analista). |
+| `reports/` | Vistas de una ejecución, fichas HTML (Jinja2), ranking HTML y CSV para Excel. |
+| `app/dashboard.py` | Panel Streamlit de solo lectura: ranking con filtros y detalle por empresa. |
+| `cli.py`, `formatting.py` | CLI (Typer) y formato español de números y fechas. |
 
-Datos: `data/sample/` (sintéticos, versionados; ver su README) y `data/*.duckdb` (local, ignorado).
+Datos y salidas: `data/sample/` (sintéticos, versionados), `data/*.duckdb` y `output/<ejecución>/`
+(locales, ignorados por git).
 
 ## Convenciones
 - Código, nombres y comentarios en inglés; documentación y textos de interfaz en español.
@@ -64,6 +75,8 @@ Datos: `data/sample/` (sintéticos, versionados; ver su README) y `data/*.duckdb
 - Commits por fase, solo con ruff, mypy y pytest en verde.
 - Decisiones de diseño: una nota corta en `docs/decisiones/NNNN-titulo.md`.
 - Ideas fuera de alcance: `docs/siguientes-pasos.md`, no en el código.
+- Cambiar la metodología (pesos, umbrales, filtros): edita `config/analysis.yaml` y sube su
+  `version`. Las ejecuciones guardan la configuración que usaron.
 
 ## Añadir una métrica
 1. Si necesita una partida nueva, añádela al catálogo `FinancialItem` (`models/financials.py`).
@@ -95,4 +108,6 @@ Datos: `data/sample/` (sintéticos, versionados; ver su README) y `data/*.duckdb
   básicos (pb; 100 pb = 1 %).
 - **Tramo de rating**: grupo de calificaciones de la misma letra (A, BBB, BB…).
 - **Prelación**: orden de cobro de un bono en caso de impago (garantizado, sénior, subordinado).
+- **Percentil**: posición de un valor dentro de un grupo, de 0 a 100 (100 es el mejor).
+- **Cobertura**: parte del peso de los factores aplicables que tiene dato.
 - **Look-ahead**: usar un dato antes de su fecha de publicación; el sistema lo impide.
