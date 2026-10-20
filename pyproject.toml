@@ -60,6 +60,7 @@ select = [
 ignore = [
     "PLR0911", # many returns: metric functions return early for each edge case
     "PLR0913", # many arguments: domain functions legitimately take several inputs
+    "PLR0917", # many positional arguments: same reason as PLR0913
     "PLR2004", # magic values: thresholds live in the YAML config; tests compare literals
 ]
 # Typographic characters used in Spanish texts and formulas.
@@ -67,6 +68,8 @@ allowed-confusables = ["×", "−", "–", "’"]
 
 [tool.ruff.lint.per-file-ignores]
 "scripts/*" = ["T20"]
+# Stored timestamps are naive UTC by convention; tests build them directly.
+"tests/*" = ["DTZ001"]
 
 [tool.mypy]
 python_version = "3.12"

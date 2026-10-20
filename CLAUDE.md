@@ -35,7 +35,13 @@ uv run python -m company_analysis --help      # CLI (atajo en Windows: .\analisi
 | Módulo | Responsabilidad |
 |---|---|
 | `settings.py` | Rutas y secretos desde `.env` (prefijo `ANALYSIS_`). |
+| `clock.py` | Fechas y horas; en la base, marcas de tiempo UTC sin zona. |
+| `models/` | Modelos de dominio validados (pydantic): emisores, instrumentos, estados financieros en formato largo, mercado y `DataBundle` (lote autocontenido). |
+| `providers/` | Interfaz `DataProvider`, `SampleProvider` (CSV de `data/sample`) y generador determinista de datos sintéticos. |
+| `storage/` | DuckDB: migraciones SQL, carga solo por inserción en lotes y lectura a fecha (`read_bundle`). |
 | `cli.py` | Comando `analisis` (Typer); subcomandos y mensajes en español. |
+
+Datos: `data/sample/` (sintéticos, versionados; ver su README) y `data/*.duckdb` (local, ignorado).
 
 ## Convenciones
 - Código, nombres y comentarios en inglés; documentación y textos de interfaz en español.
@@ -44,6 +50,15 @@ uv run python -m company_analysis --help      # CLI (atajo en Windows: .\analisi
 - Commits por fase, solo con ruff, mypy y pytest en verde.
 - Decisiones de diseño: una nota corta en `docs/decisiones/NNNN-titulo.md`.
 - Ideas fuera de alcance: `docs/siguientes-pasos.md`, no en el código.
+
+## Añadir un proveedor de datos
+1. Crea `providers/<nombre>.py` con una clase que herede de `DataProvider`, con un `name` estable y
+   un `fetch()` que devuelva un `DataBundle` autocontenido. Las cifras van en la divisa de reporte,
+   en millones, con las convenciones de signo de `models/financials.py`.
+2. Regístrala en `PROVIDERS` (`providers/__init__.py`) con su nombre para la CLI.
+3. Añádela a `PROVIDER_FACTORIES` en `tests/unit/test_providers.py` para que pase el contrato. Los
+   tests usan respuestas sintéticas grabadas, nunca la red.
+4. Credenciales en `.env` (documentadas en `.env.example`), nunca en el código.
 
 ## Glosario mínimo
 - **LTM** (*last twelve months*): suma de los últimos doce meses de una magnitud de flujo.

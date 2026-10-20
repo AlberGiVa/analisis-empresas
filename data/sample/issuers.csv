@@ -1,0 +1,21 @@
+issuer_id,name,lei,country,sector,industry,reporting_currency,fiscal_year_end_month
+VALD,"Valdoria Maquinaria, S.A.",ZZZZ00VALD0000000071,ES,industrials,capital_goods,EUR,12
+RHFD,Rheinfeld Antriebe AG,ZZZZ00RHFD0000000054,DE,industrials,capital_goods,EUR,12
+CORV,Corvalis Transports SA,ZZZZ00CORV0000000004,FR,industrials,transportation,EUR,12
+SKRV,Skarvik Logistik AB,ZZZZ00SKRV0000000097,SE,industrials,transportation,SEK,12
+TALM,Talmont Aerospace Corp.,ZZZZ00TALM0000000045,US,industrials,capital_goods,USD,12
+ASHC,Ashcombe Infrastructure plc,ZZZZ00ASHC0000000086,GB,industrials,construction,GBP,12
+MRND,"Merindad Alimentación, S.A.",ZZZZ00MRND0000000016,ES,consumer,food_beverage,EUR,12
+LUMB,Lumbria Moda S.p.A.,ZZZZ00LUMB0000000067,IT,consumer,retail,EUR,12
+HOLL,Hollow Creek Brands Inc.,ZZZZ00HOLL0000000096,US,consumer,consumer_products,USD,12
+PELL,Pellingham & Rowe plc,ZZZZ00PELL0000000033,GB,consumer,retail,GBP,3
+VERD,Verdalia Foods N.V.,ZZZZ00VERD0000000044,NL,consumer,food_beverage,EUR,12
+KELV,Kelvane Software Inc.,ZZZZ00KELV0000000047,US,technology,software,USD,12
+NEXL,Nexlio Semiconductors N.V.,ZZZZ00NEXL0000000042,NL,technology,semiconductors,USD,12
+ORBE,"Orbelia Digital, S.A.",ZZZZ00ORBE0000000055,ES,technology,it_services,EUR,12
+HELV,Helvantis Data AG,ZZZZ00HELV0000000039,CH,technology,software,CHF,12
+VTIB,Valtiberina Energia S.p.A.,ZZZZ00VTIB0000000088,IT,utilities,electric_utilities,EUR,12
+GRSH,Gresham Power & Light Co.,ZZZZ00GRSH0000000039,US,utilities,electric_utilities,USD,12
+BVAL,"Banco Valdemora, S.A.",ZZZZ00BVAL0000000065,ES,financials,banks,EUR,12
+WESB,Weserland Bank AG,ZZZZ00WESB0000000030,DE,financials,banks,EUR,12
+AUBR,Aubrac Assurances SA,ZZZZ00AUBR0000000030,FR,financials,insurance,EUR,12
