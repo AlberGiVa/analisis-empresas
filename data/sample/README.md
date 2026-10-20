@@ -45,7 +45,7 @@ universo.
 | Caso | Empresa | Qué debe verse |
 |---|---|---|
 | EBITDA negativo | ORBE (2024 y 2025) | PER y EV/EBITDA "no significativos"; alerta de apalancamiento por EBITDA negativo con deuda neta positiva |
-| Empresa sin deuda | HELV | Sin bonos; cobertura de intereses con "división por cero"; deuda neta negativa |
+| Empresa sin deuda | HELV | Sin bonos ni puntuación de crédito; cobertura de intereses con "división por cero"; deuda neta negativa |
 | Datos que faltan | CORV (capex de 2025), LUMB (gastos financieros de 2025), un bono de GRSH sin rating | FCF yield, cobertura y diferencial "sin dato" |
 | Cotización desactualizada | SKRV (sin precios desde el 27/03/2026) | Métricas de mercado "dato desactualizado" a 30/06/2026 |
 | Reporta en otra divisa | NEXL (cotiza en EUR, reporta en USD) | La capitalización se convierte a USD para calcular las ratios |

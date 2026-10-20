@@ -56,12 +56,18 @@ def metric_table(values: dict[tuple[str, str], float | Status]) -> MetricTable:
     return MetricTable(rows)
 
 
-def scoring(min_coverage: float = 0.5, min_factors: int = 1, min_peers: int = 3) -> ScoringConfig:
+def scoring(
+    min_coverage: float = 0.5,
+    min_factors: int = 1,
+    min_peers: int = 3,
+    required: tuple[str, ...] = (),
+) -> ScoringConfig:
     model = ScoreModelConfig(
         name="Prueba",
         factors=(FactorConfig(metric="pe_ratio", weight=1), FactorConfig(metric="roe", weight=1)),
         min_coverage=min_coverage,
         min_factors=min_factors,
+        required_factors=required,
     )
     return ScoringConfig(min_peers=min_peers, equity=model, credit=model)
 
@@ -135,3 +141,12 @@ def test_a_company_to_which_no_factor_applies() -> None:
     scores = equity_scores(scoring(), values)
     assert not scores["EE"].displayed
     assert scores["EE"].reason == "Ningún factor aplica a esta empresa"
+
+
+def test_a_required_factor_that_does_not_apply_leaves_the_company_without_score() -> None:
+    scores = equity_scores(scoring(required=("roe",)))
+    excluded = scores["EE"]  # ROE does not apply to it
+    assert not excluded.displayed
+    assert excluded.value is None
+    assert excluded.reason == "Motivo de prueba (factor obligatorio: ROE)"
+    assert scores["CC"].displayed  # ROE applies but is missing: the coverage rules decide

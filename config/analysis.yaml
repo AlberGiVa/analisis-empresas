@@ -2,7 +2,7 @@
 # Cada ejecución guarda una copia íntegra de este fichero y su huella (hash), así que cualquier
 # resultado se puede rastrear hasta la configuración que lo produjo.
 # Cambia "version" cada vez que modifiques algo relevante (formato libre).
-version: "2026.10-1"
+version: "2026.10-2"   # 2026.10-2: la puntuación de crédito exige bonos vivos
 
 # Antigüedad máxima (en días) de cada dato en la fecha de análisis. Un dato más antiguo se
 # marca como "dato desactualizado" y no se usa.
@@ -27,7 +27,7 @@ metrics:
 # que tienen dato en ese factor si son al menos "min_peers"; si no, con todo el universo.
 # Los pesos son relativos y se reparten entre los factores con dato.
 scoring:
-  min_peers: 5
+  min_peers: 5   # adecuado para las 20 empresas de ejemplo; subir a 10 al conectar datos reales
   equity:
     name: "Puntuación de renta variable"
     min_coverage: 0.6   # peso mínimo con dato, sobre el peso de los factores que aplican
@@ -44,6 +44,9 @@ scoring:
     name: "Puntuación de crédito"
     min_coverage: 0.6
     min_factors: 2
+    # Factores que deben aplicar a la empresa: sin bonos vivos no hay puntuación de crédito
+    # (sus ratios de deuda se siguen viendo en la ficha).
+    required_factors: [spread_vs_rating_bucket]
     factors:
       - {metric: net_debt_to_ebitda, weight: 1}
       - {metric: interest_coverage, weight: 1}

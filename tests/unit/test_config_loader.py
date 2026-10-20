@@ -82,3 +82,10 @@ def test_invalid_yaml_and_missing_file(tmp_path: Path) -> None:
         parse_config("version: [sin cerrar")
     with pytest.raises(ConfigError, match="No se encuentra"):
         load_config(tmp_path / "no-existe.yaml")
+
+
+def test_required_factors_must_be_factors_of_the_score() -> None:
+    equity_factors = "    factors: [{metric: pe_ratio"
+    text = MINIMAL.replace(equity_factors, "    required_factors: [roe]\n" + equity_factors, 1)
+    with pytest.raises(ConfigError, match="factores obligatorios"):
+        parse_config(text)

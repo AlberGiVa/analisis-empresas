@@ -30,6 +30,8 @@ un umbral no se muestra.
   rentabilidad y hacen saltar alertas.
 - **Pesos iniciales iguales**, como punto de partida neutral. El equipo puede ajustarlos en
   `config/analysis.yaml`.
+- **Factores obligatorios.** Una puntuación puede exigir que ciertos factores apliquen a la empresa;
+  la de crédito exige tener bonos vivos (decisión 0015).
 
 ## Consecuencias
 - Con pocos datos, los percentiles son poco finos (con 5 empresas solo hay 5 niveles). Con un

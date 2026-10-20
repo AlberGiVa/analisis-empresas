@@ -85,7 +85,10 @@ def test_scores_follow_the_display_rules(runs: tuple[RunOutcome, RunOutcome]) ->
         assert not credit.displayed
         assert credit.reason is not None
         assert credit.reason.startswith("Solo 1 factor")
-    assert scores[("HELV", ScoreType.CREDIT)].displayed  # no debt, but enough factors
+    no_bonds = scores[("HELV", ScoreType.CREDIT)]  # no debt and no bonds: nothing to lend to
+    assert not no_bonds.displayed
+    assert no_bonds.reason is not None
+    assert no_bonds.reason.startswith("La empresa no tiene bonos vivos")
     for score in runs[1].scores:
         if score.value is not None:
             assert 0 <= score.value <= 100

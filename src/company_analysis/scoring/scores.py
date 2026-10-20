@@ -155,10 +155,15 @@ def _aggregate(
     applicable_weight = sum(c.weight for c in applicable)
     usable_weight = sum(c.weight for c in usable)
     coverage = usable_weight / applicable_weight if applicable_weight else 0.0
-    reasons = []
-    if not applicable:
+    reasons = [
+        f"{c.detail or 'no aplica'} (factor obligatorio: {get_metric(c.metric_id).name})"
+        for c in components
+        if c.metric_id in model.required_factors and not c.applies
+    ]
+    # When a required factor does not apply, the coverage rules are irrelevant.
+    if not reasons and not applicable:
         reasons.append("ningún factor aplica a esta empresa")
-    else:
+    elif not reasons:
         if coverage < model.min_coverage:
             reasons.append(
                 f"cobertura del {_percent(coverage)}, inferior al mínimo del "

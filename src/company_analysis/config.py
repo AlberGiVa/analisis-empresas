@@ -94,14 +94,23 @@ class ScoreModelConfig(ConfigModel):
     factors: tuple[FactorConfig, ...] = Field(min_length=1)
     min_coverage: float = Field(gt=0, le=1)  # share of the applicable weight with data
     min_factors: PositiveInt  # factors with data
+    # Factors that must apply to the company ("not applicable" leaves it without this score).
+    required_factors: tuple[str, ...] = ()
 
     @model_validator(mode="after")
     def _check_factors(self) -> Self:
-        repeated = [m for m, n in Counter(f.metric for f in self.factors).items() if n > 1]
+        metrics = [f.metric for f in self.factors]
+        repeated = [m for m, n in Counter(metrics).items() if n > 1]
         if repeated:
             raise ValueError(f"{self.name}: factores repetidos: {', '.join(repeated)}")
         if self.min_factors > len(self.factors):
             raise ValueError(f"{self.name}: min_factors supera el número de factores")
+        unknown = [m for m in self.required_factors if m not in metrics]
+        if unknown:
+            raise ValueError(
+                f"{self.name}: los factores obligatorios deben estar entre sus factores: "
+                f"{', '.join(unknown)}"
+            )
         return self
 
 
