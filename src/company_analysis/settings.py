@@ -41,6 +41,8 @@ class Settings(BaseSettings):
     config_path: Path = Path("config/analysis.yaml")
     sample_data_dir: Path = Path("data/sample")
     import_dir: Path = Path("data/import")  # Excel workbooks with real data (ignored by git)
+    # How the tool identifies itself to public APIs (the SEC asks for a name and a contact email).
+    http_user_agent: str = "Luceiro Capital - prototipo de analisis"
 
     @field_validator("db_path", "output_dir", "config_path", "sample_data_dir", "import_dir")
     @classmethod

@@ -14,6 +14,17 @@ aquí en lugar de implementarse.
 
   Además, la interfaz tendrá que recibir una petición (universo de emisores y rango de fechas).
 - Verificar en cada terminal los códigos orientativos de Bloomberg y FactSet de la plantilla.
+- Proveedores con APIs públicas y gratuitas, sin licencia. Hoy solo hay una prueba de conexión
+  (`scripts/probar_apis.py`) y una demostración en vivo en `docs/muestra-luceiro-capital.html`:
+  - BCE: tipos de cambio diarios, para sustituir la hoja «Tipos de cambio»;
+  - BCE: curva de la deuda AAA del euro, para calcular un diferencial propio de cada bono;
+  - GLEIF: comprobar los LEI (caducados, matriz y grupo);
+  - ESMA FIRDS: datos de referencia de bonos (cupón, vencimiento, nominal);
+  - SEC EDGAR: estados financieros de las empresas de EE. UU., con fecha de presentación;
+  - FRED: diferenciales de mercado ICE BofA como contexto (solo tres años de historia);
+  - OpenFIGI: traducir ISIN a ticker para pedir datos a Bloomberg.
+
+  Antes de usarlas, revisar las condiciones de uso de cada fuente.
 - Cargas incrementales (por ejemplo, solo los precios del día): hoy cada lote debe ser
   autocontenido.
 - Lista de universo con altas y bajas: con el almacenamiento solo por inserción, un emisor que deja

@@ -11,6 +11,11 @@ filtros y alertas. **No emite recomendaciones de compra o venta**: apoya al gest
 Es la base del proyecto, no un producto terminado. Trae datos sintéticos de ejemplo (20 empresas
 ficticias) y carga datos reales desde una plantilla de Excel.
 
+Para entender de un vistazo cómo está conectado y pensado, y qué podría llegar a tener, abre en el
+navegador la muestra [docs/muestra-luceiro-capital.html](docs/muestra-luceiro-capital.html). Es un
+único fichero: incluye los resultados de una ejecución sobre los datos de ejemplo y prueba en vivo
+varias APIs públicas gratuitas.
+
 ## Puesta en marcha
 
 Requisitos:

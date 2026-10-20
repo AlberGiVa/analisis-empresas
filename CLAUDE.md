@@ -28,6 +28,7 @@ uv run python -m mypy                            # tipos (modo estricto)
 .\analisis cargar | ejecutar [--fecha AAAA-MM-DD] | fichas | ejecuciones | panel
 .\analisis nota nueva VALD "texto" --decision seguimiento ; .\analisis nota listar VALD
 .\analisis plantilla [--ejemplo] ; .\analisis importar data\import\libro.xlsx   # datos reales
+uv run python scripts/probar_apis.py             # prueba de conexión a las APIs públicas (no guarda nada)
 ```
 - `.\analisis` equivale a `uv run python -m company_analysis`.
 - Python 3.14 del equipo (oficial, firmado). uv nunca descarga intérpretes (`[tool.uv]` en
