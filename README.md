@@ -7,7 +7,7 @@ capacidad de pago, diferencial de sus bonos).
 Produce métricas, puntuaciones y alertas transparentes para apoyar al gestor. **No emite
 recomendaciones de compra o venta.**
 
-> Estado: en construcción (fase 2 de 5). El encargo completo está en
+> Estado: en construcción (fase 3 de 5). El encargo completo está en
 > [docs/encargo-inicial.md](docs/encargo-inicial.md).
 
 ## Puesta en marcha

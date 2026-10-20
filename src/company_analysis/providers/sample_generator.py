@@ -11,7 +11,6 @@ The same seed always produces byte-identical files; a test checks it. A NumPy up
 the random stream: if that test fails after an upgrade, regenerate and commit the files.
 """
 
-import calendar
 import math
 from collections.abc import Iterator
 from dataclasses import dataclass
@@ -37,6 +36,7 @@ from company_analysis.models import (
 )
 from company_analysis.models.identifiers import isin_check_digit, lei_check_digits
 from company_analysis.models.ratings import rating_notch
+from company_analysis.normalization.fiscal import fiscal_year_end
 
 SEED = 20261020
 FISCAL_YEARS = (2023, 2024, 2025)
@@ -408,18 +408,6 @@ def _business_days(start: date, end: date) -> Iterator[date]:
         current += timedelta(days=1)
 
 
-def fiscal_period_end(year: int, fiscal_year_end_month: int) -> date:
-    """Closing date of the fiscal year that compares with calendar year ``year``.
-
-    A fiscal year belongs to the calendar year in which most of its months fall: one ending in
-    March 2026 compares with calendar 2025.
-    """
-    end_year = year if fiscal_year_end_month >= 6 else year + 1
-    return date(
-        end_year, fiscal_year_end_month, calendar.monthrange(end_year, fiscal_year_end_month)[1]
-    )
-
-
 # --- Financial statements --------------------------------------------------------------------
 def _statements(spec: CompanySpec, rng: np.random.Generator) -> list[dict[FinancialItem, float]]:
     """Values of each fiscal year (before rounding and before removing missing items)."""
@@ -519,7 +507,7 @@ def _financial_facts(spec: CompanySpec, rng: np.random.Generator) -> list[Financ
     shares = _initial_shares(spec, statements[0])
     facts: list[FinancialFact] = []
     for index, (year, values) in enumerate(zip(FISCAL_YEARS, statements, strict=True)):
-        period_end = fiscal_period_end(year, spec.fiscal_year_end_month)
+        period_end = fiscal_year_end(year, spec.fiscal_year_end_month)
         lag = int(
             rng.integers(62, 75) if spec.fiscal_year_end_month != 12 else rng.integers(38, 86)
         )

@@ -39,6 +39,11 @@ uv run python -m company_analysis --help      # CLI (atajo en Windows: .\analisi
 | `models/` | Modelos de dominio validados (pydantic): emisores, instrumentos, estados financieros en formato largo, mercado y `DataBundle` (lote autocontenido). |
 | `providers/` | Interfaz `DataProvider`, `SampleProvider` (CSV de `data/sample`) y generador determinista de datos sintéticos. |
 | `storage/` | DuckDB: migraciones SQL, carga solo por inserción en lotes y lectura a fecha (`read_bundle`). |
+| `figures.py` | `Status` y `Figure`: un valor o el motivo por el que no está disponible. |
+| `config.py` | Metodología configurable (antigüedad máxima, tipo impositivo, tramos de rating…). |
+| `normalization/` | Periodo de referencia, LTM, divisas (`FxTable`), alineación de ejercicios y la "foto" de cada empresa a una fecha (`CompanySnapshot`). |
+| `metrics/` | Registro central de métricas (renta variable, crédito y magnitudes en euros), su cálculo (`compute_metrics`) y el generador de `docs/metricas.md`. |
+| `formatting.py` | Números y fechas en formato español para mensajes e informes. |
 | `cli.py` | Comando `analisis` (Typer); subcomandos y mensajes en español. |
 
 Datos: `data/sample/` (sintéticos, versionados; ver su README) y `data/*.duckdb` (local, ignorado).
@@ -50,6 +55,17 @@ Datos: `data/sample/` (sintéticos, versionados; ver su README) y `data/*.duckdb
 - Commits por fase, solo con ruff, mypy y pytest en verde.
 - Decisiones de diseño: una nota corta en `docs/decisiones/NNNN-titulo.md`.
 - Ideas fuera de alcance: `docs/siguientes-pasos.md`, no en el código.
+
+## Añadir una métrica
+1. Si necesita una partida nueva, añádela al catálogo `FinancialItem` (`models/financials.py`).
+2. Escribe la función en `metrics/equity.py`, `credit.py` o `magnitudes.py`. Recibe un
+   `CompanySnapshot` y devuelve un `MetricResult`; usa `first_unavailable`, `inputs_of` y `divide`
+   para propagar motivos y registrar las entradas.
+3. Regístrala con `register(CompanyMetric(...))`, con todos los textos en español: descripción,
+   fórmula, interpretación, casos límite y, si no aplica a alguna industria, el motivo.
+4. Añade tests con valores calculados a mano y cada caso límite (`tests/unit/test_metrics_*.py`).
+5. Regenera el diccionario: `uv run python scripts/generate_metrics_doc.py`.
+6. Si debe puntuar, añádela como factor en `config/analysis.yaml`.
 
 ## Añadir un proveedor de datos
 1. Crea `providers/<nombre>.py` con una clase que herede de `DataProvider`, con un `name` estable y
