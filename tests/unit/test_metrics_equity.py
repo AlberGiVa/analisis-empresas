@@ -127,6 +127,25 @@ def test_ebitda_margin() -> None:
     assert compute("ebitda_margin", no_sales).status is Status.DIVISION_BY_ZERO
 
 
+def test_gross_margin() -> None:
+    s = snapshot(flows={Item.GROSS_PROFIT: 400.0, Item.REVENUE: 1000.0})
+    assert compute("gross_margin", s).value == pytest.approx(0.40)
+    not_published = snapshot(flows={Item.REVENUE: 1000.0})
+    assert compute("gross_margin", not_published).status is Status.MISSING
+    no_sales = snapshot(flows={Item.GROSS_PROFIT: 10.0, Item.REVENUE: 0.0})
+    assert compute("gross_margin", no_sales).status is Status.DIVISION_BY_ZERO
+
+
+def test_fcf_conversion() -> None:
+    flows = {Item.OPERATING_CASH_FLOW: 150.0, Item.CAPITAL_EXPENDITURE: 40.0}
+    s = snapshot(flows={**flows, Item.NET_INCOME: 100.0})
+    assert compute("fcf_conversion", s).value == pytest.approx(1.10)  # (150 - 40) / 100
+    burning = snapshot(flows={**flows, Item.CAPITAL_EXPENDITURE: 200.0, Item.NET_INCOME: 100.0})
+    assert compute("fcf_conversion", burning).value == pytest.approx(-0.50)
+    losses = snapshot(flows={**flows, Item.NET_INCOME: -20.0})
+    assert compute("fcf_conversion", losses).status is Status.NOT_MEANINGFUL
+
+
 def test_revenue_growth() -> None:
     s = snapshot(flows={Item.REVENUE: 1100.0}, prior_flows={Item.REVENUE: 1000.0})
     assert compute("revenue_growth", s).value == pytest.approx(0.10)

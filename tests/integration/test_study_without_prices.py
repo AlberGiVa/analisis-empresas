@@ -36,7 +36,7 @@ def test_the_report_without_prices_never_mentions_them(study: Path) -> None:
     (path,) = (study / "salida").glob("*/estudio.html")
     html = path.read_text(encoding="utf-8")
     assert "Zeta Foods Inc." in html
-    assert "2026.10-web-1" in html  # the methodology without valuation factors
+    assert "2026.10-web-2" in html  # the methodology without valuation factors
     assert "sin cotizaciones" in html
     assert "Rentabilidad frente a apalancamiento" in html
     assert "Valoración frente a apalancamiento" not in html

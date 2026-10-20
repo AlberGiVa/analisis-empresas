@@ -327,6 +327,7 @@ SHEETS: tuple[Sheet, ...] = (
 
 _ITEM_SOURCES: dict[FinancialItem, tuple[str, str]] = {
     FinancialItem.REVENUE: ("SALES_REV_TURN", "FF_SALES"),
+    FinancialItem.GROSS_PROFIT: ("GROSS_PROFIT", "FF_GROSS_INC"),
     FinancialItem.EBITDA: ("EBITDA", "FF_EBITDA_OPER"),
     FinancialItem.EBIT: ("EBIT", "FF_EBIT_OPER"),
     FinancialItem.INTEREST_EXPENSE: ("IS_INT_EXPENSE", "FF_INT_EXP_DEBT"),

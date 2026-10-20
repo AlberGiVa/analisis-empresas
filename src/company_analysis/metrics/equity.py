@@ -98,6 +98,25 @@ def _ebitda_margin(s: CompanySnapshot, _config: MetricsConfig) -> MetricResult:
     return divide(ebitda.number(), revenue, inputs_of(ebitda, revenue), unit=f"M {s.currency}")
 
 
+def _gross_margin(s: CompanySnapshot, _config: MetricsConfig) -> MetricResult:
+    gross_profit, revenue = s.flow(Item.GROSS_PROFIT), s.flow(Item.REVENUE)
+    if problem := first_unavailable(gross_profit, revenue):
+        return problem
+    return divide(
+        gross_profit.number(), revenue, inputs_of(gross_profit, revenue), unit=f"M {s.currency}"
+    )
+
+
+def _fcf_conversion(s: CompanySnapshot, _config: MetricsConfig) -> MetricResult:
+    operating_cash_flow = s.flow(Item.OPERATING_CASH_FLOW)
+    capex, net_income = s.flow(Item.CAPITAL_EXPENDITURE), s.flow(Item.NET_INCOME)
+    if problem := first_unavailable(operating_cash_flow, capex, net_income):
+        return problem
+    inputs = inputs_of(operating_cash_flow, capex, net_income)
+    free_cash_flow = operating_cash_flow.number() - capex.number()
+    return divide(free_cash_flow, net_income, inputs, unit=f"M {s.currency}")
+
+
 def _revenue_growth(s: CompanySnapshot, _config: MetricsConfig) -> MetricResult:
     revenue, previous = s.flow(Item.REVENUE), s.flow_prior_year(Item.REVENUE)
     if problem := first_unavailable(revenue, previous):
@@ -275,6 +294,61 @@ EBITDA_MARGIN = register(
         excluded_industries=FINANCIAL_INSTITUTIONS,
         exclusion_reason=FINANCIALS_EXCLUDED,
         compute=_ebitda_margin,
+    )
+)
+
+GROSS_MARGIN = register(
+    CompanyMetric(
+        metric_id="gross_margin",
+        name="Margen bruto",
+        category=MetricCategory.EQUITY,
+        unit=Unit.PERCENT,
+        higher_is_better=True,
+        description=(
+            "Parte de las ventas que queda después del coste directo de lo vendido. Mide el poder "
+            "de fijación de precios y la calidad del negocio."
+        ),
+        formula="Beneficio bruto LTM / Ventas LTM",
+        interpretation=(
+            "Un margen bruto alto y estable suele indicar ventajas competitivas. Compárese dentro "
+            "del mismo sector: los márgenes brutos de un fabricante y de un distribuidor no se "
+            "parecen."
+        ),
+        edge_cases=(
+            "La empresa no publica beneficio bruto: sin dato (no se reconstruye).",
+            "Ventas cero: división por cero; ventas negativas: no significativo.",
+            "Bancos y aseguradoras: no aplica.",
+        ),
+        excluded_industries=FINANCIAL_INSTITUTIONS,
+        exclusion_reason=FINANCIALS_EXCLUDED,
+        compute=_gross_margin,
+    )
+)
+
+FCF_CONVERSION = register(
+    CompanyMetric(
+        metric_id="fcf_conversion",
+        name="Conversión en caja",
+        category=MetricCategory.EQUITY,
+        unit=Unit.PERCENT,
+        higher_is_better=True,
+        description=(
+            "Parte del beneficio neto que se convierte en flujo de caja libre. Distingue el "
+            "beneficio que se cobra del que solo está en la contabilidad."
+        ),
+        formula="(Flujo de caja operativo LTM − Capex LTM) / Beneficio neto atribuible LTM",
+        interpretation=(
+            "Cerca o por encima del 100 %, el beneficio se traduce en caja. Muy por debajo, el "
+            "negocio consume caja en inversiones o en circulante."
+        ),
+        edge_cases=(
+            "Beneficio neto cero: división por cero; negativo: no significativo.",
+            "Flujo de caja libre negativo con beneficio positivo: valor válido (negativo).",
+            "Bancos y aseguradoras: no aplica.",
+        ),
+        excluded_industries=FINANCIAL_INSTITUTIONS,
+        exclusion_reason=FINANCIALS_EXCLUDED,
+        compute=_fcf_conversion,
     )
 )
 

@@ -27,6 +27,8 @@ EQUITY = {
     "roic",
     "ebitda_margin",
     "revenue_growth",
+    "gross_margin",  # quality, added for a value fund (Luceiro Capital)
+    "fcf_conversion",
 }
 CREDIT = {"net_debt_to_ebitda", "interest_coverage", "debt_to_equity", "spread_vs_rating_bucket"}
 

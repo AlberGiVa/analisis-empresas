@@ -156,6 +156,48 @@ Parte de las ventas que se convierte en EBITDA.
 
 **Por qué no aplica.** No aplica a bancos y aseguradoras: su EBITDA, su deuda y su valor de empresa no son comparables con los de una empresa no financiera.
 
+### Margen bruto (`gross_margin`)
+
+Parte de las ventas que queda después del coste directo de lo vendido. Mide el poder de fijación de precios y la calidad del negocio.
+
+| | |
+|---|---|
+| Fórmula | Beneficio bruto LTM / Ventas LTM |
+| Unidad | % |
+| Mejor si es | Más alto |
+| Aplica a | Todas salvo bancos, seguros |
+
+**Interpretación.** Un margen bruto alto y estable suele indicar ventajas competitivas. Compárese dentro del mismo sector: los márgenes brutos de un fabricante y de un distribuidor no se parecen.
+
+**Casos límite.**
+
+- La empresa no publica beneficio bruto: sin dato (no se reconstruye).
+- Ventas cero: división por cero; ventas negativas: no significativo.
+- Bancos y aseguradoras: no aplica.
+
+**Por qué no aplica.** No aplica a bancos y aseguradoras: su EBITDA, su deuda y su valor de empresa no son comparables con los de una empresa no financiera.
+
+### Conversión en caja (`fcf_conversion`)
+
+Parte del beneficio neto que se convierte en flujo de caja libre. Distingue el beneficio que se cobra del que solo está en la contabilidad.
+
+| | |
+|---|---|
+| Fórmula | (Flujo de caja operativo LTM − Capex LTM) / Beneficio neto atribuible LTM |
+| Unidad | % |
+| Mejor si es | Más alto |
+| Aplica a | Todas salvo bancos, seguros |
+
+**Interpretación.** Cerca o por encima del 100 %, el beneficio se traduce en caja. Muy por debajo, el negocio consume caja en inversiones o en circulante.
+
+**Casos límite.**
+
+- Beneficio neto cero: división por cero; negativo: no significativo.
+- Flujo de caja libre negativo con beneficio positivo: valor válido (negativo).
+- Bancos y aseguradoras: no aplica.
+
+**Por qué no aplica.** No aplica a bancos y aseguradoras: su EBITDA, su deuda y su valor de empresa no son comparables con los de una empresa no financiera.
+
 ### Crecimiento de ventas (`revenue_growth`)
 
 Variación de las ventas de los últimos doce meses frente a los doce meses anteriores.

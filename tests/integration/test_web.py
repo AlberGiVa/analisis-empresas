@@ -123,7 +123,7 @@ def test_the_real_companies_never_show_share_prices(site: Path) -> None:
     assert "Rentabilidad frente a apalancamiento" in study
     assert ">PER</th>" not in study
     assert ">Capitaliz.</th>" not in study
-    assert "2026.10-web-1" in study
+    assert "2026.10-web-2" in study
 
 
 def test_the_website_never_shows_the_journal_nor_local_paths(site: Path) -> None:

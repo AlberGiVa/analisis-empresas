@@ -116,6 +116,22 @@ exact:
   "Gas natural": "Natural gas"
   "Cobre": "Copper"
   "Futuro del Bund alemán": "German Bund future"
+  # Calidad: margen bruto y conversión en caja
+  "Beneficio bruto": "Gross profit"
+  "Beneficio bruto LTM": "LTM gross profit"
+  "Beneficio bruto LTM / Ventas LTM": "LTM gross profit / LTM revenue"
+  "GrossProfit": "GrossProfit"
+  "Margen bruto": "Gross margin"
+  "Conversión en caja": "Cash conversion"
+  "Conv. caja": "Cash conv."
+  "(Flujo de caja operativo LTM − Capex LTM) / Beneficio neto atribuible LTM": "(LTM operating cash flow − LTM capex) / LTM net income attributable"
+  "Parte de las ventas que queda después del coste directo de lo vendido. Mide el poder de fijación de precios y la calidad del negocio.": "Share of revenue left after the direct cost of what is sold. It measures pricing power and business quality."
+  "Un margen bruto alto y estable suele indicar ventajas competitivas. Compárese dentro del mismo sector: los márgenes brutos de un fabricante y de un distribuidor no se parecen.": "A high and stable gross margin usually points to competitive advantages. Compare it within the same sector: a manufacturer's and a distributor's gross margins are not alike."
+  "Parte del beneficio neto que se convierte en flujo de caja libre. Distingue el beneficio que se cobra del que solo está en la contabilidad.": "Share of net income that turns into free cash flow. It tells the profit that is collected from the profit that is only in the accounts."
+  "Cerca o por encima del 100 %, el beneficio se traduce en caja. Muy por debajo, el negocio consume caja en inversiones o en circulante.": "Near or above 100 %, profit turns into cash. Well below, the business consumes cash in investment or working capital."
+  "La empresa no publica beneficio bruto: sin dato (no se reconstruye).": "The company does not publish gross profit: no data (it is not rebuilt)."
+  "Beneficio neto cero: división por cero; negativo: no significativo.": "Zero net income: division by zero; negative: not meaningful."
+  "Flujo de caja libre negativo con beneficio positivo: valor válido (negativo).": "Negative free cash flow with positive profit: valid value (negative)."
   # Internacional
   "Internacional": "International"
   "América": "Americas"
@@ -1017,9 +1033,9 @@ patterns:
   # Avisos de calidad (providers/public/provider.py).
   - es: 'El último informe registrado \((?P<form>\S+) del periodo cerrado el (?P<e>\d\d/\d\d/\d{4}), presentado el (?P<f>\d\d/\d\d/\d{4})\) todavía no está en los datos estructurados de la SEC: se usan las cifras del (?P<d>\d\d/\d\d/\d{4})\.'
     en: "The latest filing on record ({form} for the period ended {e}, filed on {f}) is not yet in the SEC structured data: the figures as of {d} are used."
-  - es: '(?P<item>Ventas|EBITDA|EBIT|Gastos financieros|Beneficio neto atribuible|Flujo de caja operativo|Inversiones \(capex\)|Deuda financiera|Caja y equivalentes|Patrimonio neto total|Patrimonio neto atribuible|Acciones en circulación \(millones\)): el último dato es del (?P<a>\d\d/\d\d/\d{4}), anterior al último periodo publicado \((?P<b>\d\d/\d\d/\d{4})\)\.'
+  - es: '(?P<item>Ventas|Beneficio bruto|EBITDA|EBIT|Gastos financieros|Beneficio neto atribuible|Flujo de caja operativo|Inversiones \(capex\)|Deuda financiera|Caja y equivalentes|Patrimonio neto total|Patrimonio neto atribuible|Acciones en circulación \(millones\)): el último dato es del (?P<a>\d\d/\d\d/\d{4}), anterior al último periodo publicado \((?P<b>\d\d/\d\d/\d{4})\)\.'
     en: "{item}: the latest figure is from {a}, before the latest period published ({b})."
-  - es: '(?P<item>Ventas|EBITDA|EBIT|Gastos financieros|Beneficio neto atribuible|Flujo de caja operativo|Inversiones \(capex\)|Deuda financiera|Caja y equivalentes|Patrimonio neto total|Patrimonio neto atribuible|Acciones en circulación \(millones\)): (?P<note>[^.]+)\.'
+  - es: '(?P<item>Ventas|Beneficio bruto|EBITDA|EBIT|Gastos financieros|Beneficio neto atribuible|Flujo de caja operativo|Inversiones \(capex\)|Deuda financiera|Caja y equivalentes|Patrimonio neto total|Patrimonio neto atribuible|Acciones en circulación \(millones\)): (?P<note>[^.]+)\.'
     en: "{item}: {note}."
   - es: 'Deuda a (?P<d>\d\d/\d\d/\d{4}): (?P<lines>.+) no aparece en ese balance y cuenta como cero\.'
     en: "Debt at {d}: {lines} does not appear on that balance sheet and counts as zero."
@@ -1031,7 +1047,7 @@ patterns:
   - es: '(?P<status>Sin dato|No aplica|División por cero|No significativo|Dato desactualizado|Sin comparables suficientes): (?P<detail>.+)'
     en: "{status}: {detail}"
   # «Etiqueta de la cifra: motivo», p. ej. «Gastos financieros LTM: falta …».
-  - es: '(?P<label>(?:Ventas|EBITDA|EBIT|Gastos financieros|Beneficio neto atribuible|Flujo de caja operativo|Inversiones \(capex\))(?: LTM(?: del año anterior)?)?|Deuda financiera|Caja y equivalentes|Patrimonio neto total|Patrimonio neto atribuible|Acciones en circulación \(millones\)|Cotización|Capitalización \([A-Z]{3}\)|Tipo de cambio(?: medio)? [A-Z]{3}/[A-Z]{3}|Tipo de cambio medio|Tipo de cambio de cierre|Diferencial \(pb\)): (?P<detail>.+)'
+  - es: '(?P<label>(?:Ventas|Beneficio bruto|EBITDA|EBIT|Gastos financieros|Beneficio neto atribuible|Flujo de caja operativo|Inversiones \(capex\))(?: LTM(?: del año anterior)?)?|Deuda financiera|Caja y equivalentes|Patrimonio neto total|Patrimonio neto atribuible|Acciones en circulación \(millones\)|Cotización|Capitalización \([A-Z]{3}\)|Tipo de cambio(?: medio)? [A-Z]{3}/[A-Z]{3}|Tipo de cambio medio|Tipo de cambio de cierre|Diferencial \(pb\)): (?P<detail>.+)'
     en: "{label}: {detail}"
   - es: 'falta «(?P<item>[^»]+)» de (?P<periods>.+)'
     en: "missing “{item}” for {periods}"

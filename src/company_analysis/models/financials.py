@@ -44,6 +44,7 @@ class FinancialItem(StrEnum):
     """Closed catalogue of line items. Adding one is a deliberate, reviewed change."""
 
     REVENUE = "revenue"
+    GROSS_PROFIT = "gross_profit"  # revenue minus cost of sales
     EBITDA = "ebitda"
     EBIT = "ebit"
     INTEREST_EXPENSE = "interest_expense"
@@ -71,6 +72,7 @@ class FinancialItem(StrEnum):
 
 _ITEM_INFO = {
     FinancialItem.REVENUE: (ItemKind.FLOW, "Ventas"),
+    FinancialItem.GROSS_PROFIT: (ItemKind.FLOW, "Beneficio bruto"),
     FinancialItem.EBITDA: (ItemKind.FLOW, "EBITDA"),
     FinancialItem.EBIT: (ItemKind.FLOW, "EBIT"),
     FinancialItem.INTEREST_EXPENSE: (ItemKind.FLOW, "Gastos financieros"),

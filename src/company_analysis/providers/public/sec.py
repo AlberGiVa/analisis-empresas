@@ -214,6 +214,7 @@ ITEM_SOURCES: dict[FinancialItem, tuple[Source, ...]] = {
         "RevenueFromContractWithCustomerIncludingAssessedTax",
         "SalesRevenueNet",
     ),
+    FinancialItem.GROSS_PROFIT: tags("GrossProfit"),
     FinancialItem.EBIT: tags("OperatingIncomeLoss"),
     FinancialItem.INTEREST_EXPENSE: (
         *tags(

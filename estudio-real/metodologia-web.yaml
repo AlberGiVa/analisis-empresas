@@ -4,12 +4,12 @@
 #   - La web solo publica datos de fuentes que se pueden republicar: las cuentas de la SEC y los
 #     tipos de cambio del BCE. Las cotizaciones de Nasdaq y Yahoo Finance no (sus condiciones no lo
 #     permiten), así que no hay capitalización, valor de empresa, PER, EV/EBITDA ni FCF yield.
-#   - La puntuación de accionista se queda con la rentabilidad y el crecimiento. Es una vista más
+#   - La puntuación de accionista mide calidad, rentabilidad y crecimiento. Es una vista más
 #     pobre que la del estudio, y así se indica en su nombre.
 #   - Desaparecen los filtros que necesitan una cotización (capitalización y FCF yield).
 #
 # Todo lo demás (antigüedad máxima de los datos, comparables, crédito y alertas) es igual.
-version: "2026.10-web-1"   # metodología del estudio 2026.10-estudio-1, sin cotizaciones
+version: "2026.10-web-2"   # web-1 más dos factores de calidad (margen bruto y conversión en caja)
 
 # Antigüedad máxima (en días) de cada dato en la fecha de análisis. Un dato más antiguo se
 # marca como "dato desactualizado" y no se usa.
@@ -39,11 +39,15 @@ scoring:
     name: "Puntuación de accionista sin valoración"
     min_coverage: 0.6   # peso mínimo con dato, sobre el peso de los factores que aplican
     min_factors: 3      # número mínimo de factores con dato
-    # Sin cotizaciones (ver la cabecera): solo rentabilidad y crecimiento, con pesos iguales.
+    # Sin cotizaciones (ver la cabecera): calidad, rentabilidad y crecimiento, con pesos
+    # iguales. El margen bruto y la conversión en caja son los rasgos de calidad que más pesan
+    # en un fondo de estilo value como el de Luceiro Capital.
     factors:
       - {metric: roe, weight: 1}
       - {metric: roic, weight: 1}
+      - {metric: gross_margin, weight: 1}
       - {metric: ebitda_margin, weight: 1}
+      - {metric: fcf_conversion, weight: 1}
       - {metric: revenue_growth, weight: 1}
   credit:
     name: "Puntuación de crédito"
