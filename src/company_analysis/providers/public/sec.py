@@ -46,10 +46,19 @@ class SecFact:
     form: str = ""
 
 
+# Only periodic reports count: the same concepts also appear in proxy statements (DEF 14A pay
+# versus performance tables, rounded) and in 8-K exhibits, which are not new publications of the
+# financial statements and must not be read as restatements.
+REPORT_FORMS = frozenset(
+    {"10-K", "10-Q", "10-K/A", "10-Q/A", "10-KT", "10-QT", "10-KT/A", "10-QT/A"}
+)
+
+
 def read_facts(
     companyfacts: Mapping[str, Any], tag: str, *, taxonomy: str = "us-gaap", unit: str = "USD"
 ) -> list[SecFact]:
-    """Every occurrence of ``taxonomy:tag`` in ``unit`` (empty if the company never used it)."""
+    """Every occurrence of ``taxonomy:tag`` in ``unit`` in a periodic report (10-K, 10-Q and their
+    amendments); empty if the company never used it."""
     concept = companyfacts.get("facts", {}).get(taxonomy, {}).get(tag) or {}
     return [
         SecFact(
@@ -62,6 +71,7 @@ def read_facts(
             form=str(entry.get("form", "")),
         )
         for entry in concept.get("units", {}).get(unit, [])
+        if str(entry.get("form", "")) in REPORT_FORMS
     ]
 
 

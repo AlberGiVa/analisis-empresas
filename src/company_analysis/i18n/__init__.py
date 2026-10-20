@@ -45,7 +45,7 @@ VOID_ELEMENTS = frozenset(
 NUMBER = re.compile(r"(?<![\w.,/])(?:\d{1,3}(?:\.\d{3})+(?:,\d+)?|\d+,\d+)(?!\d|[.,]\d|/)")
 BASIS_POINTS = re.compile(r"(\d) pb\b")
 SPANISH_WORD = re.compile(r"[a-záéíóúüñ]{2,}")
-MAX_DEPTH = 4  # patterns inside patterns
+MAX_DEPTH = 40  # patterns inside patterns (a list of n items needs n levels)
 
 
 class CatalogError(Exception):

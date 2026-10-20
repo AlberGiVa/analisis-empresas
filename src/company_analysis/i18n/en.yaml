@@ -116,6 +116,22 @@ exact:
   "Gas natural": "Natural gas"
   "Cobre": "Copper"
   "Futuro del Bund alemán": "German Bund future"
+  # Universo ampliado: eléctricas, bancos y aseguradoras
+  "Grandes empresas de EE. UU.": "Large US companies"
+  "Diecisiete grandes empresas de EE. UU. de consumo, eléctricas, banca y seguros, con acciones y bonos en el mercado": "Seventeen large US companies in consumer goods, electric utilities, banking and insurance, with shares and bonds in the market"
+  "Diecisiete grandes empresas de EE. UU. de consumo, eléctricas, banca y seguros, con acciones y bonos en el mercado.": "Seventeen large US companies in consumer goods, electric utilities, banking and insurance, with shares and bonds in the market."
+  "Acuerdo de financiación con garantía": "Secured funding agreement"
+  "Deuda": "Debt"
+  "Deuda a corto plazo": "Short-term debt"
+  "Deuda subordinada": "Subordinated debt"
+  "Otra deuda a corto plazo": "Other short-term borrowings"
+  "Pagarés y papel comercial": "Notes payable and commercial paper"
+  "Papel comercial": "Commercial paper"
+  "Valores con vencimiento a un año": "Securities due within one year"
+  "DebtLongtermAndShorttermCombinedAmount": "DebtLongtermAndShorttermCombinedAmount"
+  "LongTermDebtAndCapitalLeaseObligationsIncludingCurrentMaturities": "LongTermDebtAndCapitalLeaseObligationsIncludingCurrentMaturities"
+  "RegulatedAndUnregulatedOperatingRevenue": "RegulatedAndUnregulatedOperatingRevenue"
+  "SubordinatedDebt": "SubordinatedDebt"
   # Calidad: margen bruto y conversión en caja
   "Beneficio bruto": "Gross profit"
   "Beneficio bruto LTM": "LTM gross profit"
@@ -1098,3 +1114,6 @@ patterns:
   # Listas con comas de nombres que empiezan en mayúscula (líneas de deuda, sectores de un filtro).
   - es: '(?P<a>[A-ZÁÉÍÓÚ][^,]*), (?P<b>[A-ZÁÉÍÓÚ].*)'
     en: "{a}, {b}"
+  # Listas separadas por punto y coma (por ejemplo, las empresas que quedan fuera del gráfico).
+  - es: '(?P<a>[^;]+); (?P<b>.+)'
+    en: "{a}; {b}"

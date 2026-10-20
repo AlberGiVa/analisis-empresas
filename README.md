@@ -77,10 +77,11 @@ nunca se suben al repositorio.
 ### Estudio con datos reales de hoy
 
 ```powershell
-estudio-real\estudio todo   # 10 empresas reales: SEC, cotizaciones y BCE, en un espacio aislado
+estudio-real\estudio todo   # 17 empresas reales: SEC, cotizaciones y BCE, en un espacio aislado
 ```
 
-Prueba la herramienta con diez empresas reales de consumo básico de EE. UU. Las cuentas vienen de
+Prueba la herramienta con diecisiete empresas reales de EE. UU. (consumo, eléctricas, banca y
+seguros). Las cuentas vienen de
 la SEC, las cotizaciones de Nasdaq (contrastadas con Yahoo Finance) y los tipos de cambio del BCE.
 Tiene su propia base de datos, metodología y carpeta de resultados, y genera un informe con
 comparables, cambios entre dos fechas y la calidad y el origen de cada dato. Detalles en

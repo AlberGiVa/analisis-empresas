@@ -13,6 +13,7 @@ from company_analysis.providers.public.sec import (
     combine,
     extract_financials,
     publications,
+    read_facts,
 )
 from tests import public_samples
 
@@ -147,3 +148,17 @@ def test_combine_sums_what_was_known_on_each_date() -> None:
         key: [(date(2026, 2, 1), 100.0), (date(2026, 3, 1), 105.0), (date(2026, 5, 1), 95.0)]
     }
     assert combine([optional, {}], [False, False]) == {}
+
+
+def test_only_periodic_reports_are_read() -> None:
+    """Proxy statements and 8-K exhibits repeat figures (rounded or recast): they are not new
+    publications of the financial statements."""
+    entry = {"start": "2025-01-01", "end": "2025-12-31", "val": 100.0, "filed": "2026-02-10"}
+    companyfacts = {"facts": {"us-gaap": {"NetIncomeLoss": {"units": {"USD": [
+        {**entry, "form": "10-K", "accn": "a"},
+        {**entry, "val": 99.0, "form": "DEF 14A", "filed": "2026-03-20", "accn": "b"},
+        {**entry, "val": 98.0, "form": "8-K", "filed": "2026-04-02", "accn": "c"},
+        {**entry, "val": 101.0, "form": "10-K/A", "filed": "2026-05-15", "accn": "d"},
+    ]}}}}}  # fmt: skip
+    facts = read_facts(companyfacts, "NetIncomeLoss")
+    assert [(f.form, f.value) for f in facts] == [("10-K", 100.0), ("10-K/A", 101.0)]

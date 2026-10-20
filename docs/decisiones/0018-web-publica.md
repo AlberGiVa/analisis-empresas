@@ -53,7 +53,7 @@ vienen de Nasdaq y Yahoo Finance, y sus condiciones no permiten publicarlas.
 - **Páginas**, todas con la misma barra de navegación y adaptadas al móvil y al modo oscuro:
   - Inicio: qué es la herramienta, resumen de las dos secciones, últimas alertas de las empresas
     reales;
-  - Empresas reales: el informe del estudio de las diez empresas, con ranking, CSV y fichas;
+  - Empresas reales: el informe del estudio de las empresas reales, con ranking, CSV y fichas;
   - Casos de ejemplo: una empresa ficticia por caso (13 de las 20 de `data/sample`, que se
     siguen usando para comparar), con todas las funciones (cotizaciones,
     bonos y ratings), con ranking, CSV y fichas;

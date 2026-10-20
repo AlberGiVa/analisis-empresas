@@ -1,0 +1,189 @@
+# Candidatas para universo.yaml: eléctricas, bancos y aseguradoras de EE. UU. (fragmento).
+#
+# Estado a 20/10/2026:
+# - Verificadas (7 de 7): NEE, DUK, SO, JPM, BAC, MET, TRV. Identificadores comprobados con la SEC,
+#   OpenFIGI y GLEIF; líneas de deuda revisadas en los últimos balances; comprobador con el
+#   proveedor real sin más avisos que los propios de los datos.
+# - Pendientes: ninguna. Sin sustituciones.
+# - Pendiente fuera del fragmento (código): el proveedor toma como corrección las cifras de los
+#   DEF 14A (retribución), y cambia el beneficio neto de 2025 de JPM (57.048 → 57.000) y de MET
+#   (3.379 → 3.173). Y `ebit: []` (MET, TRV) es un uso nuevo de `tags` que hay que aceptar.
+
+# --- Eléctricas -------------------------------------------------------------------------------
+# NextEra Energy: LEI de la matriz (NextEra Energy, Inc., Florida), el que GLEIF asocia a este
+# ISIN; no confundir con el de su filial NextEra Energy Capital Holdings. Ingresos: el total de su
+# cuenta de resultados («Operating revenues») va en RegulatedAndUnregulatedOperatingRevenue; la
+# etiqueta por defecto (ingresos de contratos con clientes) es un desglose redondeado de una nota.
+# Gasto financiero e inversiones en inmovilizado: los publica con etiquetas propias de la empresa
+# (nee:InterestExpenseAggregateExpenses, nee:CapitalExpendituresOfFPL…), que la SEC no incluye en
+# sus datos estructurados; faltan con su motivo y no se sustituyen por otra partida.
+- id: NEE
+  name: NextEra Energy, Inc.
+  cik: "0000753308"
+  ticker: NEE
+  isin: US65339F1012
+  lei: 254900RHL9MEUS5NKX63
+  exchange: XNYS
+  country: US
+  sector: utilities
+  industry: electric_utilities
+  currency: USD
+  fiscal_year_end_month: 12
+  debt:
+    - {line: "Papel comercial", tags: [CommercialPaper]}
+    - {line: "Otra deuda a corto plazo", tags: [OtherShortTermBorrowings]}
+    - {line: "Vencimientos a un año de la deuda a largo", tags: [LongTermDebtCurrent]}
+    - {line: "Deuda a largo plazo", tags: [LongTermDebtNoncurrent], required: true}
+  tags:
+    revenue: [RegulatedAndUnregulatedOperatingRevenue]
+
+# Duke Energy: ingresos con la misma corrección que NextEra (el total de «Operating revenues» va en
+# RegulatedAndUnregulatedOperatingRevenue). Gasto financiero: la misma línea de la cuenta de
+# resultados lleva InterestExpense en los informes anuales y en algunos primeros trimestres e
+# InterestExpenseNonoperating en el resto; se fija InterestExpense, la de los ejercicios completos,
+# así que en algunos trimestres el gasto de doce meses falta (con aviso) en vez de mezclar etiquetas.
+# Deuda: las tres líneas suman exactamente la deuda total de su nota de deuda
+# (DebtAndCapitalLeaseObligations: 89.836 M a 31/12/2025).
+- id: DUK
+  name: Duke Energy Corporation
+  cik: "0001326160"
+  ticker: DUK
+  isin: US26441C2044
+  lei: I1BZKREC126H0VB1BL91
+  exchange: XNYS
+  country: US
+  sector: utilities
+  industry: electric_utilities
+  currency: USD
+  fiscal_year_end_month: 12
+  debt:
+    - {line: "Pagarés y papel comercial", tags: [ShortTermBorrowings]}
+    - {line: "Vencimientos a un año de la deuda a largo", tags: [LongTermDebtCurrent]}
+    - {line: "Deuda a largo plazo", tags: [LongTermDebtNoncurrent], required: true}
+  tags:
+    revenue: [RegulatedAndUnregulatedOperatingRevenue]
+    interest_expense: [InterestExpense]
+
+# Southern Company: «Securities due within one year» (vencimientos a un año de la deuda a largo) y
+# «Notes payable» (papel comercial y préstamos a corto) son líneas distintas del balance y no se
+# solapan. La deuda a largo incluye sus arrendamientos financieros, como la presenta la empresa.
+# Patrimonio atribuible: sus balances trimestrales solo dan el patrimonio con minoritarios; el de
+# los accionistas de la matriz solo está al cierre del ejercicio (en los trimestres falta, con aviso).
+- id: SO
+  name: The Southern Company
+  cik: "0000092122"
+  ticker: SO
+  isin: US8425871071
+  lei: 549300FC3G3YU2FBZD92
+  exchange: XNYS
+  country: US
+  sector: utilities
+  industry: electric_utilities
+  currency: USD
+  fiscal_year_end_month: 12
+  debt:
+    - {line: "Pagarés a corto plazo", tags: [ShortTermBorrowings]}
+    - {line: "Valores con vencimiento a un año", tags: [LongTermDebtAndCapitalLeaseObligationsCurrent]}
+    - {line: "Deuda a largo plazo", tags: [LongTermDebtAndCapitalLeaseObligations], required: true}
+
+# --- Bancos -----------------------------------------------------------------------------------
+# JPMorgan Chase: banco, sin resultado operativo (EBIT y EBITDA «no publica esta partida», como se
+# espera; ver la decisión 0008). Ingresos: su total publicado es el «Total net revenue» (ingresos
+# netos de intereses pagados). Lo etiqueta como Revenues solo en los informes anuales y como
+# RevenuesNetOfInterestExpense en todos (misma cifra), así que se fija esta última para tener los
+# trimestres. Gasto financiero: «Total interest expense», etiquetado InterestExpense hasta 2023 e
+# InterestExpenseOperating desde entonces (cambio de la taxonomía).
+# Deuda: préstamos a corto y deuda a largo del balance; no son deuda financiera los depósitos, las
+# cesiones temporales (repos), los pasivos de negociación ni los títulos emitidos por vehículos
+# consolidados (VIE), que el balance presenta aparte.
+- id: JPM
+  name: JPMorgan Chase & Co.
+  cik: "0000019617"
+  ticker: JPM
+  isin: US46625H1005
+  lei: 8I5DZWZKVSZI1NUHU748
+  exchange: XNYS
+  country: US
+  sector: financials
+  industry: banks
+  currency: USD
+  fiscal_year_end_month: 12
+  debt:
+    - {line: "Préstamos a corto plazo", tags: [ShortTermBorrowings]}
+    - {line: "Deuda a largo plazo", tags: [LongTermDebtAndCapitalLeaseObligationsIncludingCurrentMaturities], required: true}
+  tags:
+    revenue: [RevenuesNetOfInterestExpense]
+    interest_expense: [InterestExpenseOperating]
+
+# Bank of America: banco, sin resultado operativo (esperado). Ingresos: «Total revenue, net of
+# interest expense», que publica como Revenues (la etiqueta por defecto). Gasto financiero: igual
+# que JPMorgan. Deuda: préstamos a corto y deuda a largo (ambos incluyen la deuda de sus vehículos
+# consolidados); fuera, depósitos, repos y pasivos de negociación.
+- id: BAC
+  name: Bank of America Corporation
+  cik: "0000070858"
+  ticker: BAC
+  isin: US0605051046
+  lei: 9DJT3UXIJIZJI4WXO774
+  exchange: XNYS
+  country: US
+  sector: financials
+  industry: banks
+  currency: USD
+  fiscal_year_end_month: 12
+  debt:
+    - {line: "Préstamos a corto plazo", tags: [OtherShortTermBorrowings, ShortTermBorrowings]}
+    - {line: "Deuda a largo plazo", tags: [LongTermDebt], required: true}
+  tags:
+    interest_expense: [InterestExpenseOperating]
+
+# --- Seguros ----------------------------------------------------------------------------------
+# MetLife: aseguradora, sin resultado operativo en su cuenta de resultados. Desde 2024 etiqueta
+# OperatingIncomeLoss, pero es su «adjusted earnings» de la nota de segmentos (beneficio ajustado,
+# después de impuestos y fuera de las normas contables), no un resultado operativo: la lista vacía
+# deja el EBIT como «no publica esta partida», igual que en las demás aseguradoras y bancos.
+# Deuda: las cuatro líneas de deuda de su balance (a corto, a largo, el acuerdo de financiación con
+# garantía y la deuda subordinada, que hasta 2024 se llamaba «junior subordinated»). Fuera, los
+# pagarés de las entidades de financiación con garantía consolidadas (sin recurso a MetLife) y los
+# saldos con asegurados.
+- id: MET
+  name: MetLife, Inc.
+  cik: "0001099219"
+  ticker: MET
+  isin: US59156R1086
+  lei: C4BXATY60WC6XEOZDX54
+  exchange: XNYS
+  country: US
+  sector: financials
+  industry: insurance
+  currency: USD
+  fiscal_year_end_month: 12
+  debt:
+    - {line: "Deuda a corto plazo", tags: [ShortTermBorrowings]}
+    - {line: "Deuda a largo plazo", tags: [LongTermDebtAndCapitalLeaseObligationsIncludingCurrentMaturities], required: true}
+    - {line: "Acuerdo de financiación con garantía", tags: [SecuredDebt]}
+    - {line: "Deuda subordinada", tags: [SubordinatedDebt, JuniorSubordinatedNotes]}
+  tags:
+    ebit: []
+
+# Travelers: aseguradora, sin resultado operativo en su cuenta de resultados. Sus datos llevan
+# OperatingIncomeLoss solo en 2014 y 2015, y es su «operating income» fuera de las normas contables
+# (beneficio después de impuestos sin plusvalías: 3.641 M en 2014), no un resultado operativo: la
+# lista vacía deja el EBIT como «no publica esta partida», igual que en MetLife. Presenta toda su
+# deuda en una sola línea del balance («Debt»).
+- id: TRV
+  name: The Travelers Companies, Inc.
+  cik: "0000086312"
+  ticker: TRV
+  isin: US89417E1091
+  lei: 549300Y650407RU8B149
+  exchange: XNYS
+  country: US
+  sector: financials
+  industry: insurance
+  currency: USD
+  fiscal_year_end_month: 12
+  debt:
+    - {line: "Deuda", tags: [DebtLongtermAndShorttermCombinedAmount], required: true}
+  tags:
+    ebit: []

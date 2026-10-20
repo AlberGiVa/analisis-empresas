@@ -6,9 +6,10 @@ descarga o calcula se mezcla con la base principal ni se sube al repositorio.
 
 ## Qué analiza
 
-Diez empresas de consumo básico de EE. UU. con acciones y bonos en el mercado (alimentación y
-bebidas; productos de hogar e higiene). Son comparables entre sí y publican sus cuentas en la SEC
-con la fecha exacta de cada informe. El porqué de cada empresa, sus identificadores verificados y
+Diecisiete grandes empresas de EE. UU. con acciones y bonos en el mercado: diez de consumo básico
+(alimentación y bebidas; productos de hogar e higiene), tres eléctricas, dos bancos y dos
+aseguradoras. Publican sus cuentas en la SEC con la fecha exacta de cada informe, y los bancos y las
+aseguradoras muestran con datos reales las métricas que no les aplican. El porqué de cada empresa, sus identificadores verificados y
 cómo se construye su deuda están en [universo.yaml](universo.yaml).
 
 ## Cómo se usa
@@ -65,8 +66,8 @@ fichero, así que cualquier cifra del informe se puede rastrear hasta el fichero
   de acreedor solo usa fundamentales (ver [metodologia.yaml](metodologia.yaml)).
 - **Retraso de la SEC.** A veces un informe ya presentado tarda en aparecer en los datos
   estructurados. El informe lo avisa y se usan las cifras anteriores.
-- **Diez empresas.** Con un grupo tan pequeño, un cambio en una empresa mueve los percentiles de
-  las demás.
+- **Grupos pequeños.** Con pocas empresas por sector, un cambio en una empresa mueve los
+  percentiles de las demás.
 - **No es una recomendación de inversión:** describe y compara.
 
 ## En la web pública

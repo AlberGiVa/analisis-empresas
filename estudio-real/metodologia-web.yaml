@@ -34,7 +34,7 @@ metrics:
 # que tienen dato en ese factor si son al menos "min_peers"; si no, con todo el universo.
 # Los pesos son relativos y se reparten entre los factores con dato.
 scoring:
-  min_peers: 5   # el estudio tiene 10 empresas del mismo sector: todas se comparan entre sí
+  min_peers: 5   # sectores con menos de 5 empresas con dato se comparan con todo el universo
   equity:
     name: "Puntuación de accionista sin valoración"
     min_coverage: 0.6   # peso mínimo con dato, sobre el peso de los factores que aplican
