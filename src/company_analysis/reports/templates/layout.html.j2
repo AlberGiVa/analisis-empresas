@@ -65,38 +65,60 @@
   dl.inputs dd { margin: 0; font-variant-numeric: tabular-nums; }
   .disclaimer { margin-top: 32px; padding: 12px 14px; border-left: 4px solid var(--accent); background: var(--soft); }
   footer { margin-top: 16px; color: var(--muted); font-size: 12px; }
-  /* Website navigation (only on the public website) */
-  .site { background: var(--soft); border-bottom: 1px solid var(--line); }
-  .site-inner { max-width: 1180px; margin: 0 auto; padding: 10px 16px; display: flex; flex-wrap: wrap;
-                align-items: center; gap: 6px 20px; }
-  .brand { font-weight: 700; color: var(--text); text-decoration: none; font-size: 15px; }
-  .site nav { display: flex; flex-wrap: wrap; gap: 4px; }
-  .site nav a { padding: 5px 10px; border-radius: 6px; text-decoration: none; color: var(--muted); }
-  .site nav a:hover { color: var(--text); background: var(--accent-soft); }
-  .site nav a[aria-current="page"] { color: var(--accent); background: var(--accent-soft); font-weight: 600; }
-  .site-notice { background: var(--accent-soft); color: var(--text); font-size: 13px; }
-  .site-notice .site-inner { padding-top: 8px; padding-bottom: 8px; }
   @media (max-width: 860px) { .views { grid-template-columns: 1fr; } .header { flex-direction: column; } }
-  @media print { main { max-width: none; padding: 0; } a.back, .site, .site-notice { display: none; } details { display: none; } }
+  @media print { main { max-width: none; padding: 0; } a.back { display: none; } details { display: none; } }
 </style>
+{% if site %}{% include "web_estilo.html.j2" %}{% endif %}
 </head>
 <body>
 {% if site %}
-<header class="site">
-  <div class="site-inner">
-    <a class="brand" href="{{ site_root }}index.html">Análisis de empresas</a>
-    <nav aria-label="Secciones">
+<div class="shell">
+  <aside class="side" aria-label="Índice">
+    <a class="logo-plate" href="{{ site_root }}index.html" aria-label="Luceiro Capital, ir al inicio"><img src="{{ site_root }}marca/luceiro-logo.webp" alt="Luceiro Capital" width="441" height="201"></a>
+    <p class="side-kicker">Análisis de empresas</p>
+    <nav class="nav" aria-label="Secciones">
       {% for key, label, href in site.links %}
       <a href="{{ site_root }}{{ href }}"{% if key == site.active %} aria-current="page"{% endif %}>{{ label }}</a>
       {% endfor %}
     </nav>
-  </div>
-</header>
-{% if site.notice %}<div class="site-notice"><div class="site-inner">{{ site.notice }}</div></div>{% endif %}
+    <div class="side-foot">
+      <p>Prototipo de la herramienta de análisis. Nada de esta web es una recomendación de inversión.</p>
+      <div class="theme" role="group" aria-label="Tema">
+        <button type="button" data-theme-btn="system" aria-pressed="true">Auto</button>
+        <button type="button" data-theme-btn="light" aria-pressed="false">Claro</button>
+        <button type="button" data-theme-btn="dark" aria-pressed="false">Oscuro</button>
+      </div>
+    </div>
+  </aside>
+  <div class="content">
+{% if site.notice %}<p class="site-notice">{{ site.notice }}</p>{% endif %}
 {% endif %}
 <main>
 {% block content %}{% endblock %}
 {% block footer %}{% endblock %}
 </main>
+{% if site %}
+  </div>
+</div>
+<script>
+  (function () {
+    var root = document.documentElement;
+    var buttons = document.querySelectorAll("[data-theme-btn]");
+    function apply(theme) {
+      if (theme === "light" || theme === "dark") root.setAttribute("data-theme", theme); else root.removeAttribute("data-theme");
+      buttons.forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.themeBtn === (theme || "system"))); });
+    }
+    var saved = null;
+    try { saved = localStorage.getItem("luceiro-tema"); } catch (e) { /* sin almacenamiento */ }
+    apply(saved);
+    buttons.forEach(function (b) {
+      b.addEventListener("click", function () {
+        apply(b.dataset.themeBtn);
+        try { localStorage.setItem("luceiro-tema", b.dataset.themeBtn); } catch (e) { /* sin almacenamiento */ }
+      });
+    });
+  })();
+</script>
+{% endif %}
 </body>
 </html>

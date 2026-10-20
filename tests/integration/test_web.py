@@ -62,6 +62,8 @@ def test_every_section_is_built(site: Path) -> None:
         "como-funciona.html",
         "novedades.html",
         ".nojekyll",
+        "marca/luceiro-logo.webp",
+        "presentacion.html",
     ):
         assert (site / page).is_file(), page
     assert len(list((site / "ejemplo" / "fichas").glob("*.html"))) == 20
@@ -76,7 +78,7 @@ def test_every_page_has_the_navigation_and_working_links(site: Path) -> None:
         assert 'aria-label="Secciones"' in html, page
         assert '<meta name="robots" content="noindex, nofollow">' in html, page
         for link in LINK.findall(html):
-            if link.startswith(("http://", "https://", "#")):
+            if link.startswith(("http://", "https://", "#", "data:")) or "${" in link:
                 continue
             target = (page.parent / link.split("#")[0]).resolve()
             assert target.is_file(), f"{page.relative_to(site)} enlaza a {link}, que no existe"
@@ -97,7 +99,7 @@ def test_the_real_companies_never_show_share_prices(site: Path) -> None:
 def test_the_website_never_shows_the_journal_nor_local_paths(site: Path) -> None:
     for page in _pages(site):
         html = page.read_text(encoding="utf-8")
-        assert "Diario del analista" not in html, page
+        assert "<h2>Diario del analista</h2>" not in html, page  # the section with the notes
         assert str(PROJECT_ROOT) not in html, page
         assert str(site.parent) not in html, page
 

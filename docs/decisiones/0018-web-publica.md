@@ -20,10 +20,15 @@ vienen de Nasdaq y Yahoo Finance, y sus condiciones no permiten publicarlas.
   datos en línea y sin usuarios. Se mantiene "sin microservicios, Docker ni autenticación".
 - **Repositorio público, web solo con enlace.** La cuenta gratuita de GitHub solo publica webs de
   repositorios públicos, así que el código y la documentación quedan a la vista; el usuario lo
-  eligió así, incluida la página de muestra de Luceiro Capital (que no forma parte de la web). Cada
+  eligió así, con la marca y la página de muestra de Luceiro Capital. Cada
   página de la web pide a los buscadores que no la indexen (`noindex, nofollow`): llega quien tenga
   el enlace, aunque no es una protección. Con GitHub Pro el repositorio podría volver a ser
   privado sin perder la web.
+- **Imagen de Luceiro Capital.** A petición del usuario, toda la web usa la identidad de la muestra
+  (`docs/muestra-luceiro-capital.html`): logo sobre placa blanca, verde corporativo, Marcellus y
+  Albert Sans, índice lateral y modo claro u oscuro (`web_estilo.html.j2`). El logo está en
+  `reports/static/luceiro-logo.webp`. La muestra se publica tal cual como `presentacion.html`, con
+  un enlace de vuelta a la web. Los informes locales mantienen su diseño sobrio.
 - **Construcción** con `uv run python -m company_analysis.web construir` (módulo `web.py`). Todo se
   calcula en una carpeta temporal: nunca toca la base principal (`data/analysis.duckdb`) ni la del
   estudio (`estudio-real/datos/`). El resultado queda en `_site/`, que git ignora. Opciones:

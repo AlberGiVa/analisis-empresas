@@ -99,8 +99,10 @@ muestra datos que se pueden republicar:
   publicarlas. Por eso faltan la capitalización, el PER, el EV/EBITDA y el FCF yield, y la
   puntuación de accionista es «sin valoración».
 - **Ejemplo:** las 20 empresas ficticias con todas las funciones (cotizaciones, bonos y ratings).
-- **Cómo funciona** (lectura de una puntuación, glosario, métricas, fuentes y límites) y
-  **Novedades**.
+- **Cómo funciona** (lectura de una puntuación, glosario, métricas, fuentes y límites),
+  **Novedades** y la **Presentación** (la muestra de `docs/`).
+
+Toda la web lleva la imagen de Luceiro Capital: logo, colores, tipografía y modo claro u oscuro.
 
 El diario del analista nunca se publica.
 

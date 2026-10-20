@@ -2,10 +2,11 @@
 {% block title %}Novedades{% endblock %}
 {% block content %}
 <style>
-  .news { list-style: none; padding: 0; margin: 0; max-width: 75ch; }
-  .news li { padding: 14px 0; border-bottom: 1px solid var(--line); }
+  .news { list-style: none; padding: 0; margin: 16px 0 0; max-width: 80ch; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
+  .news li { padding: 16px 20px; border-bottom: 1px solid var(--line); }
+  .news li:last-child { border-bottom: 0; }
   .news .day { color: var(--muted); font-size: 12px; }
-  .news h2 { margin: 2px 0 4px; padding: 0; border: none; font-size: 16px; }
+  .news h2 { margin: 2px 0 4px; padding: 0; border: none; font-size: 20px; }
   .news p { margin: 0; }
 </style>
 <p class="eyebrow">Qué hay de nuevo</p>

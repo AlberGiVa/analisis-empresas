@@ -2,6 +2,14 @@
 # Para añadir una, cópiala al principio: fecha, titulo, texto (1-3 frases) y enlace (opcional).
 
 - fecha: "2026-10-20"
+  titulo: "La web, con la imagen de Luceiro Capital"
+  texto: >-
+    Toda la web lleva el logo, los colores y la tipografía de Luceiro Capital, con un índice a la
+    izquierda y modo claro u oscuro. La presentación de la herramienta ya se puede abrir desde la
+    propia web.
+  enlace: "presentacion.html"
+
+- fecha: "2026-10-20"
   titulo: "Web pública"
   texto: >-
     La herramienta se puede consultar desde cualquier sitio, sin instalar nada y sin usuario ni
@@ -21,9 +29,10 @@
 - fecha: "2026-10-20"
   titulo: "Muestra interactiva y fuentes públicas"
   texto: >-
-    Una página de uso interno, que no está en esta web, explica de un vistazo cómo está conectada
-    y pensada la herramienta, con los resultados del ejemplo y la hoja de ruta. Prueba en vivo
-    varias fuentes públicas gratuitas, como los tipos de cambio del BCE.
+    Una página que explica de un vistazo cómo está conectada y pensada la herramienta, con los
+    resultados del ejemplo y la hoja de ruta. Prueba en vivo varias fuentes públicas gratuitas,
+    como los tipos de cambio del BCE.
+  enlace: "presentacion.html"
 
 - fecha: "2026-10-20"
   titulo: "Datos reales desde Excel"

@@ -1,94 +1,184 @@
 {% extends "web_base.html.j2" %}
-{% block title %}Análisis de empresas{% endblock %}
+{% block title %}Análisis de empresas · Luceiro Capital{% endblock %}
 {% block content %}
 <style>
-  .hero { padding: 12px 0 8px; max-width: 72ch; }
-  .hero h1 { font-size: 30px; line-height: 1.2; margin: 6px 0 10px; }
-  .hero .lead { font-size: 16px; margin: 0 0 10px; }
-  .sections { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin: 20px 0 8px; }
-  .section-card { display: flex; flex-direction: column; gap: 8px; border: 1px solid var(--line); border-radius: 10px;
-                  padding: 18px; background: var(--soft); min-width: 0; }
-  .section-card h2 { margin: 0; padding: 0; border: none; font-size: 19px; }
-  .section-card p { margin: 0; }
-  .facts { display: flex; flex-wrap: wrap; gap: 6px 16px; color: var(--muted); font-size: 13px; }
-  .facts strong { color: var(--text); font-variant-numeric: tabular-nums; }
-  .go { margin-top: auto; padding-top: 6px; font-weight: 600; }
-  .go a { text-decoration: none; }
-  .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
-  .step { min-width: 0; }
-  .step h3 { margin: 0 0 4px; }
-  .step p { margin: 0; color: var(--muted); }
-  .news { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
-  .news .day { color: var(--muted); font-size: 12px; }
+  .hero-card { position: relative; display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
+               gap: clamp(24px, 4vw, 52px); align-items: center; overflow: hidden;
+               padding: clamp(28px, 4.5vw, 56px); border-radius: 14px; background: var(--hero-bg); color: var(--hero-ink); }
+  .hero-card::before { content: ""; position: absolute; inset: 10px; pointer-events: none;
+                       border: 1.5px solid var(--hero-line); border-radius: 8px; }  /* the logo's double frame */
+  .hero-card .eyebrow { color: var(--hero-ink-2); margin: 0; }
+  .hero-card h1 { font-size: clamp(34px, 4.6vw, 56px); line-height: 1.06; margin: 14px 0 0; color: var(--hero-ink); }
+  .hero-card .lead { font-size: 17px; color: var(--hero-ink-2); margin: 18px 0 0; max-width: 60ch; }
+  .hero-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+  .hero-tags span { font-size: 13px; padding: 4px 11px; border-radius: 999px; border: 1px solid var(--hero-line); }
+  .hero-cta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
+  .btn { display: inline-flex; align-items: center; padding: 10px 16px; border-radius: 8px; font-weight: 600;
+         font-size: 15px; text-decoration: none; }
+  .btn-light { background: var(--hero-ink); color: var(--brand); }
+  .btn-light:hover { filter: brightness(0.95); }
+  .btn-ghost { color: var(--hero-ink); box-shadow: inset 0 0 0 1px var(--hero-line); }
+  .btn-ghost:hover { box-shadow: inset 0 0 0 1px var(--hero-ink); }
+  .mini { position: relative; background: var(--surface); color: var(--text); border-radius: 10px; padding: 20px;
+          box-shadow: 0 22px 48px -24px rgba(0, 0, 0, 0.55); min-width: 0; }
+  .mini-head { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+  .mini-name { font-family: var(--font-display); font-size: 21px; line-height: 1.2; margin: 0; }
+  .mini-meta { font-size: 13px; color: var(--muted); margin: 2px 0 0; }
+  .chip { display: inline-flex; font-size: 12.5px; padding: 3px 9px; border-radius: 999px; white-space: nowrap;
+          background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+  .mini-numbers { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+  .mini-number { border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
+  .mini-number .k { font-size: 12.5px; color: var(--ink-2); font-weight: 600; }
+  .mini-number .v { font-size: 34px; font-weight: 600; line-height: 1.1; margin-top: 4px; font-variant-numeric: tabular-nums; }
+  .mini-alerts { list-style: none; padding: 0; margin: 14px 0 0; display: flex; flex-direction: column; gap: 8px; }
+  .mini-alerts li { display: grid; grid-template-columns: 16px minmax(0, 1fr); gap: 8px; font-size: 13.5px;
+                    line-height: 1.4; color: var(--ink-2); }
+  .mini-alerts b { color: var(--text); font-weight: 600; }
+  .ic { width: 16px; height: 16px; margin-top: 2px; color: var(--warning); }
+  .mini-foot { font-size: 12px; color: var(--muted); margin: 14px 0 0; padding-top: 10px; border-top: 1px solid var(--line); }
+  .facts { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 1px; margin-top: 18px;
+           background: var(--line); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  .fact { background: var(--surface); padding: 16px 18px; }
+  .fact b { display: block; font-size: 30px; font-weight: 600; line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .fact span { display: block; font-size: 13.5px; color: var(--ink-2); margin-top: 4px; line-height: 1.35; }
+  .block { margin-top: 56px; }
+  .block > .eyebrow { margin: 0; }
+  .block > h2 { border: 0; margin: 6px 0 8px; font-size: clamp(26px, 3vw, 34px); }
+  .block > .lead { color: var(--ink-2); max-width: 68ch; margin: 0 0 20px; font-size: 16px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+  .tile { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 20px; min-width: 0; }
+  .tile h3 { margin: 0 0 6px; font-size: 17px; }
+  .tile p { margin: 0; color: var(--ink-2); }
+  .tile .go { margin-top: 14px; font-weight: 600; }
+  .tile .go a { text-decoration: none; }
+  .list { list-style: none; margin: 0; padding: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
+  .list li { padding: 14px 18px; border-bottom: 1px solid var(--line); }
+  .list li:last-child { border-bottom: 0; }
+  .list .day { display: block; color: var(--muted); font-size: 12.5px; }
+  .more { margin: 12px 0 0; font-weight: 600; }
+  .more a { text-decoration: none; }
+  @media (max-width: 900px) { .hero-card { grid-template-columns: minmax(0, 1fr); } .facts { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  @media (max-width: 520px) { .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 </style>
 
-<section class="hero">
-  <p class="eyebrow">Fondo multiactivos · herramienta de análisis</p>
-  <h1>Cada empresa, vista como accionista y como acreedor</h1>
-  <p class="lead">Métricas con su fórmula, puntuaciones que se desglosan factor a factor y alertas sobre
-  hechos concretos. Apoya al gestor: nunca recomienda comprar ni vender.</p>
-  <p class="meta">Actualizada el {{ generated }}. Se actualiza sola cada día laborable.</p>
+<section class="hero-card">
+  <div>
+    <p class="eyebrow">Luceiro Capital · Fondo multiactivos</p>
+    <h1>Cada empresa, vista como accionista y como acreedor</h1>
+    <p class="lead">Métricas con su fórmula, puntuaciones que se desglosan factor a factor y alertas sobre hechos
+    concretos. Apoya al gestor: nunca recomienda comprar ni vender.</p>
+    <div class="hero-tags"><span>Datos oficiales de la SEC y del BCE</span><span>Se actualiza cada día laborable</span>
+      <span>Sin recomendaciones de inversión</span></div>
+    <div class="hero-cta">
+      <a class="btn btn-light" href="reales/index.html">Ver las empresas reales</a>
+      <a class="btn btn-ghost" href="ejemplo/ranking.html">Ver el ejemplo completo</a>
+    </div>
+  </div>
+  <aside class="mini" aria-label="Resumen de hoy">
+    <div class="mini-head">
+      <div>
+        <p class="mini-name">{{ study.title }}</p>
+        <p class="mini-meta">{{ study.run.companies | length }} empresas reales · análisis a {{ real_date }}</p>
+      </div>
+      <span class="chip">Hoy</span>
+    </div>
+    <div class="mini-numbers">
+      <div class="mini-number"><div class="k">Alertas</div><div class="v">{{ real_alerts | length }}</div></div>
+      <div class="mini-number"><div class="k">Avisos de calidad</div><div class="v">{{ quality_warnings }}</div></div>
+    </div>
+    {% if real_alerts %}
+    <ul class="mini-alerts">
+      {% for company, alert in real_alerts[:3] %}
+      <li><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 1.5 15.2 14H.8z"/></svg>
+        <span><b>{{ company.name }}</b> · {{ alert.rule_label }}</span></li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+    <p class="mini-foot">{% if real_previous %}Comparado con el {{ real_previous }} · {% endif %}actualizada el {{ generated }}</p>
+  </aside>
 </section>
 
-<div class="sections">
-  <article class="section-card">
-    <p class="eyebrow">Empresas reales</p>
-    <h2>{{ study.title }}</h2>
-    <p>{{ study.run.companies | length }} empresas con sus cuentas oficiales de la SEC y los tipos de cambio
-    del BCE. Análisis a {{ real_date }}{% if real_previous %}, comparado con el {{ real_previous }}{% endif %}.</p>
-    <p class="facts"><span><strong>{{ real_alerts | length }}</strong> alerta{{ "s" if real_alerts | length != 1 }}</span>
-      <span><strong>{{ quality_warnings }}</strong> aviso{{ "s" if quality_warnings != 1 }} de calidad del dato</span>
-      <span>Sin cotizaciones</span></p>
-    <p class="go"><a href="reales/index.html">Ver las empresas reales →</a></p>
-  </article>
-  <article class="section-card">
-    <p class="eyebrow">Ejemplo completo</p>
-    <h2>{{ sample.companies | length }} empresas ficticias</h2>
-    <p>Datos inventados con todo lo que hace la herramienta: cotizaciones, bonos, ratings y diferenciales,
-    y casos difíciles a propósito. Análisis a {{ sample_date }}.</p>
-    <p class="facts"><span><strong>{{ sample_alerts | length }}</strong> alerta{{ "s" if sample_alerts | length != 1 }}</span>
-      <span>Bonos y ratings incluidos</span></p>
-    <p class="go"><a href="ejemplo/ranking.html">Ver el ejemplo →</a></p>
-  </article>
+<div class="facts">
+  <div class="fact"><b>{{ study.run.companies | length }}</b><span>empresas reales con cuentas oficiales</span></div>
+  <div class="fact"><b>{{ sample.companies | length }}</b><span>empresas ficticias con todas las funciones</span></div>
+  <div class="fact"><b>{{ metrics_count }}</b><span>métricas con su fórmula escrita</span></div>
+  <div class="fact"><b>{{ real_alerts | length }}</b><span>alertas hoy en las empresas reales</span></div>
+  <div class="fact"><b>{{ quality_warnings }}</b><span>avisos de calidad del dato</span></div>
+  <div class="fact"><b>2</b><span>puntuaciones por empresa: accionista y acreedor</span></div>
 </div>
 
-<h2>Alertas de las empresas reales a {{ real_date }}</h2>
-{% if real_alerts %}
-<ul class="alerts">
-  {% for company, alert in real_alerts %}
-  <li><a href="reales/{{ company.ficha_path }}">{{ company.name }}</a> · <strong>{{ alert.rule_label }}.</strong> {{ alert.message }}</li>
-  {% endfor %}
-</ul>
-{% else %}
-<p class="muted">Ninguna.</p>
-{% endif %}
+<section class="block">
+  <p class="eyebrow">Qué hay dentro</p>
+  <h2>Qué puedes ver</h2>
+  <div class="cards">
+    <div class="tile">
+      <h3>Empresas reales</h3>
+      <p>{{ study.run.companies | length }} empresas de consumo básico de EE. UU. con sus cuentas oficiales y los tipos de
+      cambio del BCE. Análisis a {{ real_date }}{% if real_previous %}, comparado con el {{ real_previous }}{% endif %}. Sin
+      cotizaciones: sus condiciones no permiten publicarlas.</p>
+      <p class="go"><a href="reales/index.html">Ver el estudio →</a></p>
+    </div>
+    <div class="tile">
+      <h3>Ejemplo completo</h3>
+      <p>{{ sample.companies | length }} empresas ficticias con datos inventados y todo lo que hace la herramienta:
+      cotizaciones, bonos, ratings y diferenciales, con casos difíciles a propósito. Análisis a {{ sample_date }}.</p>
+      <p class="go"><a href="ejemplo/ranking.html">Ver el ranking →</a></p>
+    </div>
+    <div class="tile">
+      <h3>Presentación</h3>
+      <p>Cómo está conectada y pensada la herramienta, el recorrido de un dato y lo que podría llegar a tener, con
+      fuentes públicas consultadas en vivo.</p>
+      <p class="go"><a href="presentacion.html">Ver la presentación →</a></p>
+    </div>
+  </div>
+</section>
 
-<h2>Cómo se lee, en un minuto</h2>
-<div class="steps">
-  <div class="step">
-    <h3>Puntuación de 0 a 100</h3>
-    <p>Dice cómo queda la empresa frente a sus comparables en cada factor: 100 es la mejor del grupo. Hay una
-    puntuación de accionista y otra de acreedor, por separado.</p>
-  </div>
-  <div class="step">
-    <h3>Cobertura</h3>
-    <p>Qué parte de los factores tenía dato. Si falta demasiado, la puntuación no se muestra: un dato que falta
-    nunca se inventa, se marca con su motivo.</p>
-  </div>
-  <div class="step">
-    <h3>Alertas y avisos</h3>
-    <p>Las alertas señalan hechos concretos (deuda alta, un cambio grande de puntuación). Los avisos de calidad
-    dicen qué cifra mirar con cuidado antes de sacar conclusiones.</p>
-  </div>
-</div>
-<p><a href="como-funciona.html">Más detalle: métricas, fórmulas y fuentes →</a></p>
+<section class="block">
+  <p class="eyebrow">Hoy</p>
+  <h2>Alertas de las empresas reales</h2>
+  {% if real_alerts %}
+  <ul class="list">
+    {% for company, alert in real_alerts %}
+    <li><a href="reales/{{ company.ficha_path }}">{{ company.name }}</a> · <strong>{{ alert.rule_label }}.</strong> {{ alert.message }}</li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="muted">Ninguna a {{ real_date }}.</p>
+  {% endif %}
+</section>
 
-<h2>Novedades</h2>
-<ul class="news">
-  {% for entry in news %}
-  <li><span class="day">{{ entry.day_text }}</span><br><strong>{{ entry.title }}.</strong> {{ entry.text }}
-    {% if entry.link %}<a href="{{ entry.link }}">Ver</a>{% endif %}</li>
-  {% endfor %}
-</ul>
-<p><a href="novedades.html">Todas las novedades →</a></p>
+<section class="block">
+  <p class="eyebrow">Guía rápida</p>
+  <h2>Cómo se lee, en un minuto</h2>
+  <div class="cards">
+    <div class="tile">
+      <h3>Puntuación de 0 a 100</h3>
+      <p>Cómo queda la empresa frente a sus comparables en cada factor: 100 es la mejor del grupo. Hay una puntuación
+      de accionista y otra de acreedor, por separado.</p>
+    </div>
+    <div class="tile">
+      <h3>Cobertura</h3>
+      <p>Qué parte de los factores tenía dato. Si falta demasiado, la puntuación no se muestra: un dato que falta nunca
+      se inventa, se marca con su motivo.</p>
+    </div>
+    <div class="tile">
+      <h3>Alertas y avisos</h3>
+      <p>Las alertas señalan hechos concretos (deuda alta, un cambio grande de puntuación). Los avisos de calidad dicen
+      qué cifra mirar con cuidado antes de sacar conclusiones.</p>
+    </div>
+  </div>
+  <p class="more"><a href="como-funciona.html">Métricas, fórmulas y fuentes →</a></p>
+</section>
+
+<section class="block">
+  <p class="eyebrow">Novedades</p>
+  <h2>Lo último</h2>
+  <ul class="list">
+    {% for entry in news %}
+    <li><span class="day">{{ entry.day_text }}</span><strong>{{ entry.title }}.</strong> {{ entry.text }}
+      {% if entry.link %}<a href="{{ entry.link }}">Ver</a>{% endif %}</li>
+    {% endfor %}
+  </ul>
+  <p class="more"><a href="novedades.html">Todas las novedades →</a></p>
+</section>
 {% endblock %}

@@ -1,9 +1,12 @@
 """Public website: the tool's results, open to anyone with the link (GitHub Pages).
 
-A static site with two sections, plus how to read the results and what is new:
+A static site with these sections, plus how to read the results and what is new:
 - the real-data study, only with sources that may be republished (SEC and ECB): no share prices,
   whose terms forbid it, and the methodology of ``estudio-real/metodologia-web.yaml``;
-- the sample data (fictitious companies), which show every feature of the tool.
+- the sample data (fictitious companies), which show every feature of the tool;
+- the showcase page (``docs/muestra-luceiro-capital.html``), published as ``presentacion.html``.
+
+Every page wears the Luceiro Capital identity of the showcase (logo, colours and typefaces).
 
 The analyst's journal is never published. Everything is computed in a temporary folder: building
 never touches the main database nor the study's. GitHub Actions builds and publishes it
@@ -18,6 +21,7 @@ import webbrowser
 from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import date
+from importlib.resources import files
 from pathlib import Path
 from typing import Annotated, Any
 
@@ -68,6 +72,7 @@ SECTIONS: tuple[tuple[str, str, str], ...] = (  # (key, label, page from the web
     ("ejemplo", "Ejemplo completo", "ejemplo/ranking.html"),
     ("como-funciona", "Cómo funciona", "como-funciona.html"),
     ("novedades", "Novedades", "novedades.html"),
+    ("presentacion", "Presentación", "presentacion.html"),
 )
 REAL_NOTICE = (
     "Empresas reales con datos públicos de uso libre: cuentas de la SEC y tipos de cambio del BCE. "
@@ -80,6 +85,10 @@ SAMPLE_NOTICE = (
 MARKER = ".web-generada"  # marks a folder this command may replace
 WEB_METHODOLOGY = "metodologia-web.yaml"
 NEWS = Path("docs") / "novedades.yaml"
+# The showcase page (one self-contained file) is published as is, with a way back to the website.
+SHOWCASE = Path("docs") / "muestra-luceiro-capital.html"
+SHOWCASE_ANCHOR = '<p class="side-kicker">Análisis de empresas · muestra</p>'
+LOGO = "luceiro-logo.webp"
 
 
 class WebError(Exception):
@@ -282,6 +291,7 @@ def write_pages(
                 "real_alerts": real_alerts,
                 "sample_alerts": sample_alerts,
                 "quality_warnings": sum(len(q.warnings) for q in data.companies),
+                "metrics_count": len(all_metrics()),
                 "news": list(news)[:3],
             },
         ),
@@ -307,6 +317,31 @@ def write_pages(
         )
 
 
+def write_brand(site: Path, showcase: Path) -> None:
+    """The logo every page shows, and the showcase page as ``presentacion.html``."""
+    logo = site / "marca" / LOGO
+    logo.parent.mkdir()
+    logo.write_bytes((files("company_analysis.reports") / "static" / LOGO).read_bytes())
+    if not showcase.is_file():
+        raise WebError(f"Falta la página de presentación {showcase}.")
+    html = showcase.read_text(encoding="utf-8")
+    if SHOWCASE_ANCHOR not in html or '<meta charset="utf-8">' not in html:
+        raise WebError(
+            f"{showcase.name} ha cambiado: no se encuentra dónde poner la vuelta a la web."
+        )
+    html = html.replace(
+        '<meta charset="utf-8">',
+        '<meta charset="utf-8"><meta name="robots" content="noindex, nofollow">',
+        1,
+    ).replace(
+        SHOWCASE_ANCHOR,
+        SHOWCASE_ANCHOR + '\n    <a href="index.html" style="font-weight:600;text-decoration:none;'
+        'margin-top:-10px">← Volver a la web</a>',
+        1,
+    )
+    (site / "presentacion.html").write_text(html, encoding="utf-8")
+
+
 def build_site(
     target: Path,
     *,
@@ -328,6 +363,7 @@ def build_site(
         study, data = build_real(work, site, settings, snapshot=snapshot, dates=dates)
         sample = build_sample(work, site, settings)
         write_pages(site, sample=sample, study=study, data=data, news=news)
+        write_brand(site, settings.project_root / SHOWCASE)
         (site / ".nojekyll").write_text("", encoding="utf-8")  # plain files, no Jekyll
         (site / MARKER).write_text(f"{local_now():%Y-%m-%d %H:%M}\n", encoding="utf-8")
         if target.exists():
