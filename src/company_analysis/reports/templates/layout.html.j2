@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+{% if site %}<meta name="robots" content="noindex, nofollow">{# the public website is reached by its link, not by search engines #}
+{% endif %}
 <title>{% block title %}{% endblock %}</title>
 <style>
   :root {

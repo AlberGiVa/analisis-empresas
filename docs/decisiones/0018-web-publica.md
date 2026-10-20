@@ -18,6 +18,12 @@ vienen de Nasdaq y Yahoo Finance, y sus condiciones no permiten publicarlas.
 ## Decisión
 - **Web estática en GitHub Pages.** Solo páginas HTML y ficheros CSV: sin servidor, sin base de
   datos en línea y sin usuarios. Se mantiene "sin microservicios, Docker ni autenticación".
+- **Repositorio público, web solo con enlace.** La cuenta gratuita de GitHub solo publica webs de
+  repositorios públicos, así que el código y la documentación quedan a la vista; el usuario lo
+  eligió así, incluida la página de muestra de Luceiro Capital (que no forma parte de la web). Cada
+  página de la web pide a los buscadores que no la indexen (`noindex, nofollow`): llega quien tenga
+  el enlace, aunque no es una protección. Con GitHub Pro el repositorio podría volver a ser
+  privado sin perder la web.
 - **Construcción** con `uv run python -m company_analysis.web construir` (módulo `web.py`). Todo se
   calcula en una carpeta temporal: nunca toca la base principal (`data/analysis.duckdb`) ni la del
   estudio (`estudio-real/datos/`). El resultado queda en `_site/`, que git ignora. Opciones:

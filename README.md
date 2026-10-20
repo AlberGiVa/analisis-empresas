@@ -88,10 +88,12 @@ comparables, cambios entre dos fechas y la calidad y el origen de cada dato. Det
 
 ## Web pública
 
-<!-- URL de la web: pendiente -->
+**<https://albergiva.github.io/analisis-empresas/>**
 
 Una web estática en GitHub Pages para consultar la herramienta desde cualquier sitio: basta con la
-dirección de la web, sin usuario ni contraseña. Solo muestra datos que se pueden republicar:
+dirección de la web, sin usuario ni contraseña. Pide a los buscadores que no la muestren, así que
+llega quien tenga el enlace (no es una protección: cualquiera con la dirección puede entrar). Solo
+muestra datos que se pueden republicar:
 - **Empresas reales:** el estudio de las diez empresas, con las cuentas de la SEC y los tipos de
   cambio del BCE. No hay cotizaciones, porque las condiciones de Nasdaq y Yahoo Finance no permiten
   publicarlas. Por eso faltan la capitalización, el PER, el EV/EBITDA y el FCF yield, y la

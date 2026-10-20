@@ -74,6 +74,7 @@ def test_every_page_has_the_navigation_and_working_links(site: Path) -> None:
     for page in _pages(site):
         html = page.read_text(encoding="utf-8")
         assert 'aria-label="Secciones"' in html, page
+        assert '<meta name="robots" content="noindex, nofollow">' in html, page
         for link in LINK.findall(html):
             if link.startswith(("http://", "https://", "#")):
                 continue
