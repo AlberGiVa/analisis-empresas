@@ -23,6 +23,9 @@ uv run python -m pytest                       # tests
 uv run ruff format . ; uv run ruff check .    # formato y lint
 uv run python -m mypy                         # tipos (modo estricto)
 uv run python -m company_analysis --help      # CLI (atajo en Windows: .\analisis)
+uv run python -m company_analysis cargar      # carga los datos de ejemplo
+uv run python -m company_analysis ejecutar --fecha 2026-06-30   # análisis a una fecha
+uv run python -m company_analysis ejecuciones # registro de ejecuciones
 ```
 - Python 3.14 del equipo (oficial, firmado). uv nunca descarga intérpretes (`[tool.uv]` en
   `pyproject.toml`); no lo cambies sin hablar con informática.
@@ -39,11 +42,16 @@ uv run python -m company_analysis --help      # CLI (atajo en Windows: .\analisi
 | `clock.py` | Fechas y horas; en la base, marcas de tiempo UTC sin zona. |
 | `models/` | Modelos de dominio validados (pydantic): emisores, instrumentos, estados financieros en formato largo, mercado y `DataBundle` (lote autocontenido). |
 | `providers/` | Interfaz `DataProvider`, `SampleProvider` (CSV de `data/sample`) y generador determinista de datos sintéticos. |
-| `storage/` | DuckDB: migraciones SQL, carga solo por inserción en lotes y lectura a fecha (`read_bundle`). |
+| `storage/` | DuckDB: migraciones SQL, carga solo por inserción en lotes, lectura a fecha (`read_bundle`) y registro de ejecuciones con sus resultados (`storage/runs.py`). |
 | `figures.py` | `Status` y `Figure`: un valor o el motivo por el que no está disponible. |
 | `config.py` | Metodología configurable (antigüedad máxima, tipo impositivo, tramos de rating…). |
 | `normalization/` | Periodo de referencia, LTM, divisas (`FxTable`), alineación de ejercicios y la "foto" de cada empresa a una fecha (`CompanySnapshot`). |
 | `metrics/` | Registro central de métricas (renta variable, crédito y magnitudes en euros), su cálculo (`compute_metrics`) y el generador de `docs/metricas.md`. |
+| `config_loader.py` | Lee `config/analysis.yaml`, valida que las métricas existen y calcula la huella de la configuración. |
+| `scoring/` | Percentiles por sector (o universo) y puntuaciones de renta variable y crédito con su desglose y cobertura. |
+| `screening/` | Filtros con nombre (cumple / no cumple / indeterminado) y reglas de alerta. |
+| `pipeline.py` | Una ejecución completa: lee a fecha, normaliza, calcula, puntúa, filtra, alerta y lo registra todo. |
+| `provenance.py` | Versión del código, commit de git y usuario de cada ejecución. |
 | `formatting.py` | Números y fechas en formato español para mensajes e informes. |
 | `cli.py` | CLI con Typer (`python -m company_analysis`, atajo `.\analisis`); subcomandos y mensajes en español. |
 

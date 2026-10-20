@@ -9,15 +9,14 @@ import json
 from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import date, datetime
-from enum import Enum
 from typing import Any
 
 import duckdb
-import pandas as pd
 
 from company_analysis.clock import utc_now
 from company_analysis.models import DataBundle
 from company_analysis.models.base import DomainModel
+from company_analysis.storage.database import insert_rows
 
 # Bundle collection (= table name) -> natural key, without load_id.
 _KEYS: dict[str, tuple[str, ...]] = {
@@ -52,24 +51,10 @@ def bundle_hash(bundle: DataBundle) -> str:
     return hashlib.sha256(bundle.model_dump_json().encode("utf-8")).hexdigest()
 
 
-def _plain(value: object) -> object:
-    return value.value if isinstance(value, Enum) else value
-
-
 def _insert(
     conn: duckdb.DuckDBPyConnection, table: str, load_id: str, records: Sequence[DomainModel]
 ) -> None:
-    if not records:
-        return
-    frame = pd.DataFrame(
-        [{name: _plain(value) for name, value in record.model_dump().items()} for record in records]
-    )
-    frame.insert(0, "load_id", load_id)
-    conn.register("staging", frame)
-    try:
-        conn.execute(f"INSERT INTO {table} BY NAME SELECT * FROM staging")
-    finally:
-        conn.unregister("staging")
+    insert_rows(conn, table, [{"load_id": load_id, **record.model_dump()} for record in records])
 
 
 def _batch_from_row(row: tuple[Any, ...]) -> LoadBatch:
@@ -230,3 +215,9 @@ def read_bundle(
         ),
     }
     return DataBundle.model_validate(collections)
+
+
+def latest_price_date(conn: duckdb.DuckDBPyConnection) -> date | None:
+    """Most recent share price date loaded: the default analysis date."""
+    row = conn.execute("SELECT max(price_date) FROM equity_prices").fetchone()
+    return None if row is None else row[0]

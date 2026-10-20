@@ -12,6 +12,7 @@ from company_analysis.normalization.snapshot import (
     BondSnapshot,
     CompanySnapshot,
     build_snapshots,
+    current_rating,
 )
 
 __all__ = [
@@ -23,6 +24,7 @@ __all__ = [
     "add_months",
     "build_snapshots",
     "comparable_year",
+    "current_rating",
     "fiscal_year_end",
     "ltm_window_start",
 ]

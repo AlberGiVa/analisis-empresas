@@ -17,6 +17,7 @@ from company_analysis.storage import (
     read_bundle,
     save_bundle,
 )
+from company_analysis.storage.database import MIGRATIONS_DIR
 from tests import factories
 
 FAR_FUTURE = datetime(2100, 1, 1)
@@ -51,7 +52,7 @@ def count_rows(conn: duckdb.DuckDBPyConnection, table: str) -> int:
 def test_migrations_are_applied_once(tmp_path: Path) -> None:
     with open_database(tmp_path / "db.duckdb") as conn:
         assert migrate(conn) == []  # already applied when the database was opened
-        assert count_rows(conn, "schema_migrations") == 1
+        assert count_rows(conn, "schema_migrations") == len(list(MIGRATIONS_DIR.glob("*.sql")))
 
 
 def test_loading_the_same_content_twice_does_not_duplicate(

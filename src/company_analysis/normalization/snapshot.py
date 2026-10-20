@@ -170,6 +170,17 @@ def _market_cap(
     return Figure(label, value, detail=f"precio × acciones del {format_date(price_date)}")
 
 
+def current_rating(actions: Iterable[RatingAction], day: date) -> RatingAction | None:
+    """Rating in force on ``day``: each agency's latest action; the worst if there are several."""
+    latest_by_agency: dict[str, RatingAction] = {}
+    for action in sorted(actions, key=lambda action: action.rating_date):
+        if action.rating_date <= day:
+            latest_by_agency[action.agency] = action
+    return max(
+        latest_by_agency.values(), key=lambda action: rating_notch(action.rating), default=None
+    )
+
+
 def _bond(
     bond: Bond,
     quotes: list[BondQuote],
@@ -177,12 +188,7 @@ def _bond(
     as_of: date,
     config: NormalizationConfig,
 ) -> BondSnapshot:
-    latest_by_agency: dict[str, RatingAction] = {}
-    for action in sorted(ratings, key=lambda action: action.rating_date):
-        latest_by_agency[action.agency] = action
-    rating = max(
-        latest_by_agency.values(), key=lambda action: rating_notch(action.rating), default=None
-    )
+    rating = current_rating(ratings, as_of)
     label = "Diferencial (pb)"
     if not quotes:
         return BondSnapshot(

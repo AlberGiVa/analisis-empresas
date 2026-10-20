@@ -12,6 +12,7 @@ dependencies = [
     "pydantic>=2.14",
     "pydantic-settings>=2.16",
     "pyyaml>=6.0",
+    "rich>=15.0",
     "streamlit>=1.66",
     "typer>=0.27",
 ]

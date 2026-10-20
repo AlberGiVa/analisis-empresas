@@ -1,10 +1,12 @@
 """DuckDB connection and schema migrations."""
 
-from collections.abc import Iterator
+from collections.abc import Iterator, Mapping, Sequence
 from contextlib import contextmanager
+from enum import Enum
 from pathlib import Path
 
 import duckdb
+import pandas as pd
 
 from company_analysis.clock import utc_now
 
@@ -48,6 +50,24 @@ def migrate(conn: duckdb.DuckDBPyConnection) -> list[int]:
             raise
         newly_applied.append(version)
     return newly_applied
+
+
+def _plain(value: object) -> object:
+    return value.value if isinstance(value, Enum) else value
+
+
+def insert_rows(
+    conn: duckdb.DuckDBPyConnection, table: str, rows: Sequence[Mapping[str, object]]
+) -> None:
+    """Bulk insert of rows (column -> value), matching columns by name. ``table`` is trusted."""
+    if not rows:
+        return
+    frame = pd.DataFrame([{key: _plain(value) for key, value in row.items()} for row in rows])
+    conn.register("staging", frame)
+    try:
+        conn.execute(f"INSERT INTO {table} BY NAME SELECT * FROM staging")
+    finally:
+        conn.unregister("staging")
 
 
 @contextmanager

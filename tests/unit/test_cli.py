@@ -41,3 +41,30 @@ def test_unknown_provider_is_reported_without_traceback(isolated_db: Path) -> No
     result = runner.invoke(app, ["cargar", "--proveedor", "bloomberg"])
     assert result.exit_code == 1
     assert "Proveedor desconocido" in result.output
+
+
+def test_run_at_a_date_and_list_the_runs(isolated_db: Path) -> None:
+    assert runner.invoke(app, ["cargar"]).exit_code == 0
+    result = runner.invoke(app, ["ejecutar", "--fecha", "2026-06-30"])
+    assert result.exit_code == 0, result.output
+    assert "a 30/06/2026" in result.output
+    assert "Alertas" in result.output
+    listing = runner.invoke(app, ["ejecuciones"])
+    assert listing.exit_code == 0, listing.output
+    assert "Ejecuciones registradas" in listing.output
+
+
+def test_run_defaults_to_the_latest_price_date(isolated_db: Path) -> None:
+    assert runner.invoke(app, ["cargar"]).exit_code == 0
+    result = runner.invoke(app, ["ejecutar"])
+    assert result.exit_code == 0, result.output
+    assert "a 26/06/2026" in result.output  # last weekly close of the sample data
+
+
+def test_run_errors_are_explained(isolated_db: Path) -> None:
+    no_data = runner.invoke(app, ["ejecutar"])
+    assert no_data.exit_code == 1
+    assert "No hay cotizaciones cargadas" in no_data.output
+    bad_date = runner.invoke(app, ["ejecutar", "--fecha", "30/06/2026"])
+    assert bad_date.exit_code == 1
+    assert "Fecha no válida" in bad_date.output

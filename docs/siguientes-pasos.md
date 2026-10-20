@@ -25,6 +25,14 @@ aquí en lugar de implementarse.
 - ROE y ROIC sobre saldos medios del periodo en lugar del saldo de cierre.
 - Diferencial frente al tramo: segmentar por vencimiento y divisa cuando el universo lo permita, y
   valorar una diferencia relativa (%) en lugar de en puntos básicos.
+- Pesos por bloques temáticos (valoración, rentabilidad, crecimiento) en lugar de por factor.
+- Alerta específica de "ángel caído" (paso de grado de inversión a high yield), hoy solo indicado
+  en el mensaje de la rebaja.
+
+## Trazabilidad
+- Comando para reproducir una ejecución pasada (misma fecha, mismo corte de datos y su
+  configuración guardada) y comparar los resultados.
+- Archivado de ejecuciones antiguas si la base crece mucho.
 
 ## Uso
 - Uso compartido entre varios analistas: DuckDB admite un único escritor, así que un diario de
