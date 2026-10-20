@@ -15,6 +15,9 @@ Decision 0018.
 Run it with ``uv run python -m company_analysis.web construir`` (Spanish CLI).
 """
 
+import csv
+import io
+import json
 import os
 import shutil
 import tempfile
@@ -45,7 +48,7 @@ from company_analysis.models import FxRate
 from company_analysis.pipeline import AnalysisError, run_analysis
 from company_analysis.provenance import git_commit
 from company_analysis.providers import SampleProvider
-from company_analysis.providers.public.downloads import download, plan
+from company_analysis.providers.public.downloads import Request, download, plan
 from company_analysis.providers.public.market import ecb_rates
 from company_analysis.providers.public.provider import (
     PublicDataProvider,
@@ -74,7 +77,7 @@ console = Console(soft_wrap=True)
 SECTIONS: tuple[tuple[str, str, str], ...] = (  # (key, label, page from the website root)
     ("inicio", "Panel", "index.html"),
     ("reales", "Empresas", "reales/index.html"),
-    ("divisas", "Divisas", "divisas.html"),
+    ("mercados", "Mercados", "mercados.html"),
     ("ejemplo", "Ejemplos", "ejemplo/index.html"),
     ("academy", "Academy", "academy.html"),
     ("configuracion", "Configuración", "configuracion.html"),
@@ -232,7 +235,8 @@ def build_real(
             "empresas y los tipos de cambio (sin cotizaciones)…"
         )
         downloaded = download(
-            plan(universe, local_today(), prices=False, currencies=FX_CURRENCIES),
+            plan(universe, local_today(), prices=False, currencies=FX_CURRENCIES)
+            + market_requests(local_today()),
             work / "crudo",
             sec_agent=settings.http_user_agent,
         )
@@ -354,6 +358,73 @@ def fx_rows(snapshot: Path) -> list[FxRow]:
     return sorted(rows, key=lambda row: (order.get(row.currency, len(order)), row.currency))
 
 
+# --- Markets: live on the page, with the figures of the build as a fallback ----------------------
+CURVE_TENORS = ("3M", "6M", "1Y", "2Y", "3Y", "5Y", "7Y", "10Y", "15Y", "20Y", "30Y")
+ECB_DATA = "https://data-api.ecb.europa.eu/service/data"
+
+
+def market_requests(today: date) -> list[Request]:
+    """€STR and the euro AAA yield curve (ECB): optional, a failure never stops the website."""
+    start = (today - timedelta(days=400)).isoformat()
+    keys = "+".join(f"SR_{tenor}" for tenor in CURVE_TENORS)
+    return [
+        Request(
+            "mercados/estr.csv",
+            f"{ECB_DATA}/EST/B.EU000A2X2A25.WT?startPeriod={start}&format=csvdata",
+            "Banco Central Europeo (€STR)",
+            "browser",
+            required=False,
+        ),
+        Request(
+            "mercados/curva.csv",
+            f"{ECB_DATA}/YC/B.U2.EUR.4F.G_N_A.SV_C_YM.{keys}?startPeriod={start}&format=csvdata",
+            "Banco Central Europeo (curva AAA del euro)",
+            "browser",
+            required=False,
+        ),
+    ]
+
+
+def _ecb_csv(path: Path) -> list[tuple[str, str, float]]:
+    """(series key, ISO date, value) of an ECB CSV file; empty if the file is missing."""
+    if not path.is_file():
+        return []
+    rows = []
+    for row in csv.DictReader(io.StringIO(path.read_text(encoding="utf-8"))):
+        value = (row.get("OBS_VALUE") or "").strip()
+        if value:
+            rows.append((row["KEY"], row["TIME_PERIOD"], float(value)))
+    return rows
+
+
+def market_data(snapshot: Path) -> dict[str, Any]:
+    """Series the market views draw before (or without) the live update."""
+    fx: dict[str, list[tuple[str, float]]] = {}
+    for path in sorted((snapshot / "bce").glob("*.csv")):
+        for rate in ecb_rates(path.read_text(encoding="utf-8")):
+            fx.setdefault(rate.currency, []).append(
+                (rate.rate_date.isoformat(), rate.units_per_eur)
+            )
+    last = max((series[-1][0] for series in fx.values()), default=None)
+    cut = (date.fromisoformat(last) - timedelta(days=731)).isoformat() if last else ""  # two years
+    estr = [(day, value) for _, day, value in _ecb_csv(snapshot / "mercados" / "estr.csv")]
+    curve: dict[str, dict[str, float]] = {}
+    for key, day, value in _ecb_csv(snapshot / "mercados" / "curva.csv"):
+        curve.setdefault(day, {})[key.rsplit("SR_", 1)[-1]] = value
+    return {
+        "fx": {cur: [list(p) for p in series if p[0] >= cut] for cur, series in fx.items()},
+        "estr": [list(p) for p in sorted(estr)],
+        "curve": dict(sorted(curve.items())),
+        "currencies": list(FX_CURRENCIES),
+        "tenors": list(CURVE_TENORS),
+    }
+
+
+def json_script(data: object) -> Markup:
+    """JSON that is safe inside <script type="application/json">."""
+    return Markup(json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/"))
+
+
 # --- Pages ---------------------------------------------------------------------------------------
 @dataclass(frozen=True)
 class FactorText:
@@ -393,6 +464,7 @@ def write_pages(
     }
     real_alerts = [(c, alert) for c in study.run.companies for alert in c.alerts]
     fx = fx_rows(data.snapshot)
+    market = json_script(market_data(data.snapshot))
     sample_alerts = [(c, alert) for c in sample.companies for alert in c.alerts]
     pages: dict[str, tuple[str, str, dict[str, Any]]] = {  # file: (template, section, context)
         "index.html": (
@@ -411,9 +483,21 @@ def write_pages(
                 "quality_warnings": sum(len(q.warnings) for q in data.companies),
                 "metrics_count": len(all_metrics()),
                 "fx": fx,
+                "market": market,
+                "score_bars": json_script(
+                    [
+                        {
+                            "name": c.name,
+                            "href": f"reales/{c.ficha_path}",
+                            "a": None if c.equity.value is None else round(c.equity.value),
+                            "c": None if c.credit.value is None else round(c.credit.value),
+                        }
+                        for c in study.run.companies
+                    ]
+                ),
             },
         ),
-        "divisas.html": ("web_divisas.html.j2", "divisas", {"fx": fx}),
+        "mercados.html": ("web_mercados.html.j2", "mercados", {"fx": fx, "market": market}),
         "academy.html": (
             "web_academy.html.j2",
             "academy",
@@ -437,9 +521,13 @@ def write_pages(
 
 
 def write_logo(site: Path) -> None:
-    logo = site / "marca" / LOGO
-    logo.parent.mkdir()
-    logo.write_bytes((files("company_analysis.reports") / "static" / LOGO).read_bytes())
+    """The logo and the charts script every page uses."""
+    folder = site / "marca"
+    folder.mkdir()
+    for name in (LOGO, "graficos.js"):
+        (folder / name).write_bytes(
+            (files("company_analysis.reports") / "static" / name).read_bytes()
+        )
 
 
 def write_english(site: Path, translator: Translator) -> None:

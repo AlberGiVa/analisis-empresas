@@ -60,6 +60,34 @@ exact:
   "Hay una puntuación de accionista y otra de acreedor, por separado.": "There is a shareholder score and a creditor score, kept separate."
   "Si faltan demasiados datos, no se muestra: nunca se inventa una cifra.": "If too much data is missing, it is not shown: a figure is never made up."
   "Métricas": "Metrics"
+  # Mercados y panel en directo
+  "Mercados": "Markets"
+  "Alertas de las empresas": "Company alerts"
+  "Bono AAA 10 años": "AAA bond 10Y"
+  "Bono AAA del euro a 10 años": "Euro AAA bond, 10 years"
+  "Curva de tipos AAA del euro": "Euro AAA yield curve"
+  "Datos de la última actualización": "Data from the latest update"
+  "Divisas frente al euro": "Currencies against the euro"
+  "En directo · BCE": "Live · ECB"
+  "En el periodo": "Over the period"
+  "Fráncfort": "Frankfurt"
+  "Londres": "London"
+  "Nueva York": "New York"
+  "Tokio": "Tokyo"
+  "Hace un año": "A year ago"
+  "Hace un mes": "A month ago"
+  "Hace un mes y hace un año": "A month ago and a year ago"
+  "Máximo": "High"
+  "Mínimo": "Low"
+  "Último": "Last"
+  "Ordenar": "Sort"
+  "Periodo": "Period"
+  "Puntuaciones": "Scores"
+  "Tipo de interés a un día del euro": "Euro overnight interest rate"
+  "Unidades por euro · BCE ·": "Units per euro · ECB ·"
+  "Ver mercados": "See markets"
+  "abierto": "open"
+  "cerrado": "closed"
   # --- Navegación, cabecera y pie comunes ---------------------------------------------------------
   "Inicio": "Home"
   "Empresas reales": "Real companies"
@@ -746,6 +774,10 @@ patterns:
     en: "Updated on {g} at {t} · companies as of {d}"
   - es: 'Tipos de referencia del BCE: unidades de cada divisa por euro, a (?P<d>\d\d/\d\d/\d{4})\.'
     en: "ECB reference rates: units of each currency per euro, as of {d}."
+  - es: '(?P<n>\d+) empresas · (?P<w>\d+) avisos? de calidad'
+    en: "{n} companies · {w} data-quality warnings"
+  - es: '· empresas a (?P<d>\d\d/\d\d/\d{4})'
+    en: "· companies as of {d}"
   - es: '(?P<n>\d+) empresas de EE\. UU\. de varios sectores con sus cuentas oficiales y los tipos de cambio del BCE\. Análisis a (?P<d>\d\d/\d\d/\d{4})(?P<cmp>, comparado con el \d\d/\d\d/\d{4})?\. Sin cotizaciones: sus condiciones no permiten publicarlas\.'
     en: "{n} US companies from several sectors with their official accounts and ECB exchange rates. Analysis as of {d}{cmp}. No share prices: their terms do not allow publishing them."
   - es: ', comparado con el (?P<p>\d\d/\d\d/\d{4})'

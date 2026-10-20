@@ -1,0 +1,83 @@
+{% extends "web_base.html.j2" %}
+{% block title %}Mercados{% endblock %}
+{% block content %}
+<style>
+  .mk { display: grid; gap: 16px; margin-top: 14px; }
+  .mk-two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .fx-table td, .fx-table th { vertical-align: middle; }
+  .fx-table .code { font-family: var(--font-mono); font-weight: 600; }
+  .fx-table .spark { width: 140px; height: 36px; }
+  .panel-card table { border: 0; margin: 0; }
+  @media (max-width: 980px) { .mk-two { grid-template-columns: minmax(0, 1fr); } }
+</style>
+
+<div class="panel-head">
+  <div><p class="eyebrow">Mercados</p><h1>Mercados</h1></div>
+  <span class="live"><span class="estado">Datos de la última actualización</span> <span class="hora"></span></span>
+</div>
+
+<div class="ticker" aria-hidden="true"><div class="ticker-track"></div></div>
+
+<div class="mk">
+  <div class="kpis">
+    <div class="kpi" data-kpi="USD"><span class="k-nombre">EUR/USD</span><span class="k-valor">—</span><span class="k-spark"></span><span class="k-cambio"></span><span class="k-fecha"></span></div>
+    <div class="kpi" data-kpi="GBP"><span class="k-nombre">EUR/GBP</span><span class="k-valor">—</span><span class="k-spark"></span><span class="k-cambio"></span><span class="k-fecha"></span></div>
+    <div class="kpi" data-kpi="estr"><span class="k-nombre">€STR</span><span class="k-valor">—</span><span class="k-spark"></span><span class="k-cambio"></span><span class="k-fecha"></span></div>
+    <div class="kpi" data-kpi="10Y"><span class="k-nombre">Bono AAA del euro a 10 años</span><span class="k-valor">—</span><span class="k-spark"></span><span class="k-cambio"></span><span class="k-fecha"></span></div>
+  </div>
+
+  <section class="panel-card" id="fx-datos">
+    <div class="panel-head">
+      <h2>Divisas frente al euro</h2>
+      <div class="seg" role="group" aria-label="Periodo">
+        <button type="button" data-rango="1M" aria-pressed="false">1M</button>
+        <button type="button" data-rango="3M" aria-pressed="false">3M</button>
+        <button type="button" data-rango="6M" aria-pressed="false">6M</button>
+        <button type="button" data-rango="1A" aria-pressed="true">1A</button>
+        <button type="button" data-rango="2A" aria-pressed="false">2A</button>
+      </div>
+    </div>
+    <div class="heat" id="mapa-fx"></div>
+    <p class="stats" style="margin-top:14px"><span><b id="fx-titulo">EUR/USD</b></span>
+      <span>Último <b id="fx-ultimo">—</b></span><span>En el periodo <b id="fx-cambio">—</b></span>
+      <span>Mínimo <b id="fx-min">—</b></span><span>Máximo <b id="fx-max">—</b></span></p>
+    <div class="chart-box" id="grafico-fx"></div>
+  </section>
+
+  <div class="mk-two">
+    <section class="panel-card">
+      <div class="panel-head"><h2>Curva de tipos AAA del euro</h2>
+        <div class="legend"><span><i></i>Hoy</span><span><i class="muted"></i>Hace un mes y hace un año</span></div></div>
+      <div class="chart-box" id="grafico-curva"></div>
+    </section>
+    <section class="panel-card">
+      <div class="panel-head"><h2>€STR</h2><span class="muted small">Tipo de interés a un día del euro</span></div>
+      <div class="chart-box" id="grafico-estr"></div>
+    </section>
+  </div>
+
+  <section class="panel-card">
+    <div class="panel-head"><h2>Tipos de cambio</h2><span class="muted small">Unidades por euro · BCE · <span data-fecha-mercado>{% if fx %}{{ fx[0].day.strftime("%d/%m/%Y") }}{% endif %}</span></span></div>
+    <div class="scroll">
+    <table class="fx-table">
+      <thead><tr><th>Divisa</th><th></th><th class="num">Por euro</th><th class="num">Euros por unidad</th>
+        <th class="num">1 semana</th><th class="num">1 mes</th><th class="num">1 año</th><th class="num">En el año</th><th>Último año</th></tr></thead>
+      <tbody>
+      {% for row in fx %}
+        <tr data-cur="{{ row.currency }}">
+          <td class="code">{{ row.currency }}</td><td>{{ row.name }}</td>
+          <td class="num c-valor">{{ row.rate_text }}</td><td class="num c-inv">{{ row.inverse_text }}</td>
+          <td class="num c-1s {{ row.changes[0][1] }}">{{ row.changes[0][0] }}</td>
+          <td class="num c-1m {{ row.changes[1][1] }}">{{ row.changes[1][0] }}</td>
+          <td class="num c-1a {{ row.changes[2][1] }}">{{ row.changes[2][0] }}</td>
+          <td class="num c-ytd {{ row.changes[3][1] }}">{{ row.changes[3][0] }}</td>
+          <td class="c-spark">{{ row.spark }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  </section>
+</div>
+<script type="application/json" id="mercado">{{ market }}</script>
+{% endblock %}

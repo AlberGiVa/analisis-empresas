@@ -2,80 +2,103 @@
 {% block title %}Panel · Luceiro Capital{% endblock %}
 {% block content %}
 <style>
-  .facts { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 1px; margin: 18px 0 22px;
-           background: var(--line); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
-  .fact { background: var(--surface); padding: 14px 18px; }
-  .fact b { display: block; font-size: 28px; font-weight: 600; line-height: 1.1; font-variant-numeric: tabular-nums; }
-  .fact span { display: block; font-size: 13px; color: var(--ink-2); margin-top: 4px; }
-  .board { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 18px; }
-  .tile { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; min-width: 0; }
-  .tile-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 6px; }
-  .tile-head h2 { margin: 0; padding: 0; border: 0; font-size: 20px; }
-  .tile-head a { font-weight: 600; text-decoration: none; white-space: nowrap; }
-  .tile table { border: 0; margin: 0; }
-  .tile td, .tile th { font-size: 13.5px; }
-  .tile .code { font-family: var(--font-mono); font-weight: 600; }
-  .up { color: var(--ok-text); }
-  .down { color: var(--bad-text); }
-  .spark { width: 110px; height: 28px; display: block; }
-  .spark polyline { fill: none; stroke: var(--chart-dot); stroke-width: 1.6; stroke-linejoin: round; }
+  .dash { display: grid; gap: 16px; margin-top: 14px; }
+  .dash-two { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 16px; }
+  .count { font-size: 28px; font-weight: 600; line-height: 1.15; font-variant-numeric: tabular-nums; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chips button { border: 1px solid var(--line); background: var(--surface); color: var(--ink-2); font: inherit; font-size: 12.5px;
+                  font-family: var(--font-mono); font-weight: 600; padding: 3px 9px; border-radius: 999px; cursor: pointer; }
+  .chips button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
   .alert-list { list-style: none; margin: 0; padding: 0; }
   .alert-list li { padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 13.5px; }
   .alert-list li:last-child { border-bottom: 0; }
-  .stack { display: grid; gap: 18px; min-width: 0; align-content: start; }
-  @media (max-width: 980px) { .board { grid-template-columns: minmax(0, 1fr); } }
-  @media (max-width: 700px) { .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .panel-card table { border: 0; margin: 0; }
+  .panel-card td, .panel-card th { font-size: 13.5px; }
+  .head-row { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 10px 18px; }
+  @media (max-width: 1100px) { .dash-two { grid-template-columns: minmax(0, 1fr); } }
 </style>
 
-<p class="eyebrow">Luceiro Capital · Fondo multiactivos</p>
-<h1>Panel</h1>
-<p class="meta">Actualizado el {{ generated }} · empresas a {{ real_date }}</p>
-
-<div class="facts">
-  <div class="fact"><b>{{ study.run.companies | length }}</b><span>Empresas</span></div>
-  <div class="fact"><b>{{ real_alerts | length }}</b><span>Alertas</span></div>
-  <div class="fact"><b>{{ quality_warnings }}</b><span>Avisos de calidad</span></div>
-  <div class="fact"><b>{{ fx | length }}</b><span>Divisas</span></div>
-  <div class="fact"><b>{{ sample.companies | length }}</b><span>Ejemplos</span></div>
+<div class="head-row">
+  <div>
+    <p class="eyebrow">Luceiro Capital · Fondo multiactivos</p>
+    <h1>Panel</h1>
+  </div>
+  <div class="clocks">
+    <span class="clock" data-mercado data-zona="America/New_York" data-horario="09:30-16:00">Nueva York <span class="hora"></span> <span class="estado"></span></span>
+    <span class="clock" data-mercado data-zona="Europe/London" data-horario="08:00-16:30">Londres <span class="hora"></span> <span class="estado"></span></span>
+    <span class="clock" data-mercado data-zona="Europe/Berlin" data-horario="09:00-17:30">Fráncfort <span class="hora"></span> <span class="estado"></span></span>
+    <span class="clock" data-mercado data-zona="Asia/Tokyo" data-horario="09:00-15:00">Tokio <span class="hora"></span> <span class="estado"></span></span>
+  </div>
 </div>
+<p class="meta"><span class="live"><span class="estado">Datos de la última actualización</span> <span class="hora"></span></span>
+  · empresas a {{ real_date }}</p>
 
-<div class="board">
-  <section class="tile">
-    <div class="tile-head"><h2>Empresas</h2><a href="reales/index.html">Ver todas →</a></div>
-    <div class="scroll">
-    <table>
-      <thead><tr><th>Empresa</th><th>Sector</th><th class="num">Accionista</th><th class="num">Acreedor</th><th class="num">Alertas</th></tr></thead>
-      <tbody>
-      {% for company in study.run.companies %}
-        <tr>
-          <td><a href="reales/{{ company.ficha_path }}">{{ company.name }}</a></td>
-          <td>{{ company.industry_label }}</td>
-          <td class="num">{{ company.equity.value_text if company.equity.value is not none else "—" }}</td>
-          <td class="num">{{ company.credit.value_text if company.credit.value is not none else "—" }}</td>
-          <td class="num">{{ company.alerts | length or "" }}</td>
-        </tr>
-      {% endfor %}
-      </tbody>
-    </table>
-    </div>
-  </section>
-  <div class="stack">
-    <section class="tile">
-      <div class="tile-head"><h2>Divisas</h2><a href="divisas.html">Ver todas →</a></div>
-      {% if fx %}
+<div class="dash">
+  <div class="ticker" aria-hidden="true"><div class="ticker-track"></div></div>
+
+  <div class="kpis">
+    <div class="kpi" data-kpi="USD"><span class="k-nombre">EUR/USD</span><span class="k-valor">—</span><span class="k-spark"></span><span class="k-cambio"></span><span class="k-fecha"></span></div>
+    <div class="kpi" data-kpi="estr"><span class="k-nombre">€STR</span><span class="k-valor">—</span><span class="k-spark"></span><span class="k-cambio"></span><span class="k-fecha"></span></div>
+    <div class="kpi" data-kpi="10Y"><span class="k-nombre">Bono AAA del euro a 10 años</span><span class="k-valor">—</span><span class="k-spark"></span><span class="k-cambio"></span><span class="k-fecha"></span></div>
+    <div class="kpi"><span class="k-nombre">Alertas de las empresas</span><span class="count" data-contar="{{ real_alerts | length }}">{{ real_alerts | length }}</span>
+      <span class="k-fecha">{{ study.run.companies | length }} empresas · {{ quality_warnings }} avisos de calidad</span></div>
+  </div>
+
+  <div class="dash-two">
+    <section class="panel-card">
+      <div class="panel-head">
+        <h2>Divisas</h2>
+        <div class="chips" role="group" aria-label="Divisa">
+          {% for code in ["USD", "GBP", "CHF", "JPY"] %}<button type="button" data-divisa="{{ code }}" aria-pressed="{{ 'true' if code == 'USD' else 'false' }}">EUR/{{ code }}</button>{% endfor %}
+        </div>
+        <div class="seg" role="group" aria-label="Periodo">
+          <button type="button" data-rango="3M" aria-pressed="false">3M</button>
+          <button type="button" data-rango="6M" aria-pressed="false">6M</button>
+          <button type="button" data-rango="1A" aria-pressed="true">1A</button>
+          <button type="button" data-rango="2A" aria-pressed="false">2A</button>
+        </div>
+      </div>
+      <div class="chart-box" id="grafico-fx" data-alto="280"></div>
+      <p class="more"><a href="mercados.html">Ver mercados →</a></p>
+    </section>
+
+    <section class="panel-card">
+      <div class="bars" data-orden="a">
+        <div class="panel-head">
+          <h2>Puntuaciones</h2>
+          <div class="seg" role="group" aria-label="Ordenar">
+            <button type="button" data-orden-por="a" aria-pressed="true">Accionista</button>
+            <button type="button" data-orden-por="c" aria-pressed="false">Acreedor</button>
+          </div>
+        </div>
+        <div class="legend"><span><i></i>Accionista</span><span><i class="muted"></i>Acreedor</span></div>
+        <script type="application/json">{{ score_bars }}</script>
+      </div>
+    </section>
+  </div>
+
+  <div class="dash-two">
+    <section class="panel-card">
+      <div class="panel-head"><h2>Empresas</h2><a href="reales/index.html">Ver todas →</a></div>
+      <div class="scroll">
       <table>
-        <thead><tr><th>Divisa</th><th class="num">Por euro</th><th class="num">1 mes</th><th>Último año</th></tr></thead>
+        <thead><tr><th>Empresa</th><th>Sector</th><th class="num">Accionista</th><th class="num">Acreedor</th><th class="num">Alertas</th></tr></thead>
         <tbody>
-        {% for row in fx[:6] %}
-          <tr><td class="code">{{ row.currency }}</td><td class="num">{{ row.rate_text }}</td>
-            <td class="num {{ row.changes[1][1] }}">{{ row.changes[1][0] }}</td><td>{{ row.spark }}</td></tr>
+        {% for company in study.run.companies %}
+          <tr>
+            <td><a href="reales/{{ company.ficha_path }}">{{ company.name }}</a></td>
+            <td>{{ company.industry_label }}</td>
+            <td class="num">{{ company.equity.value_text if company.equity.value is not none else "—" }}</td>
+            <td class="num">{{ company.credit.value_text if company.credit.value is not none else "—" }}</td>
+            <td class="num">{{ company.alerts | length or "" }}</td>
+          </tr>
         {% endfor %}
         </tbody>
       </table>
-      {% else %}<p class="muted">Sin tipos de cambio en esta actualización.</p>{% endif %}
+      </div>
     </section>
-    <section class="tile">
-      <div class="tile-head"><h2>Alertas</h2><a href="reales/index.html">Ver empresas →</a></div>
+    <section class="panel-card">
+      <div class="panel-head"><h2>Alertas</h2></div>
       {% if real_alerts %}
       <ul class="alert-list">
         {% for company, alert in real_alerts %}
@@ -86,4 +109,5 @@
     </section>
   </div>
 </div>
+<script type="application/json" id="mercado">{{ market }}</script>
 {% endblock %}
