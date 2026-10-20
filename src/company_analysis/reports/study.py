@@ -113,6 +113,7 @@ class StudyView:
     description: str
     columns: tuple[Column, ...]
     groups: tuple[tuple[str, tuple[PeerRow, ...]], ...]  # (industry, rows)
+    group_medians: dict[str, tuple[str, ...]]  # industry -> medians (two or more companies)
     medians: tuple[str, ...]
     changes: tuple[Change, ...]
     chart: Markup
@@ -351,6 +352,13 @@ def build_study_view(
         description=description,
         columns=tuple(Column(header, get_metric(metric).name) for metric, header in columns),
         groups=groups,
+        group_medians={
+            industry: _medians(
+                metrics, [row.company.issuer_id for row in rows], [m for m, _ in columns]
+            )
+            for industry, rows in groups
+            if len(rows) > 1
+        },
         medians=_medians(metrics, [c.issuer_id for c in run.companies], [m for m, _ in columns]),
         changes=_changes(run, previous),
         chart=chart_svg(

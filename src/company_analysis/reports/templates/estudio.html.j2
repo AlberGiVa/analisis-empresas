@@ -10,6 +10,7 @@
   table.peers th { position: sticky; top: 0; }
   table.peers tr.group td { background: var(--soft); font-weight: 600; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
   table.peers tr.median td { border-top: 2px solid var(--line); font-weight: 600; }
+  table.peers tr.group-median td { color: var(--muted); font-style: italic; font-size: 12px; }
   .na { color: var(--muted); font-size: 12px; }
   .scroll { overflow-x: auto; }
   .nowrap { white-space: nowrap; }
@@ -95,6 +96,10 @@ las de su sector que tienen dato (con todas, si son menos de {{ view.config.scor
       <td class="num score">{{ row.company.credit.value_text if row.company.credit.value is not none else "—" }}</td>
     </tr>
     {% endfor %}
+    {% if industry in study.group_medians %}
+    <tr class="group-median"><td>Mediana del sector</td><td></td>
+      {% for text in study.group_medians[industry] %}<td class="num">{{ text }}</td>{% endfor %}<td></td><td></td></tr>
+    {% endif %}
   {% endfor %}
     <tr class="median"><td>Mediana del grupo</td><td></td>
       {% for text in study.medians %}<td class="num">{{ text }}</td>{% endfor %}<td></td><td></td></tr>
