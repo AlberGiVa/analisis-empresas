@@ -29,6 +29,19 @@ vienen de Nasdaq y Yahoo Finance, y sus condiciones no permiten publicarlas.
   Albert Sans, índice lateral y modo claro u oscuro (`web_estilo.html.j2`). El logo está en
   `reports/static/luceiro-logo.webp`. La muestra se publica tal cual como `presentacion.html`, con
   un enlace de vuelta a la web. Los informes locales mantienen su diseño sobrio.
+- **Estilos y Configuración.** Además de Luceiro (el de serie), dos estilos: Terminal (inspirado
+  en los terminales de datos financieros: fondo negro, ámbar y letra monoespaciada; siempre
+  oscuro) y Prensa (papel salmón y tipografía de periódico). La página Configuración deja elegir
+  estilo, modo claro u oscuro, densidad de las tablas y tamaño del texto. Son atributos de
+  `<html>` guardados en el navegador de cada visitante (`localStorage`); nada se envía a ningún
+  sitio.
+- **Español e inglés.** La web se genera en español y se copia traducida en `en/`. El módulo
+  `i18n` traduce cada texto del HTML con el catálogo `i18n/en.yaml`: frases exactas y patrones
+  para las que llevan cifras, fechas o nombres, y pasa las cifras a notación inglesa. Así el
+  núcleo sigue en español y no hay que traducir dos veces las plantillas. Un texto nuevo que el
+  catálogo no conozca se queda en español y se lista (`--pendientes`); las pruebas exigen que
+  todo lo que hoy muestra la web esté traducido. La presentación tiene su propia versión inglesa
+  (`docs/muestra-luceiro-capital.en.html`).
 - **Construcción** con `uv run python -m company_analysis.web construir` (módulo `web.py`). Todo se
   calcula en una carpeta temporal: nunca toca la base principal (`data/analysis.duckdb`) ni la del
   estudio (`estudio-real/datos/`). El resultado queda en `_site/`, que git ignora. Opciones:
@@ -39,13 +52,13 @@ vienen de Nasdaq y Yahoo Finance, y sus condiciones no permiten publicarlas.
   - `--abrir`: abre la página de inicio en el navegador.
 - **Páginas**, todas con la misma barra de navegación y adaptadas al móvil y al modo oscuro:
   - Inicio: qué es la herramienta, resumen de las dos secciones, últimas alertas de las empresas
-    reales y últimas novedades;
+    reales;
   - Empresas reales: el informe del estudio de las diez empresas, con ranking, CSV y fichas;
-  - Ejemplo: las 20 empresas ficticias de `data/sample` con todas las funciones (cotizaciones,
+  - Casos de ejemplo: una empresa ficticia por caso (13 de las 20 de `data/sample`, que se
+    siguen usando para comparar), con todas las funciones (cotizaciones,
     bonos y ratings), con ranking, CSV y fichas;
   - Cómo funciona: cómo se lee una puntuación, glosario, diccionario de métricas (generado desde
     el registro de métricas), fuentes y límites;
-  - Novedades: se genera desde `docs/novedades.yaml`.
 - **Empresas reales solo con datos republicables:**
   - SEC: datos públicos del Gobierno de EE. UU.;
   - BCE: reutilización libre citando la fuente.

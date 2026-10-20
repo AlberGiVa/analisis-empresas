@@ -1,0 +1,951 @@
+# Traducción al inglés de la web pública (company_analysis.i18n).
+#
+# - exact: frases completas, español → inglés (los espacios y saltos de línea no cuentan).
+# - patterns: frases con cifras, fechas o nombres. "es" es una expresión regular que debe cubrir la
+#   frase entera; sus grupos con nombre se traducen a su vez (o se dejan como están, con las cifras en
+#   notación inglesa) y "en" los coloca con {nombre}.
+#
+# Lo que no está aquí se queda en español y se lista al construir la web.
+#
+# Notas para mantenerlo:
+# - Las entradas exactas se buscan antes que los patrones, y los patrones en el orden de la lista:
+#   los más concretos van primero y los genéricos (listas, sumas de etiquetas) al final.
+# - Un grupo solo pasa sin traducción si no tiene dos minúsculas seguidas (cifras, códigos en
+#   mayúsculas). Por eso las etiquetas XBRL tienen su entrada exacta (se quedan igual) y los códigos
+#   con hexadecimal (ejecución, huella, commit) se parten en caracteres sueltos.
+# - Un grupo traducido pierde los espacios de los extremos: los separadores van en "en", no en el
+#   grupo.
+# - Los patrones se aplican dentro de los grupos hasta cuatro niveles; a partir de ahí solo valen
+#   las entradas exactas y las cifras.
+#
+# Terminología: ficha = company sheet; puntuación = score; cobertura = coverage; diferencial =
+# spread; tramo de rating = rating bucket; prelación = seniority; filtro = screen; aviso de calidad =
+# data-quality warning; ejecución = run; lectura a fecha = point-in-time reading.
+
+exact:
+  # --- Navegación, cabecera y pie comunes ---------------------------------------------------------
+  "Inicio": "Home"
+  "Empresas reales": "Real companies"
+  "Ejemplo completo": "Full example"
+  "Cómo funciona": "How it works"
+  "Presentación": "Presentation"
+  "Configuración": "Settings"
+  "Índice": "Index"
+  "Secciones": "Sections"
+  "Luceiro Capital": "Luceiro Capital"
+  "Luceiro Capital, ir al inicio": "Luceiro Capital, go to the home page"
+  "Análisis de empresas": "Company analysis"
+  "Prototipo de la herramienta de análisis. Nada de esta web es una recomendación de inversión.": "Prototype of the analysis tool. Nothing on this website is an investment recommendation."
+  "Tema": "Theme"
+  "Auto": "Auto"
+  "Claro": "Light"
+  "Oscuro": "Dark"
+  "Empresas reales con datos públicos de uso libre: cuentas de la SEC y tipos de cambio del BCE. Sin cotizaciones, así que no hay capitalización, PER ni EV/EBITDA.": "Real companies with freely usable public data: SEC filings and ECB exchange rates. No share prices, so there is no market capitalisation, P/E or EV/EBITDA."
+  "Datos de ejemplo: empresas ficticias con datos inventados, para ver todo lo que hace la herramienta (cotizaciones, bonos, ratings y diferenciales incluidos).": "Sample data: fictitious companies with made-up data, to show everything the tool does (share prices, bonds, ratings and spreads included)."
+  "Las puntuaciones resumen métricas comparadas con empresas similares y las alertas señalan hechos concretos. Nada de lo que aparece aquí es una recomendación de compra o venta.": "The scores summarise metrics compared with similar companies, and the alerts point to specific facts. Nothing shown here is a recommendation to buy or sell."
+  "1 lote": "1 load"
+  "Ninguna.": "None."
+
+  # --- Inicio ------------------------------------------------------------------------------------
+  "Análisis de empresas · Luceiro Capital": "Company analysis · Luceiro Capital"
+  "Luceiro Capital · Fondo multiactivos": "Luceiro Capital · Multi-asset fund"
+  "Cada empresa, vista como accionista y como acreedor": "Every company, seen as a shareholder and as a creditor"
+  "Métricas con su fórmula, puntuaciones que se desglosan factor a factor y alertas sobre hechos concretos. Apoya al gestor: nunca recomienda comprar ni vender.": "Metrics with their formulas, scores broken down factor by factor and alerts on specific facts. It supports the portfolio manager: it never recommends buying or selling."
+  "Datos oficiales de la SEC y del BCE": "Official SEC and ECB data"
+  "Se actualiza cada día laborable": "Updated every working day"
+  "Sin recomendaciones de inversión": "No investment recommendations"
+  "Ver las empresas reales": "See the real companies"
+  "Ver el ejemplo completo": "See the full example"
+  "Resumen de hoy": "Today's summary"
+  "Hoy": "Today"
+  "Alertas": "Alerts"
+  "Avisos de calidad": "Data-quality warnings"
+  "empresas reales con cuentas oficiales": "real companies with official accounts"
+  "empresas ficticias con todas las funciones": "fictitious companies with every feature"
+  "métricas con su fórmula escrita": "metrics with a written formula"
+  "alertas hoy en las empresas reales": "alerts today on the real companies"
+  "avisos de calidad del dato": "data-quality warnings"
+  "puntuaciones por empresa: accionista y acreedor": "scores per company: shareholder and creditor"
+  "Qué hay dentro": "What's inside"
+  "Qué puedes ver": "What you can see"
+  "Ver el estudio →": "See the study →"
+  "Ver el ranking →": "See the ranking →"
+  "Cómo está conectada y pensada la herramienta, el recorrido de un dato y lo que podría llegar a tener, con fuentes públicas consultadas en vivo.": "How the tool is connected and designed, the journey of a figure through it and what it could grow into, with public sources queried live."
+  "Ver la presentación →": "See the presentation →"
+  "Alertas de las empresas reales": "Alerts on the real companies"
+  "Guía rápida": "Quick guide"
+  "Cómo se lee, en un minuto": "How to read it, in one minute"
+  "Puntuación de 0 a 100": "Score from 0 to 100"
+  "Cómo queda la empresa frente a sus comparables en cada factor: 100 es la mejor del grupo. Hay una puntuación de accionista y otra de acreedor, por separado.": "How the company compares with its peers on each factor: 100 is the best in the group. There is a shareholder score and a separate creditor score."
+  "Cobertura": "Coverage"
+  "Qué parte de los factores tenía dato. Si falta demasiado, la puntuación no se muestra: un dato que falta nunca se inventa, se marca con su motivo.": "How much of the factors had data. If too much is missing, the score is not shown: missing data is never made up, it is flagged with its reason."
+  "Alertas y avisos": "Alerts and warnings"
+  "Las alertas señalan hechos concretos (deuda alta, un cambio grande de puntuación). Los avisos de calidad dicen qué cifra mirar con cuidado antes de sacar conclusiones.": "Alerts point to specific facts (high debt, a large change in a score). Data-quality warnings say which figure to look at carefully before drawing conclusions."
+  "Métricas, fórmulas y fuentes →": "Metrics, formulas and sources →"
+
+  # --- Cómo funciona -----------------------------------------------------------------------------
+  "Guía de lectura": "Reading guide"
+  "La herramienta mira cada empresa desde dos sitios: el de quien tiene sus acciones y el de quien le ha prestado dinero comprando sus bonos. Para cada uno calcula métricas, las compara con empresas parecidas y las resume en una puntuación que siempre se puede desglosar.": "The tool looks at each company from two standpoints: that of whoever holds its shares and that of whoever has lent it money by buying its bonds. For each one it calculates metrics, compares them with similar companies and sums them up in a score that can always be broken down."
+  "Las dos vistas": "The two views"
+  "Como accionista": "As a shareholder"
+  "Como acreedor": "As a creditor"
+  "Valoración:": "Valuation:"
+  "si la empresa cotiza cara o barata frente a lo que gana o genera.": "whether the company trades expensive or cheap relative to what it earns or generates."
+  "Rentabilidad:": "Profitability:"
+  "cuánto rinde el dinero que tiene invertido.": "how much return it makes on the money invested in it."
+  "Crecimiento:": "Growth:"
+  "cuánto crecen sus ventas.": "how fast its revenue grows."
+  "Endeudamiento:": "Indebtedness:"
+  "cuántos años de generación de caja haría falta para pagar la deuda.": "how many years of cash generation it would take to repay the debt."
+  "Capacidad de pago:": "Debt-service capacity:"
+  "cuántas veces cubre lo que genera los intereses de su deuda.": "how many times what it generates covers the interest on its debt."
+  "Diferencial de sus bonos:": "Spread of its bonds:"
+  "cuánto paga de más frente a bonos con su mismo rating.": "how much more it pays than bonds with the same rating."
+  "Cómo se calcula una puntuación": "How a score is calculated"
+  "Cada métrica se calcula con su fórmula, que está en el diccionario de abajo.": "Each metric is calculated with its formula, which is in the dictionary below."
+  "La puntuación es la media ponderada de esos percentiles. Cada ficha muestra cuánto aporta cada factor.": "The score is the weighted average of those percentiles. Each company sheet shows how much each factor contributes."
+  "La cobertura dice qué parte del peso tenía dato. Por debajo del mínimo, la puntuación no se muestra.": "Coverage says how much of the weight had data. Below the minimum, the score is not shown."
+  "Factores y pesos": "Factors and weights"
+  "Las empresas reales no tienen cotizaciones en esta web (las condiciones de los servicios gratuitos no permiten republicarlas) ni diferenciales de bonos (no hay una fuente gratuita y fiable). Por eso sus puntuaciones usan menos factores que las del ejemplo.": "The real companies have no share prices on this website (the terms of the free services do not allow republishing them) and no bond spreads (there is no free, reliable source). That is why their scores use fewer factors than those of the example."
+  "Lo que la herramienta no hace": "What the tool does not do"
+  "No recomienda.": "It does not recommend."
+  "Describe y compara; la decisión es siempre del gestor.": "It describes and compares; the decision always rests with the portfolio manager."
+  "No inventa datos.": "It does not make up data."
+  "Un dato que falta o no aplica aparece como «Sin dato» o «No aplica», con el motivo.": "A figure that is missing or does not apply appears as “No data” or “Not applicable”, with the reason."
+  "No mira al futuro.": "It does not look ahead."
+  "Un análisis a una fecha solo usa lo que se había publicado hasta ese día.": "An analysis as of a date only uses what had been published by that day."
+  "No retoca las cifras.": "It does not adjust the figures."
+  "Usa las cuentas tal como se publican, sin los ajustes que comunican las empresas.": "It uses the accounts as published, without the adjustments the companies announce."
+  "Glosario": "Glossary"
+  # Glosario: el término inglés va en cursiva entre dos textos ("Últimos doce meses (", "): …").
+  "Últimos doce meses (": "Short for "
+  "last twelve months": "last twelve months"
+  "): la suma del último año de una magnitud, aunque no coincida con el ejercicio.": ": the sum of a flow figure over the latest year, even if that year does not match the fiscal year."
+  "Resultado operativo antes de amortizaciones: aproxima la caja que genera el negocio.": "Operating profit before depreciation and amortisation: it approximates the cash the business generates."
+  "Deuda financiera menos caja y equivalentes.": "Financial debt minus cash and equivalents."
+  "EV": "EV"
+  "Valor de empresa (": "Short for "
+  "enterprise value": "enterprise value"
+  "): capitalización bursátil más deuda neta.": ": market capitalisation plus net debt."
+  "Flujo de caja libre (": "Short for "
+  "free cash flow": "free cash flow"
+  "): flujo de caja operativo menos inversiones en inmovilizado.": ": operating cash flow minus capital expenditure on fixed assets."
+  "Diferencial": "Spread"
+  "Rentabilidad extra de un bono sobre la referencia sin riesgo, en puntos básicos (100 pb = 1 %).": "Extra yield of a bond over the risk-free benchmark, in basis points (100 bp = 1 %)."
+  "Tramo de rating": "Rating bucket"
+  "Grupo de calificaciones de la misma letra (A, BBB, BB…).": "Group of ratings with the same letter (A, BBB, BB…)."
+  "Prelación": "Seniority"
+  "Orden de cobro de un bono si la empresa no paga: garantizado, sénior, subordinado.": "Order in which a bond is repaid if the company defaults: secured, senior, subordinated."
+  "Percentil": "Percentile"
+  "Posición de un valor dentro de su grupo, de 0 a 100 (100 es el mejor).": "Position of a value within its group, from 0 to 100 (100 is the best)."
+  "Parte del peso de los factores aplicables que tiene dato.": "Share of the weight of the applicable factors that has data."
+  "Diccionario de métricas": "Metric dictionary"
+  "Pulsa una métrica para ver qué mide, su fórmula y sus casos límite.": "Click a metric to see what it measures, its formula and its edge cases."
+  "De dónde salen los datos": "Where the data come from"
+  "Empresas reales:": "Real companies:"
+  "cuentas presentadas en la SEC (EE. UU.), datos públicos de la administración estadounidense, con la fecha en que se presentó cada informe; y tipos de cambio del Banco Central Europeo, de reutilización libre citando la fuente. Se descargan de nuevo en cada actualización.": "accounts filed with the SEC (US), public data of the US government, with the date on which each report was filed; and European Central Bank exchange rates, free to reuse with attribution. They are downloaded again at every update."
+  "Ejemplo:": "Example:"
+  "datos inventados por un generador reproducible, con casos límite a propósito (EBITDA negativo, una empresa sin deuda, datos que faltan, otra divisa y una rebaja de rating).": "data made up by a reproducible generator, with deliberate edge cases (negative EBITDA, a company without debt, missing data, another currency and a rating downgrade)."
+  "Lo que no se publica:": "What is not published:"
+  "cotizaciones de servicios sin licencia, datos de proveedores de pago y el diario del analista.": "share prices from unlicensed services, data from paid providers and the analyst journal."
+  "pb": "bp"
+  "informativa": "informative"
+  "más alto es mejor": "higher is better"
+  "más bajo es mejor": "lower is better"
+  "bancos, seguros": "banks, insurance"
+
+  # --- Métricas: nombres, categorías y puntuaciones -----------------------------------------------
+  "Renta variable": "Equity"
+  "Crédito": "Credit"
+  "Magnitudes en euros": "Amounts in euros"
+  "PER": "P/E"
+  "FCF yield": "FCF yield"
+  "Margen EBITDA": "EBITDA margin"
+  "Crecimiento de ventas": "Revenue growth"
+  "Deuda neta/EBITDA": "Net debt/EBITDA"
+  "Cobertura de intereses": "Interest coverage"
+  "Deuda/capital": "Debt/equity"
+  "Diferencial frente a su tramo de rating": "Spread versus its rating bucket"
+  "Capitalización bursátil": "Market capitalisation"
+  "Valor de empresa (EV)": "Enterprise value (EV)"
+  "Ventas LTM": "LTM revenue"
+  "EBITDA LTM": "LTM EBITDA"
+  "Deuda neta": "Net debt"
+  "Puntuación de renta variable": "Equity score"
+  "Puntuación de crédito": "Credit score"
+  "Puntuación de accionista sin valoración": "Shareholder score without valuation"
+  "Puntuación de accionista": "Shareholder score"
+  # Tipo de puntuación en minúscula, dentro de la alerta de cambio de puntuación.
+  "renta variable": "Equity"
+  "crédito": "Credit"
+
+  # --- Métricas: diccionario (descripción, fórmula, interpretación y casos límite) ---------------
+  # PER
+  "Veces que la capitalización bursátil contiene el beneficio neto atribuible de los últimos doce meses.": "Number of times market capitalisation covers the attributable net income of the last twelve months."
+  "Capitalización bursátil / Beneficio neto atribuible LTM": "Market capitalisation / LTM attributable net income"
+  "Cuanto más bajo, más barata la acción en relación con sus beneficios. Conviene compararlo dentro del sector: el crecimiento y el riesgo justifican múltiplos distintos.": "The lower it is, the cheaper the share relative to its earnings. Best compared within the sector: growth and risk justify different multiples."
+  "Beneficio negativo: no significativo (no existe múltiplo de unas pérdidas).": "Negative earnings: not meaningful (there is no multiple of a loss)."
+  "Beneficio cero: división por cero.": "Zero earnings: division by zero."
+  "Cotización ausente o con más antigüedad de la permitida: sin dato o dato desactualizado.": "Share price missing or older than allowed: no data or stale data."
+  # EV/EBITDA
+  "Valor de empresa (capitalización más deuda neta) en relación con el EBITDA de los últimos doce meses.": "Enterprise value (market capitalisation plus net debt) relative to EBITDA over the last twelve months."
+  "(Capitalización bursátil + Deuda financiera − Caja) / EBITDA LTM": "(Market capitalisation + Financial debt − Cash) / LTM EBITDA"
+  "Cuanto más bajo, más barata la empresa en relación con su generación operativa, con independencia de cómo se financia. Simplificación: el valor de empresa no incluye intereses minoritarios ni otros ajustes.": "The lower it is, the cheaper the company relative to its operating earnings, regardless of how it is financed. Simplification: enterprise value does not include minority interests or other adjustments."
+  "EBITDA negativo: no significativo.": "Negative EBITDA: not meaningful."
+  "EBITDA cero: división por cero.": "Zero EBITDA: division by zero."
+  "Valor de empresa negativo o nulo (la caja neta supera la capitalización): no significativo.": "Negative or zero enterprise value (net cash exceeds market capitalisation): not meaningful."
+  "Bancos y aseguradoras: no aplica.": "Banks and insurers: not applicable."
+  # FCF yield
+  "Flujo de caja libre de los últimos doce meses en relación con la capitalización bursátil.": "Free cash flow over the last twelve months relative to market capitalisation."
+  "(Flujo de caja operativo LTM − Capex LTM) / Capitalización bursátil": "(LTM operating cash flow − LTM capex) / Market capitalisation"
+  "Cuanto más alto, más caja genera la empresa por cada euro de capitalización. Un valor negativo indica que consume caja.": "The higher it is, the more cash the company generates per euro of market capitalisation. A negative value means it burns cash."
+  "Flujo de caja libre negativo: valor válido (negativo).": "Negative free cash flow: valid value (negative)."
+  "Falta el flujo operativo o el capex: sin dato.": "Operating cash flow or capex missing: no data."
+  "Bancos y aseguradoras: no aplica (sus flujos operativos incluyen depósitos y préstamos).": "Banks and insurers: not applicable (their operating cash flows include deposits and loans)."
+  # ROE
+  "Rentabilidad del beneficio neto atribuible sobre el patrimonio neto atribuible al cierre del periodo.": "Return of attributable net income on attributable equity at the end of the period."
+  "Beneficio neto atribuible LTM / Patrimonio neto atribuible al cierre": "LTM attributable net income / Attributable equity at period end"
+  "Cuanto más alta, más rentable es el capital de los accionistas. Puede inflarse con mucho apalancamiento: conviene leerla junto con la deuda.": "The higher it is, the more profitable the shareholders' capital. High leverage can inflate it: read it together with debt."
+  "Patrimonio negativo: no significativo.": "Negative equity: not meaningful."
+  "Patrimonio cero: división por cero.": "Zero equity: division by zero."
+  "Beneficio negativo: valor válido (negativo).": "Negative earnings: valid value (negative)."
+  "Se usa el patrimonio al cierre y no la media del periodo (simplificación).": "Equity at period end is used, not the average over the period (simplification)."
+  # ROIC
+  "Rentabilidad operativa después de impuestos sobre el capital invertido (patrimonio más deuda neta).": "After-tax operating return on invested capital (equity plus net debt)."
+  "EBIT LTM × (1 − tipo impositivo teórico) / (Patrimonio neto total + Deuda financiera − Caja)": "LTM EBIT × (1 − notional tax rate) / (Total equity + Financial debt − Cash)"
+  "Cuanto más alta, más valor crea la empresa con el capital que emplea. El tipo impositivo teórico (25 % por defecto) se configura en config/analysis.yaml.": "The higher it is, the more value the company creates with the capital it employs. The notional tax rate (25 % by default) is set in config/analysis.yaml."
+  "Capital invertido negativo (la caja neta supera el patrimonio): no significativo.": "Negative invested capital (net cash exceeds equity): not meaningful."
+  "Capital invertido cero: división por cero.": "Zero invested capital: division by zero."
+  "EBIT negativo: valor válido (negativo).": "Negative EBIT: valid value (negative)."
+  # Margen EBITDA
+  "Parte de las ventas que se convierte en EBITDA.": "Share of revenue that turns into EBITDA."
+  "EBITDA LTM / Ventas LTM": "LTM EBITDA / LTM revenue"
+  "Cuanto más alto, más rentable es la operación. Los márgenes difieren mucho entre sectores.": "The higher it is, the more profitable the operations. Margins differ widely between sectors."
+  "EBITDA negativo: valor válido (margen negativo).": "Negative EBITDA: valid value (negative margin)."
+  "Ventas cero: división por cero; ventas negativas: no significativo.": "Zero revenue: division by zero; negative revenue: not meaningful."
+  # Crecimiento de ventas
+  "Variación de las ventas de los últimos doce meses frente a los doce meses anteriores.": "Change in revenue over the last twelve months versus the previous twelve months."
+  "Ventas LTM / Ventas LTM de un año antes − 1": "LTM revenue / LTM revenue a year earlier − 1"
+  "Cuanto más alto, más crece el negocio. Se calcula en la divisa de reporte para no mezclar el efecto de los tipos de cambio.": "The higher it is, the faster the business grows. It is calculated in the reporting currency so as not to mix in the effect of exchange rates."
+  "Faltan las ventas del año anterior: sin dato.": "Prior-year revenue missing: no data."
+  "Ventas del año anterior cero: división por cero; negativas: no significativo.": "Zero prior-year revenue: division by zero; negative: not meaningful."
+  # Deuda neta/EBITDA
+  "Años de EBITDA necesarios para pagar la deuda neta.": "Years of EBITDA needed to repay net debt."
+  "(Deuda financiera − Caja) / EBITDA LTM": "(Financial debt − Cash) / LTM EBITDA"
+  "Cuanto más bajo, menor endeudamiento. Un valor negativo indica caja neta (más caja que deuda).": "The lower it is, the lower the indebtedness. A negative value means net cash (more cash than debt)."
+  "EBITDA negativo: no significativo (si además hay deuda neta positiva, salta la alerta de apalancamiento).": "Negative EBITDA: not meaningful (if net debt is also positive, the leverage alert is triggered)."
+  "Caja neta: valor negativo válido.": "Net cash: valid negative value."
+  # Cobertura de intereses
+  "Veces que el EBITDA cubre los gastos financieros.": "Number of times EBITDA covers interest expense."
+  "EBITDA LTM / Gastos financieros LTM": "LTM EBITDA / LTM interest expense"
+  "Cuanto más alta, más holgura para pagar los intereses.": "The higher it is, the more headroom to pay interest."
+  "Sin gastos financieros (por ejemplo, sin deuda): división por cero.": "No interest expense (for example, no debt): division by zero."
+  "EBITDA negativo: valor válido (cobertura negativa).": "Negative EBITDA: valid value (negative coverage)."
+  # Deuda/capital
+  "Deuda financiera en relación con el patrimonio neto total.": "Financial debt relative to total equity."
+  "Deuda financiera / Patrimonio neto total": "Financial debt / Total equity"
+  "Cuanto más baja, menos apalancada está la empresa en términos de balance.": "The lower it is, the less leveraged the company's balance sheet."
+  "Sin deuda: valor cero, válido.": "No debt: zero, a valid value."
+  "Bancos y aseguradoras: no aplica (su deuda incluye la financiación de su actividad).": "Banks and insurers: not applicable (their debt includes the funding of their business)."
+  # Diferencial frente a su tramo de rating
+  "Diferencia entre el diferencial de cada bono y la mediana de los bonos de su mismo tramo de rating. Para la empresa, la mediana de sus bonos.": "Difference between each bond's spread and the median of the bonds in the same rating bucket. For the company, the median of its bonds."
+  "Por bono: Diferencial del bono − Mediana del diferencial de los bonos del mismo tramo de rating y tipo de diferencial. Por empresa: mediana de sus bonos.": "Per bond: Bond spread − Median spread of the bonds in the same rating bucket and of the same spread type. Per company: median of its bonds."
+  "Positivo: el bono paga más que sus comparables de rating (más compensación por el mismo rating). Negativo: paga menos. En la puntuación de crédito, más alto puntúa mejor; el deterioro se vigila con las alertas y los factores de apalancamiento.": "Positive: the bond pays more than its rating peers (more compensation for the same rating). Negative: it pays less. In the credit score, higher scores better; deterioration is monitored through the alerts and the leverage factors."
+  "Bono sin rating: sin dato.": "Bond without a rating: no data."
+  "Tramo con menos bonos del mínimo (3 por defecto): sin comparables suficientes.": "Bucket with fewer bonds than the minimum (3 by default): not enough peers."
+  "Cotización con más antigüedad de la permitida: dato desactualizado.": "Price older than allowed: stale data."
+  "Empresa sin bonos vivos: no aplica.": "Company without outstanding bonds: not applicable."
+  "Bono con ratings de varias agencias: se usa el peor.": "Bond rated by several agencies: the worst rating is used."
+  # Magnitudes en euros
+  "Valor en bolsa de todas las acciones de la empresa.": "Stock-market value of all the company's shares."
+  "Cotización × Acciones en circulación, convertida a euros al tipo de cambio de la fecha de la cotización": "Share price × Shares outstanding, converted to euros at the exchange rate of the price date"
+  "Tamaño de la empresa en bolsa; útil para filtrar el universo.": "Size of the company on the stock market; useful to screen the universe."
+  "Falta el dato de origen o el tipo de cambio: sin dato.": "Source figure or exchange rate missing: no data."
+  "Los valores negativos (por ejemplo, EBITDA o deuda neta) son válidos.": "Negative values (for example, EBITDA or net debt) are valid."
+  "Capitalización más deuda neta: el valor del negocio para todos sus financiadores.": "Market capitalisation plus net debt: the value of the business to all its providers of capital."
+  "(Capitalización + Deuda financiera − Caja) en la divisa de reporte, convertido a euros al tipo de cambio de la fecha de la cotización": "(Market capitalisation + Financial debt − Cash) in the reporting currency, converted to euros at the exchange rate of the price date"
+  "Base de los múltiplos de valoración de empresa (EV/EBITDA).": "Basis of the enterprise-value multiples (EV/EBITDA)."
+  "Ventas de los últimos doce meses, en euros.": "Revenue over the last twelve months, in euros."
+  "Ventas LTM convertidas a euros al tipo de cambio medio de esos doce meses": "LTM revenue converted to euros at the average exchange rate of those twelve months"
+  "Tamaño del negocio, comparable entre empresas de distinta divisa.": "Size of the business, comparable across companies with different currencies."
+  "EBITDA de los últimos doce meses, en euros.": "EBITDA over the last twelve months, in euros."
+  "EBITDA LTM convertido a euros al tipo de cambio medio de esos doce meses": "LTM EBITDA converted to euros at the average exchange rate of those twelve months"
+  "Generación operativa del negocio, comparable entre divisas.": "Operating earnings of the business, comparable across currencies."
+  "Deuda financiera menos caja al cierre del periodo, en euros.": "Financial debt minus cash at period end, in euros."
+  "(Deuda financiera − Caja) convertida a euros al tipo de cambio de la fecha de cierre del periodo": "(Financial debt − Cash) converted to euros at the exchange rate of the period-end date"
+  "Endeudamiento en términos absolutos; negativa si hay caja neta.": "Indebtedness in absolute terms; negative if there is net cash."
+  # Motivos de exclusión
+  "No aplica a bancos y aseguradoras: su EBITDA, su deuda y su valor de empresa no son comparables con los de una empresa no financiera.": "Not applicable to banks and insurers: their EBITDA, debt and enterprise value are not comparable with those of a non-financial company."
+  "No aplica a bancos y aseguradoras: sus flujos de caja operativos incluyen los movimientos de depósitos, préstamos e inversiones de su actividad.": "Not applicable to banks and insurers: their operating cash flows include the movements in deposits, loans and investments of their business."
+  "No aplica a bancos y aseguradoras: su deuda incluye depósitos y la financiación de su actividad, y su solvencia se mide con ratios de capital.": "Not applicable to banks and insurers: their debt includes deposits and the funding of their business, and their solvency is measured with capital ratios."
+
+  # --- Partidas, entradas de las métricas y estados de un dato -----------------------------------
+  "Ventas": "Revenue"
+  "Gastos financieros": "Interest expense"
+  "Beneficio neto atribuible": "Attributable net income"
+  "Flujo de caja operativo": "Operating cash flow"
+  "Inversiones (capex)": "Capital expenditure (capex)"
+  "Deuda financiera": "Financial debt"
+  "Caja y equivalentes": "Cash and equivalents"
+  "Patrimonio neto total": "Total equity"
+  "Patrimonio neto atribuible": "Attributable equity"
+  "Acciones en circulación (millones)": "Shares outstanding (millions)"
+  "Flujo de caja libre": "Free cash flow"
+  "EBIT LTM": "LTM EBIT"
+  "Gastos financieros LTM": "LTM interest expense"
+  "Beneficio neto atribuible LTM": "LTM attributable net income"
+  "Flujo de caja operativo LTM": "LTM operating cash flow"
+  "Inversiones (capex) LTM": "LTM capital expenditure (capex)"
+  "Ventas LTM del año anterior": "Prior-year LTM revenue"
+  "EBITDA LTM del año anterior": "Prior-year LTM EBITDA"
+  "EBIT LTM del año anterior": "Prior-year LTM EBIT"
+  "Gastos financieros LTM del año anterior": "Prior-year LTM interest expense"
+  "Beneficio neto atribuible LTM del año anterior": "Prior-year LTM attributable net income"
+  "Flujo de caja operativo LTM del año anterior": "Prior-year LTM operating cash flow"
+  "Inversiones (capex) LTM del año anterior": "Prior-year LTM capital expenditure (capex)"
+  "Cotización": "Share price"
+  "Tipo impositivo teórico": "Notional tax rate"
+  "Tipo de cambio medio": "Average exchange rate"
+  "Tipo de cambio de cierre": "Closing exchange rate"
+  "Diferencial (pb)": "Spread (bp)"
+  "Diferencial del bono (pb)": "Bond spread (bp)"
+  "Bonos en el tramo": "Bonds in the bucket"
+  "CCC o inferior": "CCC or below"
+  # Estados (figures.py)
+  "Con dato": "With data"
+  "Sin dato": "No data"
+  "No aplica": "Not applicable"
+  "División por cero": "Division by zero"
+  "No significativo": "Not meaningful"
+  "Dato desactualizado": "Stale data"
+  "Sin comparables suficientes": "Not enough peers"
+  # Motivos de un dato que falta (normalización y métricas)
+  "no hay estados financieros publicados a la fecha de análisis": "no financial statements published at the analysis date"
+  "el emisor no tiene acción cotizada": "the issuer has no listed shares"
+  "sin cotizaciones hasta la fecha de análisis": "no share prices up to the analysis date"
+  "el bono no cotiza": "the bond has no quotes"
+  "no hay periodo de referencia": "no reference period"
+  "el capital invertido es cero": "invested capital is zero"
+  "tipo de cambio no positivo": "non-positive exchange rate"
+  "el bono no tiene rating": "the bond has no rating"
+  "la empresa no tiene bonos vivos": "the company has no outstanding bonds"
+  "La empresa no tiene bonos vivos": "The company has no outstanding bonds"
+  "no aplica": "not applicable"
+  "Ningún factor aplica a esta empresa": "No factor applies to this company"
+  "Sin estados financieros publicados": "No financial statements published"
+  "Sin acción cotizada": "No listed shares"
+  "No disponible": "Not available"
+
+  # --- Clasificación: sectores, industrias y prelación -------------------------------------------
+  "Industria": "Industrials"
+  "Consumo": "Consumer"
+  "Tecnología": "Technology"
+  "Utilities": "Utilities"
+  "Financiero": "Financials"
+  "Bienes de equipo": "Capital goods"
+  "Transporte y logística": "Transport and logistics"
+  "Construcción e infraestructuras": "Construction and infrastructure"
+  "Alimentación y bebidas": "Food and beverages"
+  "Distribución minorista": "Retail"
+  "Productos de consumo": "Consumer products"
+  "Software": "Software"
+  "Semiconductores": "Semiconductors"
+  "Servicios tecnológicos": "IT services"
+  "Eléctricas": "Electric utilities"
+  "Bancos": "Banks"
+  "Seguros": "Insurance"
+  "Salud": "Health care"
+  "Energía": "Energy"
+  "Farmacéuticas": "Pharmaceuticals"
+  "Tecnología médica": "Medical technology"
+  "Petróleo y gas": "Oil and gas"
+  "Sector": "Sector"
+  "Universo": "Universe"
+  "País": "Country"
+  "Sénior garantizada": "Senior secured"
+  "Sénior no garantizada": "Senior unsecured"
+  "Sénior no preferente": "Senior non-preferred"
+  "Subordinada": "Subordinated"
+  "Subordinada júnior (híbrida)": "Junior subordinated (hybrid)"
+  "Sin rating": "No rating"
+  "Moody's": "Moody's"
+  "Fitch": "Fitch"
+
+  # --- Casos de ejemplo (datos inventados; web.py, web_casos.html.j2) ----------------------------
+  "Casos de ejemplo": "Sample cases"
+  "Casos de ejemplo: empresas ficticias con datos inventados, una por cada caso que la herramienta sabe tratar. Se comparan con las 20 empresas del ejemplo, aunque solo se muestran estas.": "Sample cases: fictitious companies with made-up data, one for each case the tool knows how to handle. They are compared with the 20 companies of the sample, although only these are shown."
+  "Ver los casos de ejemplo": "See the sample cases"
+  "casos de ejemplo con datos inventados": "sample cases with made-up data"
+  "Una empresa ficticia por cada caso que la herramienta sabe tratar: EBITDA negativo, sin deuda, datos que faltan, otra divisa, rebajas de rating, bancos y aseguradoras… Con cotizaciones, bonos y ratings.": "One fictitious company for each case the tool knows how to handle: negative EBITDA, no debt, missing data, another currency, rating downgrades, banks and insurers… With share prices, bonds and ratings."
+  "Ver los casos →": "See the cases →"
+  "Un caso de cada tipo": "One case of each kind"
+  "Ranking de los casos": "Ranking of the cases"
+  "Ver la ficha →": "See the company sheet →"
+  "Empresa sin incidencias": "Company without issues"
+  "Todos los datos disponibles: sirve de referencia.": "All data available: it serves as a reference."
+  "EBITDA negativo": "Negative EBITDA"
+  "PER y EV/EBITDA «no significativos» y alerta de apalancamiento.": "P/E and EV/EBITDA “not meaningful”, and a leverage alert."
+  "Empresa sin deuda": "Company without debt"
+  "Sin bonos ni puntuación de crédito; deuda neta negativa.": "No bonds and no credit score; negative net debt."
+  "Falta un dato: inversiones": "Missing figure: capital expenditure"
+  "FCF yield «sin dato», con el motivo.": "FCF yield shows “no data”, with the reason."
+  "Falta un dato: gastos financieros": "Missing figure: interest expense"
+  "Cobertura de intereses «sin dato», con el motivo.": "Interest coverage shows “no data”, with the reason."
+  "Cotización desactualizada": "Stale share price"
+  "Las métricas de mercado quedan como «dato desactualizado».": "The market metrics are shown as “stale data”."
+  "Reporta en otra divisa": "Reports in another currency"
+  "Cotiza en euros y reporta en dólares: se convierte al tipo de cambio.": "Listed in euros and reports in dollars: figures are converted at the exchange rate."
+  "Alerta de rebaja; su bono pasa al tramo BB.": "Downgrade alert; its bond moves to the BB bucket."
+  "Subida de rating": "Rating upgrade"
+  "Una subida no genera alerta.": "An upgrade does not trigger an alert."
+  "Ejercicio que no cierra en diciembre": "Fiscal year not ending in December"
+  "Cierra en marzo y se compara con el año natural.": "Its fiscal year ends in March and is aligned with the calendar year."
+  "Tramo de rating con pocos bonos": "Rating bucket with few bonds"
+  "Diferencial «sin comparables suficientes» y un bono sin rating.": "Spread with “not enough peers” and a bond without a rating."
+  "Banco": "Bank"
+  "Las métricas basadas en EBITDA, deuda neta o EV «no aplican».": "The metrics based on EBITDA, net debt or EV are “not applicable”."
+  "Aseguradora": "Insurer"
+  "Igual que los bancos: esas métricas «no aplican».": "Same as banks: those metrics are “not applicable”."
+
+  # --- Ranking -----------------------------------------------------------------------------------
+  "Análisis de empresas del fondo multiactivos": "Company analysis for the multi-asset fund"
+  "ranking.csv": "ranking.csv"
+  "Ranking": "Ranking"
+  "Empresa": "Company"
+  "Puntuación": "Score"
+  "Alertas de la ejecución": "Alerts in this run"
+  "Sin alertas en esta ejecución.": "No alerts in this run."
+  "Cómo leer las puntuaciones": "How to read the scores"
+
+  # --- Alertas -----------------------------------------------------------------------------------
+  "Apalancamiento elevado": "High leverage"
+  "Cambio de puntuación": "Score change"
+  "Rebaja de rating": "Rating downgrade"
+  "Apalancamiento elevado.": "High leverage."
+  "Cambio de puntuación.": "Score change."
+  "Rebaja de rating.": "Rating downgrade."
+  ". Atención: la configuración ha cambiado entre ambas ejecuciones": ". Note: the configuration changed between the two runs"
+
+  # --- Filtros -----------------------------------------------------------------------------------
+  "Apalancamiento moderado": "Moderate leverage"
+  "Capitalización de más de 5.000 M EUR": "Market capitalisation above 5,000 M EUR"
+  "FCF yield superior al 5 %": "FCF yield above 5 %"
+  "Cumple": "Passes"
+  "No cumple": "Fails"
+  "Indeterminado": "Undetermined"
+
+  # --- Ficha de empresa --------------------------------------------------------------------------
+  "← Volver al ranking": "← Back to the ranking"
+  "Factor": "Factor"
+  "Valor": "Value"
+  "Comparado con": "Compared with"
+  "Peso": "Weight"
+  "Aporta": "Contribution"
+  "Fórmulas y datos de entrada": "Formulas and inputs"
+  "Vista del accionista": "Shareholder view"
+  "Vista del acreedor": "Creditor view"
+  "Bonos vivos": "Outstanding bonds"
+  "ISIN": "ISIN"
+  "Divisa": "Currency"
+  "Cupón": "Coupon"
+  "Vencimiento": "Maturity"
+  "Rating": "Rating"
+  "Rentabilidad": "Yield"
+  "Frente a la mediana de su tramo de rating": "Versus the median of its rating bucket"
+  "No hay bonos vivos de la empresa en los datos cargados.": "The loaded data contain no outstanding bonds of this company."
+  "Filtros": "Screens"
+  "Filtro": "Screen"
+  "Resultado": "Result"
+  "Condiciones": "Conditions"
+  "No hay filtros configurados.": "No screens configured."
+  "Cada ejercicio se rotula con el año natural en el que cae la mayoría de sus meses.": "Each fiscal year is labelled with the calendar year in which most of its months fall."
+  "Sin ejercicios publicados.": "No fiscal years published."
+
+  # --- Estudio con datos reales (empresas reales) -------------------------------------------------
+  "Estudio con datos reales · fuentes públicas · aislado del resto de la herramienta": "Real-data study · public sources · isolated from the rest of the tool"
+  "Consumo básico de EE. UU.": "US consumer staples"
+  "Diez fabricantes de alimentación, bebidas y productos de hogar e higiene de EE": "Ten US makers of food, beverages and household and personal-care products"
+  "Diez fabricantes de alimentación, bebidas y productos de hogar e higiene de EE. UU. con acciones y bonos en el mercado": "Ten US makers of food, beverages and household and personal-care products with shares and bonds in the market"
+  "Ranking de la herramienta": "The tool's ranking"
+  "CSV para Excel": "CSV for Excel"
+  "Datos reales de fuentes de uso libre.": "Real data from freely usable sources."
+  "Datos reales, uso interno.": "Real data, internal use."
+  "Cifras tal como las publican las empresas en la SEC (normas contables de EE. UU., sin los ajustes que ellas mismas presentan como «ajustados») y tipos de cambio del BCE. Cada importe en euros usa el tipo de cambio de su fecha. No es una recomendación de inversión: describe y compara.": "Figures as the companies file them with the SEC (US accounting standards, without the adjustments they themselves present as “adjusted”) and ECB exchange rates. Each amount in euros uses the exchange rate of its date. This is not an investment recommendation: it describes and compares."
+  "Esta versión va sin cotizaciones: las condiciones de los servicios gratuitos que las ofrecen no permiten republicarlas. Por eso no hay capitalización, PER, EV/EBITDA ni FCF yield, y la puntuación de accionista solo mide rentabilidad y crecimiento.": "This version has no share prices: the terms of the free services that offer them do not allow republishing them. That is why there is no market capitalisation, P/E, EV/EBITDA or FCF yield, and the shareholder score only measures profitability and growth."
+  "La vista de acreedor usa solo fundamentales: no hay una fuente gratuita y fiable de diferenciales de bonos ni de ratings (ver «Método y límites»).": "The creditor view uses fundamentals only: there is no free, reliable source of bond spreads or ratings (see “Method and limits”)."
+  "Comparables": "Peers"
+  "Cifras": "Figures"
+  "Capitaliz.": "Mkt cap"
+  "DN/EBITDA": "ND/EBITDA"
+  "Crec. ventas": "Rev. growth"
+  "Accionista": "Shareholder"
+  "Acreedor": "Creditor"
+  "1 aviso": "1 warning"
+  "Mediana del grupo": "Group median"
+  "Pasa el ratón por una celda sin valor para ver el motivo. Cada ficha despliega la fórmula y los datos de entrada de cada métrica. Los avisos llevan a la sección de calidad de datos: léelos antes de sacar conclusiones de una cifra.": "Hover over a cell without a value to see the reason. Each company sheet expands the formula and the inputs of every metric. The warnings link to the data-quality section: read them before drawing conclusions from a figure."
+  "Rentabilidad frente a apalancamiento": "Profitability versus leverage"
+  "Valoración frente a apalancamiento": "Valuation versus leverage"
+  "Cada punto es una empresa. A la derecha, más margen EBITDA (lo que queda de cada euro vendido antes de amortizaciones, intereses e impuestos); arriba, más endeudada en relación con lo que genera (deuda neta/EBITDA). Las líneas grises marcan la mediana del grupo.": "Each dot is a company. Further right, a higher EBITDA margin (what is left of each euro of sales before depreciation and amortisation, interest and taxes); further up, more indebted relative to what it generates (net debt/EBITDA). The grey lines mark the group median."
+  "Cada punto es una empresa. A la derecha, más cara en relación con lo que genera (EV/EBITDA); arriba, más endeudada en relación con lo que genera (deuda neta/EBITDA). Las líneas grises marcan la mediana del grupo.": "Each dot is a company. Further right, more expensive relative to what it generates (EV/EBITDA); further up, more indebted relative to what it generates (net debt/EBITDA). The grey lines mark the group median."
+  "mediana": "median"
+  "No hay suficientes empresas con los dos datos.": "Not enough companies with both figures."
+  "sin uno de los dos datos o con EBITDA negativo": "one of the two figures missing, or negative EBITDA"
+  "EBITDA distorsionado por una partida no recurrente": "EBITDA distorted by a non-recurring item"
+  "Cambio": "Change"
+  "Calidad y trazabilidad de los datos": "Data quality and traceability"
+  "Lo que se ha comprobado o supuesto para cada empresa. Las etiquetas son los conceptos XBRL de la SEC de los que sale cada partida; «publicaciones corregidas» cuenta las cifras que una empresa cambió en un informe posterior (la herramienta guarda las dos versiones y usa la que se conocía en cada fecha).": "What has been checked or assumed for each company. The tags are the SEC XBRL concepts each line item comes from; “Restatements” counts the figures a company changed in a later report (the tool keeps both versions and uses the one known at each date)."
+  "Sin avisos.": "No warnings."
+  "Origen de cada partida y desglose de la deuda": "Source of each line item and debt breakdown"
+  "Partida": "Line item"
+  "Etiqueta XBRL": "XBRL tag"
+  "Último periodo": "Latest period"
+  "Correcciones": "Restatements"
+  "no presentada en ese balance: cuenta como cero": "not presented on that balance sheet: counts as zero"
+  "Tipos de cambio": "Exchange rates"
+  "Método y límites": "Method and limits"
+  "Lectura a fecha.": "Point-in-time reading."
+  "Cada cifra lleva la fecha en que la SEC recibió el informe. Una ejecución solo usa lo presentado hasta su fecha de análisis, y las cifras corregidas después se guardan como una publicación nueva.": "Each figure carries the date on which the SEC received the report. A run only uses what had been filed by its analysis date, and figures restated later are stored as a new publication."
+  "Periodos.": "Periods."
+  "Se usan los periodos acumulados desde el inicio del ejercicio (primer trimestre, semestre, nueve meses y año), identificados por sus fechas. Los doce últimos meses se calculan como año anterior + acumulado actual − mismo acumulado un año antes; funciona con cierres en mayo o junio y con años de 52/53 semanas.": "Cumulative periods from the start of the fiscal year are used (first quarter, half year, nine months and full year), identified by their dates. The last twelve months are calculated as previous year + current year-to-date − the same year-to-date a year earlier; this works with year-ends in May or June and with 52/53-week years."
+  "Resultado operativo publicado más amortizaciones del estado de flujos. Incluye los deterioros y costes de reestructuración que la empresa haya registrado: puede ser bastante menor que el EBITDA «ajustado» que comunica.": "Reported operating income plus depreciation and amortisation from the cash flow statement. It includes any impairments and restructuring costs the company has booked: it can be well below the “adjusted” EBITDA the company announces."
+  "Deuda.": "Debt."
+  "Las líneas de deuda que cada empresa presenta en su balance (préstamos, papel comercial, vencimientos a un año y deuda a largo), revisadas a mano en": "The debt lines each company presents on its balance sheet (loans, commercial paper, current maturities and long-term debt), reviewed by hand in"
+  "estudio-real/universo.yaml": "estudio-real/universo.yaml"
+  ". Los arrendamientos solo cuentan cuando la empresa los incluye en esas líneas; los operativos nunca (su coste ya está en el EBITDA).": ". Leases only count when the company includes them in those lines; operating leases never do (their cost is already in EBITDA)."
+  "Crédito.": "Credit."
+  "Sin diferenciales de bonos ni ratings: la puntuación de acreedor solo usa apalancamiento, cobertura de intereses y deuda sobre capital. La alerta de rebaja de rating no puede saltar.": "No bond spreads or ratings: the creditor score only uses leverage, interest coverage and debt to equity. The rating-downgrade alert cannot be triggered."
+  "Grupo pequeño.": "Small group."
+  "Con diez empresas, cada factor se compara con nueve: un cambio pequeño en una empresa mueve los percentiles de las demás.": "With ten companies, each factor is compared with nine: a small change in one company moves the percentiles of the others."
+  "Grupos pequeños.": "Small groups."
+  "Con pocas empresas por sector, un cambio pequeño en una empresa mueve los percentiles de las demás.": "With few companies per sector, a small change in one company moves the percentiles of the others."
+  "Fuentes y condiciones de uso": "Sources and terms of use"
+  "(data.sec.gov): datos públicos de la administración de EE. UU.": "(data.sec.gov): public data of the US government."
+  "Banco Central Europeo": "European Central Bank"
+  "(data-api.ecb.europa.eu): reutilización libre citando la fuente.": "(data-api.ecb.europa.eu): free reuse with attribution."
+  "Sin cotizaciones": "No share prices"
+  ": los servicios gratuitos que las ofrecen no permiten republicar sus datos, así que esta versión no las usa.": ": the free services that offer them do not allow republishing their data, so this version does not use them."
+  "SEC EDGAR (registro de informes):": "SEC EDGAR (filing index):"
+  "Banco Central Europeo (tipos de cambio):": "European Central Bank (exchange rates):"
+  # Origen de las partidas (providers/public/sec.py)
+  "gasto financiero neto de ingresos financieros: la empresa no publica el bruto": "interest expense net of interest income: the company does not publish the gross figure"
+  "incluye caja restringida: la empresa no publica la caja sin ella": "includes restricted cash: the company does not publish cash without it"
+  "sin minoritarios: la empresa no publica el patrimonio con ellos": "without minority interests: the company does not publish equity including them"
+  "calculado: patrimonio total menos minoritarios": "calculated: total equity minus minority interests"
+  "acciones de la portada del informe, a una fecha algo posterior al cierre": "shares from the report's cover page, as of a date somewhat after the period end"
+  "etiqueta fijada en el universo": "tag set in the universe file"
+  "calculado: resultado operativo publicado más amortizaciones del estado de flujos": "calculated: reported operating income plus depreciation and amortisation from the cash flow statement"
+  "líneas de deuda del balance; una línea que no aparece en un balance cuenta como cero": "debt lines of the balance sheet; a line missing from a balance sheet counts as zero"
+  "la empresa no publica esta partida": "the company does not publish this line item"
+  "falta el resultado operativo o las amortizaciones": "operating income or depreciation and amortisation missing"
+  "no aparece la línea de deuda obligatoria": "the required debt line is missing"
+  # Líneas de deuda (estudio-real/universo.yaml)
+  "Préstamos y pagarés": "Loans and notes payable"
+  "Vencimientos a un año de la deuda a largo": "Current maturities of long-term debt"
+  "Deuda a largo plazo": "Long-term debt"
+  "Deuda a corto plazo (incluye papel comercial y vencimientos a un año)": "Short-term debt (includes commercial paper and current maturities)"
+  "Préstamos a corto plazo": "Short-term borrowings"
+  "Papel comercial y otra deuda a corto": "Commercial paper and other short-term debt"
+  "Pagarés a corto plazo": "Short-term notes payable"
+  "Préstamos a corto y vencimientos a un año": "Short-term borrowings and current maturities"
+  "Obligaciones a largo plazo": "Long-term obligations"
+  "Deuda con vencimiento a un año": "Debt due within one year"
+  # Etiquetas XBRL de la SEC: se quedan igual.
+  "Revenues": "Revenues"
+  "RevenueFromContractWithCustomerExcludingAssessedTax": "RevenueFromContractWithCustomerExcludingAssessedTax"
+  "RevenueFromContractWithCustomerIncludingAssessedTax": "RevenueFromContractWithCustomerIncludingAssessedTax"
+  "SalesRevenueNet": "SalesRevenueNet"
+  "OperatingIncomeLoss": "OperatingIncomeLoss"
+  "InterestExpense": "InterestExpense"
+  "InterestExpenseNonoperating": "InterestExpenseNonoperating"
+  "InterestExpenseDebt": "InterestExpenseDebt"
+  "InterestAndDebtExpense": "InterestAndDebtExpense"
+  "InterestIncomeExpenseNonoperatingNet": "InterestIncomeExpenseNonoperatingNet"
+  "NetIncomeLoss": "NetIncomeLoss"
+  "NetCashProvidedByUsedInOperatingActivities": "NetCashProvidedByUsedInOperatingActivities"
+  "NetCashProvidedByUsedInOperatingActivitiesContinuingOperations": "NetCashProvidedByUsedInOperatingActivitiesContinuingOperations"
+  "PaymentsToAcquirePropertyPlantAndEquipment": "PaymentsToAcquirePropertyPlantAndEquipment"
+  "PaymentsToAcquireProductiveAssets": "PaymentsToAcquireProductiveAssets"
+  "CashAndCashEquivalentsAtCarryingValue": "CashAndCashEquivalentsAtCarryingValue"
+  "CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents": "CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents"
+  "StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest": "StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest"
+  "StockholdersEquity": "StockholdersEquity"
+  "MinorityInterest": "MinorityInterest"
+  "CommonStockSharesOutstanding": "CommonStockSharesOutstanding"
+  "EntityCommonStockSharesOutstanding": "EntityCommonStockSharesOutstanding"
+  "DepreciationDepletionAndAmortization": "DepreciationDepletionAndAmortization"
+  "DepreciationAmortizationAndAccretionNet": "DepreciationAmortizationAndAccretionNet"
+  "DepreciationAndAmortization": "DepreciationAndAmortization"
+  "Depreciation": "Depreciation"
+  "AmortizationOfIntangibleAssets": "AmortizationOfIntangibleAssets"
+  "NotesAndLoansPayable": "NotesAndLoansPayable"
+  "ShortTermBorrowings": "ShortTermBorrowings"
+  "ShortTermBankLoansAndNotesPayable": "ShortTermBankLoansAndNotesPayable"
+  "CommercialPaper": "CommercialPaper"
+  "DebtCurrent": "DebtCurrent"
+  "LongTermDebtCurrent": "LongTermDebtCurrent"
+  "LongTermDebtNoncurrent": "LongTermDebtNoncurrent"
+  "LongTermDebtAndCapitalLeaseObligations": "LongTermDebtAndCapitalLeaseObligations"
+  "LongTermDebtAndCapitalLeaseObligationsCurrent": "LongTermDebtAndCapitalLeaseObligationsCurrent"
+  # Otras etiquetas habituales de deuda y resultados (por si el universo las fija para una empresa).
+  "LongTermDebt": "LongTermDebt"
+  "OtherLongTermDebtNoncurrent": "OtherLongTermDebtNoncurrent"
+  "OtherShortTermBorrowings": "OtherShortTermBorrowings"
+  "OtherBorrowings": "OtherBorrowings"
+  "NotesPayable": "NotesPayable"
+  "LoansPayable": "LoansPayable"
+  "SeniorNotes": "SeniorNotes"
+  "SecuredDebt": "SecuredDebt"
+  "UnsecuredDebt": "UnsecuredDebt"
+  "ConvertibleNotesPayable": "ConvertibleNotesPayable"
+  "FinanceLeaseLiabilityCurrent": "FinanceLeaseLiabilityCurrent"
+  "FinanceLeaseLiabilityNoncurrent": "FinanceLeaseLiabilityNoncurrent"
+  "AdvancesFromFederalHomeLoanBanks": "AdvancesFromFederalHomeLoanBanks"
+  "RevenuesNetOfInterestExpense": "RevenuesNetOfInterestExpense"
+  "InterestAndDividendIncomeOperating": "InterestAndDividendIncomeOperating"
+  "InterestExpenseOperating": "InterestExpenseOperating"
+
+  # --- Configuración -----------------------------------------------------------------------------
+  "Preferencias": "Preferences"
+  "Elige cómo quieres ver esta web. Los cambios se aplican al momento en todas las páginas y se recuerdan en este navegador.": "Choose how you want to see this website. Changes apply at once on every page and are remembered in this browser."
+  "Estilo": "Style"
+  "Colores y tipografía de toda la web.": "Colours and typography of the whole website."
+  "Empresa A": "Company A"
+  "Empresa B": "Company B"
+  "Predeterminado": "Default"
+  "El verde corporativo de la casa, con tipografía clásica. Claro u oscuro.": "The firm's corporate green, with classic typography. Light or dark."
+  "Terminal": "Terminal"
+  "Inspirado en los terminales de datos financieros: fondo negro, acentos ámbar y letra monoespaciada. Siempre oscuro.": "Inspired by financial data terminals: black background, amber accents and monospaced type. Always dark."
+  "Prensa": "Press"
+  "Como un diario financiero en papel salmón: letra con serifa y filetes finos.": "Like a financial newspaper on salmon-pink paper: serif type and thin rules."
+  "Modo": "Mode"
+  "Automático sigue el ajuste claro u oscuro del dispositivo.": "Automatic follows the device's light or dark setting."
+  "Automático": "Automatic"
+  "El estilo Terminal es siempre oscuro.": "The Terminal style is always dark."
+  "Densidad de las tablas": "Table density"
+  "Compacta reduce el espacio entre filas para ver más datos a la vez.": "Compact reduces the space between rows to show more data at once."
+  "Cómoda": "Comfortable"
+  "Compacta": "Compact"
+  "Tamaño del texto": "Text size"
+  "Grande aumenta la letra de toda la web.": "Large enlarges the text across the whole website."
+  "Normal": "Normal"
+  "Grande": "Large"
+  "Idioma": "Language"
+  "Abre esta misma página en el otro idioma.": "Opens this same page in the other language."
+  "Valores predeterminados": "Defaults"
+  "Estilo Luceiro, modo automático, tablas cómodas y texto normal.": "Luceiro style, automatic mode, comfortable tables and normal text."
+  "Listo: has vuelto a los valores predeterminados.": "Done: you are back to the defaults."
+  "Restablecer": "Reset"
+  "Las preferencias se guardan solo en este navegador: en otro equipo o navegador verás los valores predeterminados. La página de presentación mantiene siempre su propio diseño.": "Preferences are saved only in this browser: on another computer or browser you will see the defaults. The presentation page always keeps its own design."
+  "Este navegador no permite guardar las preferencias: los cambios se aplican a esta página, pero no se recordarán al cambiar de página.": "This browser does not allow saving preferences: the changes apply to this page, but they will not be remembered when you move to another page."
+  "Para cambiar las preferencias hace falta tener JavaScript activado.": "JavaScript must be enabled to change the preferences."
+
+patterns:
+  # === Códigos y unidades ===========================================================================
+  # Identificador de ejecución: R + fecha y hora + 6 caracteres hexadecimales.
+  - es: 'R(?P<t>\d{8}T\d{6})-(?P<a>[0-9a-f])(?P<b>[0-9a-f])(?P<c>[0-9a-f])(?P<d>[0-9a-f])(?P<e>[0-9a-f])(?P<f>[0-9a-f])'
+    en: "R{t}-{a}{b}{c}{d}{e}{f}"
+  # Huella de la configuración y commit (6 a 12 caracteres hexadecimales), con o sin "-dirty".
+  - es: '(?P<a>[0-9a-f])(?P<b>[0-9a-f])(?P<c>[0-9a-f])(?P<d>[0-9a-f])(?P<e>[0-9a-f])(?P<f>[0-9a-f])(?P<g>[0-9a-f]?)(?P<h>[0-9a-f]?)(?P<i>[0-9a-f]?)(?P<j>[0-9a-f]?)(?P<k>[0-9a-f]?)(?P<l>[0-9a-f]?)-dirty'
+    en: "{a}{b}{c}{d}{e}{f}{g}{h}{i}{j}{k}{l}-dirty"
+  - es: '(?P<a>[0-9a-f])(?P<b>[0-9a-f])(?P<c>[0-9a-f])(?P<d>[0-9a-f])(?P<e>[0-9a-f])(?P<f>[0-9a-f])(?P<g>[0-9a-f]?)(?P<h>[0-9a-f]?)(?P<i>[0-9a-f]?)(?P<j>[0-9a-f]?)(?P<k>[0-9a-f]?)(?P<l>[0-9a-f]?)'
+    en: "{a}{b}{c}{d}{e}{f}{g}{h}{i}{j}{k}{l}"
+  # Versiones de la metodología (texto libre en los YAML).
+  - es: '(?P<a>\d[\d.]*)-web-(?P<b>\d+)'
+    en: "{a}-web-{b}"
+  - es: '(?P<a>\d[\d.]*)-estudio-(?P<b>\d+)'
+    en: "{a}-estudio-{b}"
+  # Ratings de Moody's con dos minúsculas (Aaa, Baa1…).
+  - es: '(?P<x>[ABC])aa(?P<n>[1-3]?)'
+    en: "{x}aa{n}"
+  # Puntos básicos sueltos.
+  - es: '(?P<v>[+−-]?\d[\d.,]*) pb'
+    en: "{v} bp"
+  - es: '(?P<n>\d+) lotes'
+    en: "{n} loads"
+
+  # === Etiquetas de cifras con divisa, tramo o grupo ===============================================
+  - es: 'Capitalización \((?P<c>[A-Z]{3})\)'
+    en: "Market cap ({c})"
+  - es: 'Tipo de cambio (?P<p>[A-Z]{3}/[A-Z]{3})'
+    en: "Exchange rate {p}"
+  - es: 'Tipo de cambio medio (?P<p>[A-Z]{3}/[A-Z]{3})'
+    en: "Average exchange rate {p}"
+  - es: 'Mediana del tramo (?P<b>.+) \(pb\)'
+    en: "Median of the {b} bucket (bp)"
+  - es: '(?P<g>Sector|Universo) \((?P<n>\d+) empresas\)'
+    en: "{g} ({n} companies)"
+  - es: 'Histórico anual \(millones de (?P<c>[A-Z]{3})\)'
+    en: "Annual history (millions of {c})"
+  - es: 'Deuda financiera a (?P<d>\d\d/\d\d/\d{4}) \(millones\)'
+    en: "Financial debt at {d} (millions)"
+
+  # === Periodos de referencia ======================================================================
+  - es: '(?P<p>FY|Q1|H1|9M) cerrado el (?P<e>\d\d/\d\d/\d{4}), publicado el (?P<pub>\d\d/\d\d/\d{4})'
+    en: "{p} ended {e}, published on {pub}"
+  - es: '(?P<p>FY|Q1|H1|9M) cerrado el (?P<e>\d\d/\d\d/\d{4})'
+    en: "{p} ended {e}"
+  - es: 'Periodo de referencia: (?P<ref>.+)'
+    en: "Reference period: {ref}"
+
+  # === Pies de página ==============================================================================
+  - es: 'Ejecución (?P<run>\S+) · análisis a (?P<d>\d\d/\d\d/\d{4}) · datos cargados hasta el (?P<cut>\d\d/\d\d/\d{4} \d\d:\d\d) UTC \((?P<loads>\d+ lotes?)\) · configuración (?P<ver>\S+) \(huella (?P<hash>\w+)\) · código (?P<code>\S+) \((?P<commit>[^)]+)\) · generado el (?P<gen>\d\d/\d\d/\d{4} \d\d:\d\d)'
+    en: "Run {run} · analysis as of {d} · data loaded up to {cut} UTC ({loads}) · configuration {ver} (fingerprint {hash}) · code {code} ({commit}) · generated on {gen}"
+  - es: 'Ejecución (?P<run>\S+) · análisis a (?P<d>\d\d/\d\d/\d{4}) · datos cargados hasta el (?P<cut>\d\d/\d\d/\d{4} \d\d:\d\d) UTC \((?P<loads>\d+ lotes?)\) · configuración (?P<ver>\S+) \(huella (?P<hash>\w+)\) · código (?P<code>\S+) · generado el (?P<gen>\d\d/\d\d/\d{4} \d\d:\d\d)'
+    en: "Run {run} · analysis as of {d} · data loaded up to {cut} UTC ({loads}) · configuration {ver} (fingerprint {hash}) · code {code} · generated on {gen}"
+  - es: 'Luceiro Capital · prototipo de la herramienta de análisis · web generada el (?P<d>\d\d/\d\d/\d{4}) a las (?P<t>\d\d:\d\d) · código (?P<code>\S+) · empresas reales: SEC EDGAR y Banco Central Europeo · ejemplo: datos inventados'
+    en: "Luceiro Capital · prototype of the analysis tool · website generated on {d} at {t} · code {code} · real companies: SEC EDGAR and European Central Bank · example: made-up data"
+  - es: 'Luceiro Capital · prototipo de la herramienta de análisis · web generada el (?P<d>\d\d/\d\d/\d{4}) a las (?P<t>\d\d:\d\d) · empresas reales: SEC EDGAR y Banco Central Europeo · ejemplo: datos inventados'
+    en: "Luceiro Capital · prototype of the analysis tool · website generated on {d} at {t} · real companies: SEC EDGAR and European Central Bank · example: made-up data"
+
+  # === Inicio ======================================================================================
+  - es: '(?P<n>\d+) empresas reales · análisis a (?P<d>\d\d/\d\d/\d{4})'
+    en: "{n} real companies · analysis as of {d}"
+  - es: 'Comparado con el (?P<p>\d\d/\d\d/\d{4}) · actualizada el (?P<g>\d\d/\d\d/\d{4}) a las (?P<t>\d\d:\d\d)'
+    en: "Compared with {p} · updated on {g} at {t}"
+  - es: 'actualizada el (?P<g>\d\d/\d\d/\d{4}) a las (?P<t>\d\d:\d\d)'
+    en: "Updated on {g} at {t}"
+  - es: '(?P<n>\d+) empresas de EE\. UU\. de varios sectores con sus cuentas oficiales y los tipos de cambio del BCE\. Análisis a (?P<d>\d\d/\d\d/\d{4})(?P<cmp>, comparado con el \d\d/\d\d/\d{4})?\. Sin cotizaciones: sus condiciones no permiten publicarlas\.'
+    en: "{n} US companies from several sectors with their official accounts and ECB exchange rates. Analysis as of {d}{cmp}. No share prices: their terms do not allow publishing them."
+  - es: ', comparado con el (?P<p>\d\d/\d\d/\d{4})'
+    en: ", compared with {p}"
+  - es: '(?P<n>\d+) empresas ficticias con datos inventados y todo lo que hace la herramienta: cotizaciones, bonos, ratings y diferenciales, con casos difíciles a propósito\. Análisis a (?P<d>\d\d/\d\d/\d{4})\.'
+    en: "{n} fictitious companies with made-up data and everything the tool does: share prices, bonds, ratings and spreads, with deliberately difficult cases. Analysis as of {d}."
+  - es: 'Ninguna a (?P<d>\d\d/\d\d/\d{4})\.'
+    en: "None as of {d}."
+
+  # === Casos de ejemplo ============================================================================
+  - es: 'Casos de ejemplo · (?P<d>\d\d/\d\d/\d{4})'
+    en: "Sample cases · {d}"
+  - es: 'Casos de ejemplo · análisis a (?P<d>\d\d/\d\d/\d{4})'
+    en: "Sample cases · analysis as of {d}"
+  - es: 'Empresas ficticias con datos inventados: cada una muestra un caso que la herramienta sabe tratar\. Se comparan con las (?P<n>\d+) empresas del ejemplo, aunque aquí solo aparecen estas\.'
+    en: "Fictitious companies with made-up data: each one shows a case the tool knows how to handle. They are compared with the {n} companies of the sample, although only these appear here."
+  # «Empresa · identificador · sector» bajo el título de cada caso.
+  - es: '(?P<name>.+) · (?P<id>[A-Z0-9.]+) · (?P<sector>Industria|Consumo|Tecnología|Utilities|Financiero|Salud|Energía)'
+    en: "{name} · {id} · {sector}"
+
+  # === Cómo funciona ===============================================================================
+  - es: '(?P<label>Empresas reales|Ejemplo completo|Casos de ejemplo) · metodología (?P<ver>\S+)'
+    en: "{label} · methodology {ver}"
+  - es: 'Se muestra con una cobertura mínima del (?P<c>\d+) % y al menos 1 factores con dato\.'
+    en: "Shown with a minimum coverage of {c} % and at least 1 factor with data."
+  - es: 'Se muestra con una cobertura mínima del (?P<c>\d+) % y al menos (?P<n>\d+) factores con dato\.'
+    en: "Shown with a minimum coverage of {c} % and at least {n} factors with data."
+  - es: 'Se compara con las empresas de su sector que tienen ese dato \(si son menos de (?P<n>\d+), con todas\) y se expresa como percentil: 100 es la mejor del grupo\. Si en una métrica es mejor un valor bajo, como la deuda, el orden se invierte\.'
+    en: "It is compared with the companies in its sector that have that figure (if there are fewer than {n}, with all of them) and expressed as a percentile: 100 is the best in the group. If a low value is better for a metric, such as debt, the order is reversed."
+  # Unidad y sentido de cada métrica en el diccionario.
+  - es: '· (?P<u>x|%|pb|M EUR) · (?P<dir>más alto es mejor|más bajo es mejor|informativa)'
+    en: "· {u} · {dir}"
+  - es: 'No aplica a (?P<inds>[^:]+): (?P<reason>No aplica a .+)'
+    en: "Not applicable to {inds}: {reason}"
+
+  # === Ranking =====================================================================================
+  - es: 'Ranking · (?P<d>\d\d/\d\d/\d{4})'
+    en: "Ranking · {d}"
+  - es: 'Ranking · análisis a (?P<d>\d\d/\d\d/\d{4})'
+    en: "Ranking · analysis as of {d}"
+  - es: '(?P<n>\d+) empresas · 1 alertas · descarga para Excel:'
+    en: "{n} companies · 1 alert · download for Excel:"
+  - es: '(?P<n>\d+) empresas · (?P<a>\d+) alertas · descarga para Excel:'
+    en: "{n} companies · {a} alerts · download for Excel:"
+  - es: 'Cada factor se compara con las empresas de su sector que tienen dato \(o con todo el universo si el sector tiene menos de (?P<n>\d+)\) y se expresa como percentil: 100 es la mejor del grupo\. La puntuación es la media ponderada de esos percentiles\. La cobertura es la parte del peso de los factores aplicables que tenía dato; por debajo del mínimo, la puntuación no se muestra\. El detalle de cada factor está en la ficha de la empresa\.'
+    en: "Each factor is compared with the companies in its sector that have data (or with the whole universe if the sector has fewer than {n}) and expressed as a percentile: 100 is the best in the group. The score is the weighted average of those percentiles. Coverage is the share of the weight of the applicable factors that had data; below the minimum, the score is not shown. The detail of each factor is in the company sheet."
+
+  # === Ficha de empresa ============================================================================
+  - es: '(?P<name>.+) · Ficha'
+    en: "{name} · Company sheet"
+  - es: 'Ficha de empresa · análisis a (?P<d>\d\d/\d\d/\d{4})'
+    en: "Company sheet · analysis as of {d}"
+  - es: '(?P<id>[A-Z0-9.]+) · (?P<sector>[^·]+) · (?P<industry>[^·]+) · (?P<country>[A-Z]{2}) · divisa de reporte (?P<cur>[A-Z]{3}) · LEI (?P<lei>[A-Z0-9]+)'
+    en: "{id} · {sector} · {industry} · {country} · reporting currency {cur} · LEI {lei}"
+  - es: '(?P<id>[A-Z0-9.]+) · (?P<sector>[^·]+) · (?P<industry>[^·]+) · (?P<country>[A-Z]{2}) · divisa de reporte (?P<cur>[A-Z]{3})'
+    en: "{id} · {sector} · {industry} · {country} · reporting currency {cur}"
+  - es: 'Acción: (?P<listing>.+) · Cotización: (?P<price>.+)'
+    en: "Share: {listing} · Price: {price}"
+  - es: '(?P<p>\d[\d.,]*) (?P<c>[A-Z]{3}) del (?P<d>\d\d/\d\d/\d{4})'
+    en: "{p} {c} on {d}"
+  - es: 'Cobertura (?P<c>\d[\d.,]* %) · (?P<reason>.+)'
+    en: "Coverage {c} · {reason}"
+  - es: 'Cobertura (?P<c>\d[\d.,]* %)'
+    en: "Coverage {c}"
+  - es: 'Filtros que cumple: (?P<a>\d+) de (?P<b>\d+)'
+    en: "Screens passed: {a} of {b}"
+  # Línea de fórmula: «<nombre>: <fórmula>» (el nombre va en negrita, en otro nodo).
+  - es: ': (?P<f>.+)'
+    en: ": {f}"
+  # Comparación de un bono con su tramo de rating.
+  - es: '(?P<v>[+−-]?\d[\d.,]*) pb \(mediana del tramo: (?P<m>\d[\d.,]*) pb\)'
+    en: "{v} bp (bucket median: {m} bp)"
+  - es: '(?P<r>[A-D][A-Da-c0-9+-]*) \((?P<agency>[^()]+)\)'
+    en: "{r} ({agency})"
+
+  # === Motivos de una puntuación que no se muestra (scoring/scores.py) =============================
+  - es: '(?P<detail>.+) \(factor obligatorio: (?P<metric>[^()]+)\)'
+    en: "{detail} (required factor: {metric})"
+  - es: 'Cobertura del (?P<c>\d[\d.,]*) %, inferior al mínimo del (?P<m>\d[\d.,]*) %'
+    en: "Coverage of {c} %, below the minimum of {m} %"
+  - es: 'Solo (?P<n>\d+) factor con dato \(mínimo (?P<m>\d+)\)'
+    en: "Only {n} factor with data (minimum {m})"
+  - es: 'Solo (?P<n>\d+) factores con dato \(mínimo (?P<m>\d+)\)'
+    en: "Only {n} factors with data (minimum {m})"
+  - es: 'solo (?P<n>\d+) factor con dato \(mínimo (?P<m>\d+)\)'
+    en: "only {n} factor with data (minimum {m})"
+  - es: 'solo (?P<n>\d+) factores con dato \(mínimo (?P<m>\d+)\)'
+    en: "only {n} factors with data (minimum {m})"
+  - es: 'solo (?P<n>\d+) empresas con dato \(mínimo (?P<m>\d+)\)'
+    en: "only {n} companies with data (minimum {m})"
+
+  # === Alertas (screening/alerts.py) ===============================================================
+  - es: 'Deuda neta/EBITDA de (?P<v>[+−-]?\d[\d.,]*)x, por encima del umbral de (?P<t>\d[\d.,]*)x'
+    en: "Net debt/EBITDA of {v}x, above the {t}x threshold"
+  - es: 'EBITDA negativo \((?P<e>[^)]+)\) con deuda neta positiva \((?P<d>[^)]+)\): apalancamiento por encima de cualquier umbral'
+    en: "Negative EBITDA ({e}) with positive net debt ({d}): leverage above any threshold"
+  - es: 'EBITDA nulo \((?P<e>[^)]+)\) con deuda neta positiva \((?P<d>[^)]+)\): apalancamiento por encima de cualquier umbral'
+    en: "Zero EBITDA ({e}) with positive net debt ({d}): leverage above any threshold"
+  - es: 'Rebaja de rating del bono (?P<isin>\S+): de (?P<a>\S+) a (?P<b>\S+) \((?P<agency>.+), (?P<d>\d\d/\d\d/\d{4})\); pasa de grado de inversión a high yield'
+    en: "Rating downgrade of bond {isin}: from {a} to {b} ({agency}, {d}); it falls from investment grade to high yield"
+  - es: 'Rebaja de rating del bono (?P<isin>\S+): de (?P<a>\S+) a (?P<b>\S+) \((?P<agency>.+), (?P<d>\d\d/\d\d/\d{4})\)'
+    en: "Rating downgrade of bond {isin}: from {a} to {b} ({agency}, {d})"
+  - es: 'Puntuación de (?P<type>renta variable|crédito): de (?P<a>\d+) a (?P<b>\d+) \((?P<chg>[+−-]?\d+) puntos\) desde la ejecución a (?P<d>\d\d/\d\d/\d{4})(?P<rest>\..*)?'
+    en: "{type} score: from {a} to {b} ({chg} points) since the run as of {d}{rest}"
+  - es: '\. Factores que más lo explican: (?P<drivers>.+?)(?P<warn>\. Atención: la configuración ha cambiado entre ambas ejecuciones)?'
+    en: ". Main drivers: {drivers}{warn}"
+  - es: '(?P<m1>[^(]+) \((?P<d1>[+−-]?\d[\d.,]*) puntos\), (?P<m2>[^(]+) \((?P<d2>[+−-]?\d[\d.,]*) puntos\)'
+    en: "{m1} ({d1} points), {m2} ({d2} points)"
+  - es: '(?P<m1>[^(]+) \((?P<d1>[+−-]?\d[\d.,]*) puntos\)'
+    en: "{m1} ({d1} points)"
+  # Alerta precedida de su regla (estudio y resumen de la portada).
+  - es: '· (?P<rule>Apalancamiento elevado|Cambio de puntuación|Rebaja de rating): (?P<msg>.+)'
+    en: "· {rule}: {msg}"
+  - es: '· (?P<rule>Apalancamiento elevado|Cambio de puntuación|Rebaja de rating)'
+    en: "· {rule}"
+
+  # === Filtros (screening/screens.py) ==============================================================
+  - es: '(?P<metric>[^:<>≤≥]+) (?P<op>[<>≤≥]) (?P<thr>[+−-]?\d[\d.,]*(?: ?(?:x|%|pb|M EUR))?)'
+    en: "{metric} {op} {thr}"
+  - es: '(?P<cond>[^:<>≤≥]+ [<>≤≥] [+−-]?\d[\d.,]*(?: ?(?:x|%|pb|M EUR))?): valor: (?P<v>.+)'
+    en: "{cond}: value: {v}"
+  - es: '(?P<cond>[^:<>≤≥]+ [<>≤≥] [+−-]?\d[\d.,]*(?: ?(?:x|%|pb|M EUR))?): (?P<status>Sin dato|No aplica|División por cero|No significativo|Dato desactualizado|Sin comparables suficientes): (?P<detail>.+)'
+    en: "{cond}: {status}: {detail}"
+  - es: '(?P<cond>[^:<>≤≥]+ [<>≤≥] [+−-]?\d[\d.,]*(?: ?(?:x|%|pb|M EUR))?): (?P<status>Sin dato|No aplica|División por cero|No significativo|Dato desactualizado|Sin comparables suficientes)'
+    en: "{cond}: {status}"
+  - es: '(?P<kind>Sector|País): (?P<allowed>[^:]+): valor: (?P<v>.+)'
+    en: "{kind}: {allowed}: value: {v}"
+
+  # === Estudio con datos reales (reports/study.py, providers/public) ===============================
+  - es: 'Estudio con datos reales · (?P<d>\d\d/\d\d/\d{4})'
+    en: "Real-data study · {d}"
+  - es: 'Análisis a (?P<d>\d\d/\d\d/\d{4})(?P<cmp>, comparado con el \d\d/\d\d/\d{4})? · (?P<n>\d+) empresas · metodología (?P<ver>\S+) · datos descargados el (?P<dd>\d{4}-\d\d-\d\d) a las (?P<t>\d\d:\d\d) UTC'
+    en: "Analysis as of {d}{cmp} · {n} companies · methodology {ver} · data downloaded on {dd} at {t} UTC"
+  - es: 'Análisis a (?P<d>\d\d/\d\d/\d{4})(?P<cmp>, comparado con el \d\d/\d\d/\d{4})? · (?P<n>\d+) empresas · metodología (?P<ver>\S+)'
+    en: "Analysis as of {d}{cmp} · {n} companies · methodology {ver}"
+  # Descripción del universo: su primera frase y las fuentes que usa la web.
+  - es: '(?P<first>.+)\. Cuentas de la SEC \(normas contables de EE\. UU\., sin ajustes\) y tipos de cambio del BCE, sin cotizaciones\.'
+    en: "{first}. SEC filings (US accounting standards, without adjustments) and ECB exchange rates, without share prices."
+  - es: 'Últimos doce meses hasta el último informe publicado antes del (?P<d>\d\d/\d\d/\d{4}) \(la columna «Cifras» dice cuál\)\. Las puntuaciones comparan cada empresa con las otras nueve: 100 es la mejor del grupo en cada factor\.'
+    en: "Last twelve months up to the latest report published before {d} (the “Figures” column says which). The scores compare each company with the other nine: 100 is the best in the group on each factor."
+  - es: 'Últimos doce meses hasta el último informe publicado antes del (?P<d>\d\d/\d\d/\d{4}) \(la columna «Cifras» dice cuál\)\. Las puntuaciones comparan cada empresa con las de su sector que tienen dato \(con todas, si son menos de (?P<n>\d+)\): 100 es la mejor del grupo en cada factor\.'
+    en: "Last twelve months up to the latest report published before {d} (the “Figures” column says which). The scores compare each company with the companies in its sector that have data (with all of them, if there are fewer than {n}): 100 is the best in the group on each factor."
+  - es: '(?P<n>\d+) avisos'
+    en: "{n} warnings"
+  # Gráfico: título accesible, ejes y cada punto.
+  - es: '(?P<x>[^·:]+) frente a (?P<y>[^·:]+)'
+    en: "{x} versus {y}"
+  - es: '(?P<label>[^→]+) →'
+    en: "{label} →"
+  - es: '(?P<name>.+): (?P<x>[+−-]?\d[\d.,]* ?(?:%|x)) · (?P<y>[+−-]?\d[\d.,]* ?(?:%|x))'
+    en: "{name}: {x} · {y}"
+  - es: 'Fuera del gráfico: (?P<list>.+)\. Sus cifras están en la tabla y en sus avisos\.'
+    en: "Left out of the chart: {list}. Their figures are in the table and in their warnings."
+  - es: '(?P<id>[A-Z][A-Z0-9.]*) \((?P<why>sin uno de los dos datos o con EBITDA negativo|EBITDA distorsionado por una partida no recurrente)\)'
+    en: "{id} ({why})"
+  - es: 'Qué ha cambiado desde el (?P<d>\d\d/\d\d/\d{4})'
+    en: "What has changed since {d}"
+  - es: 'Las dos ejecuciones usan los mismos datos descargados, pero cada una solo ve lo que se había publicado en su fecha\. Por eso la del (?P<d>\d\d/\d\d/\d{4}) trabaja con informes anteriores\.'
+    en: "Both runs use the same downloaded data, but each one only sees what had been published by its date. That is why the run as of {d} works with earlier reports."
+  - es: 'Cifras usadas el (?P<d>\d\d/\d\d/\d{4})'
+    en: "Figures used on {d}"
+  - es: 'Alertas a (?P<d>\d\d/\d\d/\d{4})'
+    en: "Alerts as of {d}"
+  - es: 'Último informe registrado: (?P<form>\S+) del periodo cerrado el (?P<e>\d\d/\d\d/\d{4}), presentado el (?P<f>\d\d/\d\d/\d{4})\. Último periodo en los datos estructurados: (?P<p>\S+)\.'
+    en: "Latest filing on record: {form} for the period ended {e}, filed on {f}. Latest period in the structured data: {p}."
+  - es: 'Último periodo en los datos estructurados: (?P<p>\S+)\.'
+    en: "Latest period in the structured data: {p}."
+  - es: '(?P<c>[A-Z]{3})/EUR del BCE: (?P<n>\d+) días, del (?P<a>\d\d/\d\d/\d{4}) al (?P<b>\d\d/\d\d/\d{4})\.'
+    en: "ECB {c}/EUR: {n} days, from {a} to {b}."
+  - es: 'Las (?P<n>\d+) descargas de esta carga'
+    en: "The {n} downloads of this load"
+  - es: 'https://data\.sec\.gov/api/xbrl/companyfacts/(?P<cik>CIK\d+)\.json'
+    en: "https://data.sec.gov/api/xbrl/companyfacts/{cik}.json"
+  - es: 'https://data\.sec\.gov/submissions/(?P<cik>CIK\d+)\.json'
+    en: "https://data.sec.gov/submissions/{cik}.json"
+  - es: 'https://data-api\.ecb\.europa\.eu/service/data/EXR/D\.(?P<c>[A-Z]{3})\.EUR\.SP00\.A\?startPeriod=(?P<d>\d{4}-\d\d-\d\d)&format=csvdata'
+    en: "https://data-api.ecb.europa.eu/service/data/EXR/D.{c}.EUR.SP00.A?startPeriod={d}&format=csvdata"
+  # Avisos de calidad (providers/public/provider.py).
+  - es: 'El último informe registrado \((?P<form>\S+) del periodo cerrado el (?P<e>\d\d/\d\d/\d{4}), presentado el (?P<f>\d\d/\d\d/\d{4})\) todavía no está en los datos estructurados de la SEC: se usan las cifras del (?P<d>\d\d/\d\d/\d{4})\.'
+    en: "The latest filing on record ({form} for the period ended {e}, filed on {f}) is not yet in the SEC structured data: the figures as of {d} are used."
+  - es: '(?P<item>Ventas|EBITDA|EBIT|Gastos financieros|Beneficio neto atribuible|Flujo de caja operativo|Inversiones \(capex\)|Deuda financiera|Caja y equivalentes|Patrimonio neto total|Patrimonio neto atribuible|Acciones en circulación \(millones\)): el último dato es del (?P<a>\d\d/\d\d/\d{4}), anterior al último periodo publicado \((?P<b>\d\d/\d\d/\d{4})\)\.'
+    en: "{item}: the latest figure is from {a}, before the latest period published ({b})."
+  - es: '(?P<item>Ventas|EBITDA|EBIT|Gastos financieros|Beneficio neto atribuible|Flujo de caja operativo|Inversiones \(capex\)|Deuda financiera|Caja y equivalentes|Patrimonio neto total|Patrimonio neto atribuible|Acciones en circulación \(millones\)): (?P<note>[^.]+)\.'
+    en: "{item}: {note}."
+  - es: 'Deuda a (?P<d>\d\d/\d\d/\d{4}): (?P<lines>.+) no aparece en ese balance y cuenta como cero\.'
+    en: "Debt at {d}: {lines} does not appear on that balance sheet and counts as zero."
+  - es: 'Resultado operativo atípico en el trimestre cerrado el (?P<d>\d\d/\d\d/\d{4}), dentro de los doce meses que usa el análisis: (?P<v>[+−-]?\d[\d.,]*) M (?P<c>[A-Z]{3}) frente a (?P<u>[+−-]?\d[\d.,]*) M de un trimestre típico de los dos últimos años\. Probable partida no recurrente \(un deterioro, la venta de un negocio…\): el EBITDA contable de los doce meses que incluyen ese trimestre la recoge entera\.'
+    en: "Unusual operating income in the quarter ended {d}, within the twelve months the analysis uses: {v} M {c} versus {u} M in a typical quarter of the last two years. Probably a non-recurring item (an impairment, the sale of a business…): the reported EBITDA of the twelve months that include that quarter takes it in full."
+
+  # === Motivos de un dato que no está (figures.py, normalization/, metrics/) =======================
+  # «Estado: motivo», p. ej. «Sin dato: el bono no tiene rating».
+  - es: '(?P<status>Sin dato|No aplica|División por cero|No significativo|Dato desactualizado|Sin comparables suficientes): (?P<detail>.+)'
+    en: "{status}: {detail}"
+  # «Etiqueta de la cifra: motivo», p. ej. «Gastos financieros LTM: falta …».
+  - es: '(?P<label>(?:Ventas|EBITDA|EBIT|Gastos financieros|Beneficio neto atribuible|Flujo de caja operativo|Inversiones \(capex\))(?: LTM(?: del año anterior)?)?|Deuda financiera|Caja y equivalentes|Patrimonio neto total|Patrimonio neto atribuible|Acciones en circulación \(millones\)|Cotización|Capitalización \([A-Z]{3}\)|Tipo de cambio(?: medio)? [A-Z]{3}/[A-Z]{3}|Tipo de cambio medio|Tipo de cambio de cierre|Diferencial \(pb\)): (?P<detail>.+)'
+    en: "{label}: {detail}"
+  - es: 'falta «(?P<item>[^»]+)» de (?P<periods>.+)'
+    en: "missing “{item}” for {periods}"
+  - es: '(?P<label>.+) es cero'
+    en: "{label} is zero"
+  - es: '(?P<label>.+) es negativo \((?P<v>[^)]+)\)'
+    en: "{label} is negative ({v})"
+  - es: 'los últimos estados financieros son del (?P<ref>.+) \((?P<n>\d+) días antes de la fecha de análisis; máximo (?P<m>\d+)\)'
+    en: "the latest financial statements are for {ref} ({n} days before the analysis date; maximum {m})"
+  - es: 'la última cotización es del (?P<d>\d\d/\d\d/\d{4}) \((?P<n>\d+) días antes de la fecha de análisis; máximo (?P<m>\d+)\)'
+    en: "the latest share price is from {d} ({n} days before the analysis date; maximum {m})"
+  - es: 'la última cotización es del (?P<d>\d\d/\d\d/\d{4}) \((?P<n>\d+) días; máximo (?P<m>\d+)\)'
+    en: "the latest quote is from {d} ({n} days; maximum {m})"
+  - es: 'sin tipo de cambio entre el (?P<a>\d\d/\d\d/\d{4}) y el (?P<b>\d\d/\d\d/\d{4})'
+    en: "no exchange rate between {a} and {b}"
+  - es: 'sin tipos de cambio del (?P<a>\d\d/\d\d/\d{4}) al (?P<b>\d\d/\d\d/\d{4})'
+    en: "no exchange rates from {a} to {b}"
+  - es: 'el valor de empresa es negativo o nulo \((?P<v>[^)]+)\): la caja neta supera la capitalización'
+    en: "enterprise value is negative or zero ({v}): net cash exceeds market capitalisation"
+  - es: 'el capital invertido es negativo \((?P<v>[^)]+)\): la caja neta supera el patrimonio'
+    en: "invested capital is negative ({v}): net cash exceeds equity"
+  - es: 'solo (?P<n>\d+) bono\(s\) en el tramo (?P<b>.+) \(mínimo (?P<m>\d+)\)'
+    en: "only {n} bond(s) in the {b} bucket (minimum {m})"
+  # Diferencial de una empresa sin ningún bono utilizable: «ISIN: motivo; ISIN: motivo» (la lista
+  # la parten los patrones genéricos del final; aquí, un solo bono).
+  - es: '(?P<isin>[A-Z]{2}[A-Z0-9]{9}\d): (?P<detail>(?:[^;()]|\([^()]*\))+)'
+    en: "{isin}: {detail}"
+
+  # === Listas y sumas (genéricos: siempre al final) ================================================
+  # Elementos separados por «; » (motivos, empresas fuera del gráfico…), sin partir paréntesis.
+  - es: '(?P<a>(?:[^;()]|\([^()]*\))+); (?P<b>(?:[^;()]|\([^()]*\))+); (?P<c>(?:[^;()]|\([^()]*\))+); (?P<d>(?:[^;()]|\([^()]*\))+); (?P<e>(?:[^;()]|\([^()]*\))+); (?P<f>(?:[^;()]|\([^()]*\))+)'
+    en: "{a}; {b}; {c}; {d}; {e}; {f}"
+  - es: '(?P<a>(?:[^;()]|\([^()]*\))+); (?P<b>(?:[^;()]|\([^()]*\))+); (?P<c>(?:[^;()]|\([^()]*\))+); (?P<d>(?:[^;()]|\([^()]*\))+); (?P<e>(?:[^;()]|\([^()]*\))+)'
+    en: "{a}; {b}; {c}; {d}; {e}"
+  - es: '(?P<a>(?:[^;()]|\([^()]*\))+); (?P<b>(?:[^;()]|\([^()]*\))+); (?P<c>(?:[^;()]|\([^()]*\))+); (?P<d>(?:[^;()]|\([^()]*\))+)'
+    en: "{a}; {b}; {c}; {d}"
+  - es: '(?P<a>(?:[^;()]|\([^()]*\))+); (?P<b>(?:[^;()]|\([^()]*\))+); (?P<c>(?:[^;()]|\([^()]*\))+)'
+    en: "{a}; {b}; {c}"
+  - es: '(?P<a>(?:[^;()]|\([^()]*\))+); (?P<b>(?:[^;()]|\([^()]*\))+)'
+    en: "{a}; {b}"
+  # Sumas y restas de etiquetas XBRL o de líneas de deuda («A + B + C», «A − B», «−A»).
+  - es: '(?P<a>[^+]+) \+ (?P<b>.+)'
+    en: "{a} + {b}"
+  - es: '(?P<a>[A-Z][A-Za-z]+) − (?P<b>[A-Z][A-Za-z]+)'
+    en: "{a} − {b}"
+  - es: '−(?P<a>[A-Z][A-Za-z]+)'
+    en: "−{a}"
+  # Listas con comas de nombres que empiezan en mayúscula (líneas de deuda, sectores de un filtro).
+  - es: '(?P<a>[A-ZÁÉÍÓÚ][^,]*), (?P<b>[A-ZÁÉÍÓÚ].*)'
+    en: "{a}, {b}"

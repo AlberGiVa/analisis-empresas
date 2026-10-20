@@ -1,6 +1,6 @@
 """Public website: the tool's results, open to anyone with the link (GitHub Pages).
 
-A static site with these sections, plus how to read the results and what is new:
+A static site with these sections, plus how to read the results:
 - the real-data study, only with sources that may be republished (SEC and ECB): no share prices,
   whose terms forbid it, and the methodology of ``estudio-real/metodologia-web.yaml``;
 - the sample data (fictitious companies), which show every feature of the tool;
@@ -15,11 +15,12 @@ never touches the main database nor the study's. GitHub Actions builds and publi
 Run it with ``uv run python -m company_analysis.web construir`` (Spanish CLI).
 """
 
+import os
 import shutil
 import tempfile
 import webbrowser
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import date
 from importlib.resources import files
 from pathlib import Path
@@ -27,7 +28,6 @@ from typing import Annotated, Any
 
 import duckdb
 import typer
-import yaml
 from pydantic import ValidationError
 from rich.console import Console
 
@@ -36,6 +36,7 @@ from company_analysis.clock import local_now, local_today
 from company_analysis.config import ScoreModelConfig
 from company_analysis.config_loader import ConfigError, LoadedConfig, load_config
 from company_analysis.formatting import format_date
+from company_analysis.i18n import CatalogError, Translator, load_catalog, untranslated_report
 from company_analysis.metrics import MetricCategory, all_metrics, get_metric
 from company_analysis.metrics.base import MetricDefinition
 from company_analysis.pipeline import AnalysisError, run_analysis
@@ -50,7 +51,7 @@ from company_analysis.providers.public.provider import (
 from company_analysis.providers.public.universe import UniverseError, load_universe
 from company_analysis.providers.sample_generator import DEMO_AS_OF_DATES
 from company_analysis.reports import RunView, SiteNav, build_run_view, write_reports
-from company_analysis.reports.render import environment
+from company_analysis.reports.render import _common_context, environment
 from company_analysis.reports.study import StudyView, build_study_view, write_study_report
 from company_analysis.reports.views import DISCLAIMER
 from company_analysis.settings import Settings
@@ -69,26 +70,81 @@ console = Console(soft_wrap=True)
 SECTIONS: tuple[tuple[str, str, str], ...] = (  # (key, label, page from the website root)
     ("inicio", "Inicio", "index.html"),
     ("reales", "Empresas reales", "reales/index.html"),
-    ("ejemplo", "Ejemplo completo", "ejemplo/ranking.html"),
+    ("ejemplo", "Casos de ejemplo", "ejemplo/index.html"),
     ("como-funciona", "Cómo funciona", "como-funciona.html"),
-    ("novedades", "Novedades", "novedades.html"),
     ("presentacion", "Presentación", "presentacion.html"),
+    ("configuracion", "Configuración", "configuracion.html"),
 )
 REAL_NOTICE = (
     "Empresas reales con datos públicos de uso libre: cuentas de la SEC y tipos de cambio del BCE. "
     "Sin cotizaciones, así que no hay capitalización, PER ni EV/EBITDA."
 )
 SAMPLE_NOTICE = (
-    "Datos de ejemplo: empresas ficticias con datos inventados, para ver todo lo que hace la "
-    "herramienta (cotizaciones, bonos, ratings y diferenciales incluidos)."
+    "Casos de ejemplo: empresas ficticias con datos inventados, una por cada caso que la "
+    "herramienta sabe tratar. Se comparan con las 20 empresas del ejemplo, aunque solo se "
+    "muestran estas."
+)
+# One fictitious company per case the tool handles (data/sample/README.md):
+# (company, case, what to look at)
+SAMPLE_CASES: tuple[tuple[str, str, str], ...] = (
+    ("VALD", "Empresa sin incidencias", "Todos los datos disponibles: sirve de referencia."),
+    ("ORBE", "EBITDA negativo", "PER y EV/EBITDA «no significativos» y alerta de apalancamiento."),
+    ("HELV", "Empresa sin deuda", "Sin bonos ni puntuación de crédito; deuda neta negativa."),
+    ("CORV", "Falta un dato: inversiones", "FCF yield «sin dato», con el motivo."),
+    (
+        "LUMB",
+        "Falta un dato: gastos financieros",
+        "Cobertura de intereses «sin dato», con el motivo.",
+    ),
+    (
+        "SKRV",
+        "Cotización desactualizada",
+        "Las métricas de mercado quedan como «dato desactualizado».",
+    ),
+    (
+        "NEXL",
+        "Reporta en otra divisa",
+        "Cotiza en euros y reporta en dólares: se convierte al tipo de cambio.",
+    ),
+    ("ASHC", "Rebaja de rating", "Alerta de rebaja; su bono pasa al tramo BB."),
+    ("VERD", "Subida de rating", "Una subida no genera alerta."),
+    (
+        "PELL",
+        "Ejercicio que no cierra en diciembre",
+        "Cierra en marzo y se compara con el año natural.",
+    ),
+    (
+        "GRSH",
+        "Tramo de rating con pocos bonos",
+        "Diferencial «sin comparables suficientes» y un bono sin rating.",
+    ),
+    ("BVAL", "Banco", "Las métricas basadas en EBITDA, deuda neta o EV «no aplican»."),
+    ("AUBR", "Aseguradora", "Igual que los bancos: esas métricas «no aplican»."),
 )
 MARKER = ".web-generada"  # marks a folder this command may replace
 WEB_METHODOLOGY = "metodologia-web.yaml"
-NEWS = Path("docs") / "novedades.yaml"
 # The showcase page (one self-contained file) is published as is, with a way back to the website.
-SHOWCASE = Path("docs") / "muestra-luceiro-capital.html"
-SHOWCASE_ANCHOR = '<p class="side-kicker">Análisis de empresas · muestra</p>'
+SHOWCASES = {  # language: (file, sidebar line after which the way back is added, its text)
+    "es": (
+        Path("docs") / "muestra-luceiro-capital.html",
+        '<p class="side-kicker">Análisis de empresas · muestra</p>',
+        "← Volver a la web",
+    ),
+    "en": (
+        Path("docs") / "muestra-luceiro-capital.en.html",
+        '<p class="side-kicker">Company analysis · showcase</p>',
+        "← Back to the website",
+    ),
+}
 LOGO = "luceiro-logo.webp"
+ENGLISH = "en"  # folder of the English version
+LANGUAGE_LINK = "#cambiar-idioma"  # replaced by the same page in the other language
+SWITCH_TO_ENGLISH = (
+    '<a class="lang" href="#cambiar-idioma" hreflang="en" lang="en" translate="no">English</a>'
+)
+SWITCH_TO_SPANISH = (
+    '<a class="lang" href="#cambiar-idioma" hreflang="es" lang="es" translate="no">Español</a>'
+)
 
 
 class WebError(Exception):
@@ -97,50 +153,6 @@ class WebError(Exception):
 
 def nav(active: str, notice: str | None = None) -> SiteNav:
     return SiteNav(links=SECTIONS, active=active, notice=notice)
-
-
-# --- News ----------------------------------------------------------------------------------------
-@dataclass(frozen=True)
-class NewsEntry:
-    day: date
-    title: str
-    text: str
-    link: str | None  # page from the website root
-
-    @property
-    def day_text(self) -> str:
-        return format_date(self.day)
-
-
-def load_news(path: Path) -> list[NewsEntry]:
-    """Entries of ``docs/novedades.yaml``, newest first."""
-    if not path.is_file():
-        raise WebError(f"Falta el fichero de novedades {path}.")
-    raw = yaml.safe_load(path.read_text(encoding="utf-8"))
-    if not isinstance(raw, list):
-        raise WebError(f"{path.name}: debe ser una lista de novedades.")
-    pages = {page for _, _, page in SECTIONS}
-    entries = []
-    for number, item in enumerate(raw, start=1):
-        if not isinstance(item, dict):
-            raise WebError(f"{path.name}, novedad {number}: debe tener fecha, titulo y texto.")
-        day, title, text, link = (item.get(k) for k in ("fecha", "titulo", "texto", "enlace"))
-        if isinstance(day, str):
-            try:
-                day = date.fromisoformat(day)
-            except ValueError:
-                day = None
-        if not isinstance(day, date) or not isinstance(title, str) or not isinstance(text, str):
-            raise WebError(
-                f"{path.name}, novedad {number}: hacen falta fecha (AAAA-MM-DD), titulo y texto."
-            )
-        if link is not None and link not in pages:
-            raise WebError(
-                f"{path.name}, novedad {number}: el enlace {link!r} no es una página de la web "
-                f"({', '.join(sorted(pages))})."
-            )
-        entries.append(NewsEntry(day, title.strip(), " ".join(text.split()), link))
-    return sorted(entries, key=lambda entry: entry.day, reverse=True)
 
 
 # --- Sections ------------------------------------------------------------------------------------
@@ -164,24 +176,51 @@ def _latest_views(conn: duckdb.DuckDBPyConnection) -> tuple[RunView, RunView | N
 
 
 def build_sample(work: Path, site: Path, settings: Settings) -> RunView:
-    """Fictitious companies with every feature, analysed at the demo dates."""
+    """One fictitious company per case, analysed at the demo dates.
+
+    The whole sample is analysed, so that peers, percentiles and rating buckets are those of the
+    20 companies; only the companies of ``SAMPLE_CASES`` are shown.
+    """
     config = load_config(settings.config_path)
     provider = SampleProvider(settings.sample_data_dir)
     with open_database(work / "ejemplo.duckdb") as conn:
         save_bundle(conn, provider.fetch(), provider.name)
         _analyse(conn, DEMO_AS_OF_DATES, config)
         view, _ = _latest_views(conn)
-    write_reports(view, site, folder="ejemplo", site=nav("ejemplo", SAMPLE_NOTICE))
-    return view
+    shown = {issuer_id for issuer_id, _, _ in SAMPLE_CASES}
+    missing = shown - {company.issuer_id for company in view.companies}
+    if missing:
+        raise WebError(f"Faltan en los datos de ejemplo: {', '.join(sorted(missing))}.")
+    cases = replace(view, companies=tuple(c for c in view.companies if c.issuer_id in shown))
+    section = nav("ejemplo", SAMPLE_NOTICE)
+    write_reports(cases, site, folder="ejemplo", site=section)
+    env = environment()
+    rows = [(case, cases.company(issuer_id), what) for issuer_id, case, what in SAMPLE_CASES]
+    (site / "ejemplo" / "index.html").write_text(
+        env.get_template("web_casos.html.j2").render(
+            **_common_context(cases, section) | {"site_root": "../"},
+            rows=rows,
+            total=len(view.companies),
+        ),
+        encoding="utf-8",
+    )
+    return cases
+
+
+PUBLIC_SOURCES = (
+    "Cuentas de la SEC (normas contables de EE. UU., sin ajustes) y tipos de cambio del BCE, sin "
+    "cotizaciones."
+)
 
 
 def _public_description(description: str) -> str:
-    """The universe's first sentence, with the sources the website actually uses."""
-    first = description.split(". ", maxsplit=1)[0].rstrip(".")
-    return (
-        f"{first}. Cuentas de la SEC (normas contables de EE. UU., sin ajustes) y tipos de cambio "
-        "del BCE, sin cotizaciones."
-    )
+    """The universe's description with the sources the website actually uses.
+
+    The sentence about the sources ("Cuentas de la SEC…") is replaced; a description without it
+    gets it added. Abbreviations such as "EE. UU." never cut the text.
+    """
+    head = description.split("Cuentas de la SEC", maxsplit=1)[0].strip()
+    return f"{head} {PUBLIC_SOURCES}" if head else PUBLIC_SOURCES
 
 
 def build_real(
@@ -265,7 +304,6 @@ def write_pages(
     sample: RunView,
     study: StudyView,
     data: PublicDataResult,
-    news: Sequence[NewsEntry],
 ) -> None:
     env = environment()
     common: dict[str, Any] = {
@@ -292,7 +330,6 @@ def write_pages(
                 "sample_alerts": sample_alerts,
                 "quality_warnings": sum(len(q.warnings) for q in data.companies),
                 "metrics_count": len(all_metrics()),
-                "news": list(news)[:3],
             },
         ),
         "como-funciona.html": (
@@ -308,7 +345,7 @@ def write_pages(
                 "min_peers": sample.config.scoring.min_peers,
             },
         ),
-        "novedades.html": ("web_novedades.html.j2", "novedades", {"news": news}),
+        "configuracion.html": ("web_configuracion.html.j2", "configuracion", {}),
     }
     for filename, (template, key, context) in pages.items():
         (site / filename).write_text(
@@ -317,29 +354,71 @@ def write_pages(
         )
 
 
-def write_brand(site: Path, showcase: Path) -> None:
-    """The logo every page shows, and the showcase page as ``presentacion.html``."""
+def write_logo(site: Path) -> None:
     logo = site / "marca" / LOGO
     logo.parent.mkdir()
     logo.write_bytes((files("company_analysis.reports") / "static" / LOGO).read_bytes())
-    if not showcase.is_file():
-        raise WebError(f"Falta la página de presentación {showcase}.")
-    html = showcase.read_text(encoding="utf-8")
-    if SHOWCASE_ANCHOR not in html or '<meta charset="utf-8">' not in html:
-        raise WebError(
-            f"{showcase.name} ha cambiado: no se encuentra dónde poner la vuelta a la web."
-        )
-    html = html.replace(
+
+
+def showcase_page(path: Path, anchor: str, back: str) -> str:
+    """The self-contained showcase page, kept from search engines and with a way back."""
+    if not path.is_file():
+        raise WebError(f"Falta la página de presentación {path}.")
+    html = path.read_text(encoding="utf-8")
+    if anchor not in html or '<meta charset="utf-8">' not in html:
+        raise WebError(f"{path.name} ha cambiado: no se encuentra dónde poner la vuelta a la web.")
+    return html.replace(
         '<meta charset="utf-8">',
         '<meta charset="utf-8"><meta name="robots" content="noindex, nofollow">',
         1,
     ).replace(
-        SHOWCASE_ANCHOR,
-        SHOWCASE_ANCHOR + '\n    <a href="index.html" style="font-weight:600;text-decoration:none;'
-        'margin-top:-10px">← Volver a la web</a>',
+        anchor,
+        f'{anchor}\n    <a href="index.html" style="font-weight:600;text-decoration:none;'
+        f'margin-top:-10px">{back}</a>',
         1,
     )
-    (site / "presentacion.html").write_text(html, encoding="utf-8")
+
+
+def write_english(site: Path, translator: Translator, showcase: str) -> None:
+    """``en/``: every page of the Spanish site, translated; other files copied as they are."""
+    target = site / ENGLISH
+    for path in sorted(p for p in site.rglob("*") if p.is_file()):
+        relative = path.relative_to(site)
+        if relative.parts[0] == ENGLISH or relative.name in {MARKER, ".nojekyll"}:
+            continue
+        destination = target / relative
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        if relative == Path("presentacion.html"):
+            destination.write_text(showcase, encoding="utf-8")
+        elif path.suffix == ".html":
+            english = translator.document(path.read_text(encoding="utf-8"))
+            destination.write_text(
+                english.replace(SWITCH_TO_ENGLISH, SWITCH_TO_SPANISH), encoding="utf-8"
+            )
+        else:
+            shutil.copyfile(path, destination)
+
+
+def link_languages(site: Path) -> None:
+    """Each page's language link points to the same page in the other language."""
+    for path in site.rglob("*.html"):
+        relative = path.relative_to(site)
+        if relative.parts[0] == ENGLISH:
+            other = site.joinpath(*relative.parts[1:])
+        else:
+            other = site / ENGLISH / relative
+        link = Path(os.path.relpath(other, path.parent)).as_posix()
+        html = path.read_text(encoding="utf-8")
+        if LANGUAGE_LINK in html:
+            path.write_text(
+                html.replace(f'href="{LANGUAGE_LINK}"', f'href="{link}"'), encoding="utf-8"
+            )
+
+
+@dataclass(frozen=True)
+class BuiltSite:
+    index: Path
+    untranslated: list[str]  # texts of the English version left in Spanish
 
 
 def build_site(
@@ -348,28 +427,44 @@ def build_site(
     settings: Settings,
     snapshot: Path | None,
     dates: Sequence[date],
-) -> Path:
-    """Build the whole website in a temporary folder, then replace ``target`` with it."""
+) -> BuiltSite:
+    """Build the whole website (Spanish and English) in a temporary folder, then replace
+    ``target`` with it."""
     if target.exists() and any(target.iterdir()) and not (target / MARKER).is_file():
         raise WebError(
             f"La carpeta {target} no está vacía y no es una web generada por este comando: "
             "elige otra con --salida."
         )
-    news = load_news(settings.project_root / NEWS)
     with tempfile.TemporaryDirectory(prefix="web-") as temporary:
         work = Path(temporary)
         site = work / "sitio"
         site.mkdir()
         study, data = build_real(work, site, settings, snapshot=snapshot, dates=dates)
         sample = build_sample(work, site, settings)
-        write_pages(site, sample=sample, study=study, data=data, news=news)
-        write_brand(site, settings.project_root / SHOWCASE)
+        write_pages(site, sample=sample, study=study, data=data)
+        write_logo(site)
+        pages = {
+            "es": showcase_page(settings.project_root / SHOWCASES["es"][0], *SHOWCASES["es"][1:])
+        }
+        try:
+            pages["en"] = showcase_page(
+                settings.project_root / SHOWCASES["en"][0], *SHOWCASES["en"][1:]
+            )
+        except WebError as error:  # the English site then shows the Spanish presentation
+            console.print(f"[yellow]Presentación en inglés no disponible:[/yellow] {error}")
+        (site / "presentacion.html").write_text(pages["es"], encoding="utf-8")
+        translator = Translator(
+            load_catalog(),
+            keep={c.name for c in (*sample.companies, *study.run.companies)},
+        )
+        write_english(site, translator, pages.get("en", pages["es"]))
+        link_languages(site)
         (site / ".nojekyll").write_text("", encoding="utf-8")  # plain files, no Jekyll
         (site / MARKER).write_text(f"{local_now():%Y-%m-%d %H:%M}\n", encoding="utf-8")
         if target.exists():
             shutil.rmtree(target)
         shutil.copytree(site, target)
-    return target / "index.html"
+    return BuiltSite(target / "index.html", sorted(translator.missing))
 
 
 @app.callback()
@@ -394,6 +489,12 @@ def build_command(
         ),
     ] = None,
     abrir: Annotated[bool, typer.Option("--abrir", help="Abre la web al terminar.")] = False,
+    pendientes: Annotated[
+        Path | None,
+        typer.Option(
+            help="Fichero donde listar los textos que la versión inglesa deja en español."
+        ),
+    ] = None,
 ) -> None:
     """Construye la web pública: empresas reales sin cotizaciones, ejemplo completo y guías."""
     settings = Settings()
@@ -403,14 +504,21 @@ def build_command(
     )
     target = salida or settings.project_root / "_site"
     try:
-        index = build_site(target, settings=settings, snapshot=descarga, dates=dates)
-    except (WebError, UniverseError, SnapshotError, ConfigError) as error:
+        built = build_site(target, settings=settings, snapshot=descarga, dates=dates)
+    except (WebError, UniverseError, SnapshotError, ConfigError, CatalogError) as error:
         fail(str(error))
     except ValidationError as error:
         fail(f"Los datos descargados no son válidos:\n{error}")
-    console.print(f"[bold]Web construida:[/bold] {index}")
+    console.print(f"[bold]Web construida:[/bold] {built.index}")
+    if built.untranslated:
+        console.print(
+            f"[yellow]{len(built.untranslated)} textos en inglés siguen en español[/yellow]"
+            " (añádelos a src/company_analysis/i18n/en.yaml)."
+        )
+    if pendientes:
+        pendientes.write_text(untranslated_report(built.untranslated), encoding="utf-8")
     if abrir:
-        webbrowser.open(index.resolve().as_uri())
+        webbrowser.open(built.index.resolve().as_uri())
 
 
 if __name__ == "__main__":

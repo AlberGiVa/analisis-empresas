@@ -71,7 +71,7 @@
       <span>Sin recomendaciones de inversión</span></div>
     <div class="hero-cta">
       <a class="btn btn-light" href="reales/index.html">Ver las empresas reales</a>
-      <a class="btn btn-ghost" href="ejemplo/ranking.html">Ver el ejemplo completo</a>
+      <a class="btn btn-ghost" href="ejemplo/index.html">Ver los casos de ejemplo</a>
     </div>
   </div>
   <aside class="mini" aria-label="Resumen de hoy">
@@ -100,7 +100,7 @@
 
 <div class="facts">
   <div class="fact"><b>{{ study.run.companies | length }}</b><span>empresas reales con cuentas oficiales</span></div>
-  <div class="fact"><b>{{ sample.companies | length }}</b><span>empresas ficticias con todas las funciones</span></div>
+  <div class="fact"><b>{{ sample.companies | length }}</b><span>casos de ejemplo con datos inventados</span></div>
   <div class="fact"><b>{{ metrics_count }}</b><span>métricas con su fórmula escrita</span></div>
   <div class="fact"><b>{{ real_alerts | length }}</b><span>alertas hoy en las empresas reales</span></div>
   <div class="fact"><b>{{ quality_warnings }}</b><span>avisos de calidad del dato</span></div>
@@ -113,16 +113,16 @@
   <div class="cards">
     <div class="tile">
       <h3>Empresas reales</h3>
-      <p>{{ study.run.companies | length }} empresas de consumo básico de EE. UU. con sus cuentas oficiales y los tipos de
+      <p>{{ study.run.companies | length }} empresas de EE. UU. de varios sectores con sus cuentas oficiales y los tipos de
       cambio del BCE. Análisis a {{ real_date }}{% if real_previous %}, comparado con el {{ real_previous }}{% endif %}. Sin
       cotizaciones: sus condiciones no permiten publicarlas.</p>
       <p class="go"><a href="reales/index.html">Ver el estudio →</a></p>
     </div>
     <div class="tile">
-      <h3>Ejemplo completo</h3>
-      <p>{{ sample.companies | length }} empresas ficticias con datos inventados y todo lo que hace la herramienta:
-      cotizaciones, bonos, ratings y diferenciales, con casos difíciles a propósito. Análisis a {{ sample_date }}.</p>
-      <p class="go"><a href="ejemplo/ranking.html">Ver el ranking →</a></p>
+      <h3>Casos de ejemplo</h3>
+      <p>Una empresa ficticia por cada caso que la herramienta sabe tratar: EBITDA negativo, sin deuda, datos que
+      faltan, otra divisa, rebajas de rating, bancos y aseguradoras… Con cotizaciones, bonos y ratings.</p>
+      <p class="go"><a href="ejemplo/index.html">Ver los casos →</a></p>
     </div>
     <div class="tile">
       <h3>Presentación</h3>
@@ -168,17 +168,5 @@
     </div>
   </div>
   <p class="more"><a href="como-funciona.html">Métricas, fórmulas y fuentes →</a></p>
-</section>
-
-<section class="block">
-  <p class="eyebrow">Novedades</p>
-  <h2>Lo último</h2>
-  <ul class="list">
-    {% for entry in news %}
-    <li><span class="day">{{ entry.day_text }}</span><strong>{{ entry.title }}.</strong> {{ entry.text }}
-      {% if entry.link %}<a href="{{ entry.link }}">Ver</a>{% endif %}</li>
-    {% endfor %}
-  </ul>
-  <p class="more"><a href="novedades.html">Todas las novedades →</a></p>
 </section>
 {% endblock %}

@@ -61,6 +61,7 @@ Las fichas y el panel leen esos resultados guardados (`reports`, `app`).
 | `providers/public/` | Datos reales de fuentes públicas (SEC EDGAR, Nasdaq/Yahoo, BCE): descarga a carpetas con fecha y manifiesto, lectura a fecha de la SEC y revisión de calidad. Solo lo usan el estudio y la web. |
 | `study.py` | Estudio con datos reales, aislado en `estudio-real/` (rutas fijas en el código; nunca toca la base principal). Decisión 0017. |
 | `web.py` | Web pública estática (GitHub Pages): ejemplo completo y empresas reales sin cotizaciones, construida en una carpeta temporal. Decisión 0018. |
+| `i18n/` | Versión inglesa de la web: traduce los textos del HTML generado con el catálogo `en.yaml` (frases exactas y patrones) y pasa las cifras a notación inglesa. Lo que falta se queda en español y se lista. |
 | `storage/` | DuckDB: migraciones SQL, carga solo por inserción, lectura a fecha (`read_bundle`) y ejecuciones con sus resultados (`runs.py`). |
 | `figures.py` | `Status` y `Figure`: un valor o el motivo por el que no está disponible. |
 | `normalization/` | Periodo de referencia, LTM, divisas (`FxTable`), alineación de ejercicios y `CompanySnapshot`. |

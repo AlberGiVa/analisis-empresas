@@ -13,6 +13,8 @@ class Sector(StrEnum):
     TECHNOLOGY = "technology"
     UTILITIES = "utilities"
     FINANCIALS = "financials"
+    HEALTH_CARE = "health_care"
+    ENERGY = "energy"
 
     @property
     def label(self) -> str:
@@ -32,6 +34,9 @@ class Industry(StrEnum):
     ELECTRIC_UTILITIES = "electric_utilities"
     BANKS = "banks"
     INSURANCE = "insurance"
+    PHARMACEUTICALS = "pharmaceuticals"
+    MEDICAL_DEVICES = "medical_devices"
+    OIL_GAS = "oil_gas"
 
     @property
     def label(self) -> str:
@@ -64,6 +69,8 @@ _SECTOR_LABELS = {
     Sector.TECHNOLOGY: "Tecnología",
     Sector.UTILITIES: "Utilities",
     Sector.FINANCIALS: "Financiero",
+    Sector.HEALTH_CARE: "Salud",
+    Sector.ENERGY: "Energía",
 }
 
 _INDUSTRY_LABELS = {
@@ -79,6 +86,9 @@ _INDUSTRY_LABELS = {
     Industry.ELECTRIC_UTILITIES: "Eléctricas",
     Industry.BANKS: "Bancos",
     Industry.INSURANCE: "Seguros",
+    Industry.PHARMACEUTICALS: "Farmacéuticas",
+    Industry.MEDICAL_DEVICES: "Tecnología médica",
+    Industry.OIL_GAS: "Petróleo y gas",
 }
 
 _INDUSTRY_SECTOR = {
@@ -94,6 +104,9 @@ _INDUSTRY_SECTOR = {
     Industry.ELECTRIC_UTILITIES: Sector.UTILITIES,
     Industry.BANKS: Sector.FINANCIALS,
     Industry.INSURANCE: Sector.FINANCIALS,
+    Industry.PHARMACEUTICALS: Sector.HEALTH_CARE,
+    Industry.MEDICAL_DEVICES: Sector.HEALTH_CARE,
+    Industry.OIL_GAS: Sector.ENERGY,
 }
 
 _SENIORITY_LABELS = {

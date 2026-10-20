@@ -98,16 +98,21 @@ muestra datos que se pueden republicar:
   cambio del BCE. No hay cotizaciones, porque las condiciones de Nasdaq y Yahoo Finance no permiten
   publicarlas. Por eso faltan la capitalización, el PER, el EV/EBITDA y el FCF yield, y la
   puntuación de accionista es «sin valoración».
-- **Ejemplo:** las 20 empresas ficticias con todas las funciones (cotizaciones, bonos y ratings).
+- **Casos de ejemplo:** una empresa ficticia por cada caso que trata la herramienta (13), con cotizaciones,
+  bonos y ratings; se calculan con las 20 del ejemplo.
 - **Cómo funciona** (lectura de una puntuación, glosario, métricas, fuentes y límites),
-  **Novedades** y la **Presentación** (la muestra de `docs/`).
+  y la **Presentación** (la muestra de `docs/`).
 
-Toda la web lleva la imagen de Luceiro Capital: logo, colores, tipografía y modo claro u oscuro.
+Toda la web lleva la imagen de Luceiro Capital: logo, colores y tipografía. En **Configuración**
+cada visitante elige el estilo (Luceiro, Terminal o Prensa), el modo claro u oscuro, la densidad
+de las tablas y el tamaño del texto; se guarda solo en su navegador. Está en **español e inglés**:
+la versión inglesa vive en `/en/` y cada página enlaza con su equivalente en el otro idioma.
 
 El diario del analista nunca se publica.
 
 ```powershell
 uv run python -m company_analysis.web construir --abrir   # la genera en _site\ y la abre
+uv run python -m company_analysis.web construir --pendientes pendientes.txt   # textos sin traducir
 ```
 
 Se calcula en una carpeta temporal: no toca la base principal ni la del estudio.
@@ -156,5 +161,4 @@ panel.
 - [docs/metricas.md](docs/metricas.md): diccionario de métricas.
 - [docs/decisiones/](docs/decisiones/): una nota por cada decisión de diseño relevante.
 - [docs/siguientes-pasos.md](docs/siguientes-pasos.md): ideas fuera del alcance actual.
-- [docs/novedades.yaml](docs/novedades.yaml): novedades de la herramienta, que se ven en la web.
 - [data/sample/README.md](data/sample/README.md): datos de ejemplo y sus casos límite.

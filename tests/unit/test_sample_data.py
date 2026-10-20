@@ -38,7 +38,8 @@ def test_every_identifier_is_synthetic(sample: DataBundle) -> None:
 
 def test_universe_has_twenty_companies_in_five_sectors(sample: DataBundle) -> None:
     assert len(sample.issuers) == 20
-    assert {issuer.sector for issuer in sample.issuers} == set(Sector)
+    sample_sectors = {Sector.INDUSTRIALS, Sector.CONSUMER, Sector.TECHNOLOGY, Sector.UTILITIES}
+    assert {issuer.sector for issuer in sample.issuers} == sample_sectors | {Sector.FINANCIALS}
     industries = {issuer.industry for issuer in sample.issuers}
     assert {Industry.BANKS, Industry.INSURANCE} <= industries
 

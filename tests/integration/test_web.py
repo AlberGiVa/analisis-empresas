@@ -8,7 +8,7 @@ import pytest
 from typer.testing import CliRunner
 
 from company_analysis.settings import PROJECT_ROOT, Settings
-from company_analysis.web import WebError, app, load_news
+from company_analysis.web import SAMPLE_CASES, app
 from tests import public_samples
 
 runner = CliRunner()
@@ -23,9 +23,9 @@ def _study(root: Path, *, prices: bool) -> Path:
     return public_samples.write_snapshot(root / "descarga", prices=prices)
 
 
-def _build(target: Path, snapshot: Path) -> str:
+def _build(target: Path, snapshot: Path, *options: str) -> str:
     result = runner.invoke(
-        app, ["construir", "--salida", str(target), "--descarga", str(snapshot), *DATES]
+        app, ["construir", "--salida", str(target), "--descarga", str(snapshot), *DATES, *options]
     )
     assert result.exit_code == 0, result.output
     return result.output
@@ -40,10 +40,37 @@ def site(tmp_path_factory: pytest.TempPathFactory) -> Path:
         monkeypatch.setenv("ANALYSIS_STUDY_DIR", str(root))
         main_database = Settings().db_path
         existed = main_database.exists()
-        _build(target, snapshot)
+        _build(target, snapshot, "--pendientes", str(target.parent / PENDING))
         assert main_database.exists() == existed  # the main database is never touched
     assert not (root / "datos").exists()  # nor the study's
     return target
+
+
+PENDING = "pendientes.txt"
+
+# Texts of the synthetic test data (tests/public_samples.py): not part of the published catalog.
+TEST_ONLY_TEXTS = {"Universo de prueba", "Empresas inventadas para las pruebas", "Prueba:"}
+TEST_ONLY_PREFIX = "https://example.invalid/"
+
+
+def test_the_english_site_mirrors_the_spanish_one(site: Path) -> None:
+    spanish = [p.relative_to(site) for p in _pages(site) if p.relative_to(site).parts[0] != "en"]
+    for relative in spanish:
+        english = site / "en" / relative
+        assert english.is_file(), relative
+        assert '<html lang="en">' in english.read_text(encoding="utf-8"), relative
+    home = (site / "index.html").read_text(encoding="utf-8")
+    english_home = (site / "en" / "index.html").read_text(encoding="utf-8")
+    assert 'href="en/index.html" hreflang="en" lang="en" translate="no">English</a>' in home
+    assert 'href="../index.html" hreflang="es" lang="es" translate="no">Español</a>' in english_home
+    ficha = (site / "en" / "reales" / "fichas" / "ZZAA.html").read_text(encoding="utf-8")
+    assert 'href="../../../reales/fichas/ZZAA.html"' in ficha
+
+
+def test_everything_on_the_english_site_is_translated(site: Path) -> None:
+    pending = (site.parent / PENDING).read_text(encoding="utf-8").splitlines()
+    left = {text for text in pending if not text.startswith(TEST_ONLY_PREFIX)}
+    assert left - TEST_ONLY_TEXTS == set()
 
 
 def _pages(site: Path) -> list[Path]:
@@ -57,16 +84,16 @@ def test_every_section_is_built(site: Path) -> None:
         "reales/ranking.html",
         "reales/ranking.csv",
         "reales/fichas/ZZAA.html",
+        "ejemplo/index.html",
         "ejemplo/ranking.html",
         "ejemplo/ranking.csv",
         "como-funciona.html",
-        "novedades.html",
         ".nojekyll",
         "marca/luceiro-logo.webp",
         "presentacion.html",
     ):
         assert (site / page).is_file(), page
-    assert len(list((site / "ejemplo" / "fichas").glob("*.html"))) == 20
+    assert len(list((site / "ejemplo" / "fichas").glob("*.html"))) == len(SAMPLE_CASES)
     home = (site / "index.html").read_text(encoding="utf-8")
     assert "Universo de prueba" in home
     assert 'href="reales/index.html"' in home
@@ -75,7 +102,7 @@ def test_every_section_is_built(site: Path) -> None:
 def test_every_page_has_the_navigation_and_working_links(site: Path) -> None:
     for page in _pages(site):
         html = page.read_text(encoding="utf-8")
-        assert 'aria-label="Secciones"' in html, page
+        assert '<nav class="nav"' in html, page
         assert '<meta name="robots" content="noindex, nofollow">' in html, page
         for link in LINK.findall(html):
             if link.startswith(("http://", "https://", "#", "data:")) or "${" in link:
@@ -136,29 +163,3 @@ def test_a_folder_that_is_not_a_built_website_is_never_replaced(
     (built / "sobrante.html").write_text("de una versión anterior", encoding="utf-8")
     _build(built, snapshot)  # a website built before is replaced entirely
     assert not (built / "sobrante.html").exists()
-
-
-def test_news_are_read_newest_first_and_checked(tmp_path: Path) -> None:
-    path = tmp_path / "novedades.yaml"
-    path.write_text(
-        '- {fecha: "2026-01-02", titulo: Antigua, texto: "Uno."}\n'
-        "- {fecha: 2026-03-04, titulo: Nueva, texto: 'Dos  y\n  tres.', enlace: index.html}\n",
-        encoding="utf-8",
-    )
-    news = load_news(path)
-    assert [entry.title for entry in news] == ["Nueva", "Antigua"]
-    assert news[0].text == "Dos y tres."
-    assert news[0].day_text == "04/03/2026"
-
-    path.write_text(
-        '- {fecha: "2026-01-02", titulo: X, texto: Y, enlace: otra.html}\n', encoding="utf-8"
-    )
-    with pytest.raises(WebError, match="no es una página de la web"):
-        load_news(path)
-    path.write_text("- {titulo: X, texto: Y}\n", encoding="utf-8")
-    with pytest.raises(WebError, match="fecha"):
-        load_news(path)
-
-
-def test_the_published_news_file_is_valid() -> None:
-    assert load_news(PROJECT_ROOT / "docs" / "novedades.yaml")

@@ -1,0 +1,42 @@
+{% extends "base.html.j2" %}
+{% block title %}Casos de ejemplo · {{ run_date }}{% endblock %}
+{% block content %}
+<style>
+  .cases { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 16px; margin-top: 22px; }
+  .case { display: flex; flex-direction: column; gap: 8px; background: var(--surface, var(--soft));
+          border: 1px solid var(--line); border-radius: 12px; padding: 18px; min-width: 0; }
+  .case h2 { margin: 0; padding: 0; border: 0; font-size: 19px; line-height: 1.25; }
+  .case .what { margin: 0; color: var(--ink-2, var(--muted)); }
+  .case .who { margin: 0; font-size: 13px; color: var(--muted); }
+  .case-scores { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 4px 0 0; font-size: 13px; color: var(--muted); }
+  .case-scores strong { color: var(--text); font-variant-numeric: tabular-nums; }
+  .case .go { margin: auto 0 0; padding-top: 6px; font-weight: 600; }
+  .case .go a { text-decoration: none; }
+</style>
+
+<header class="header">
+  <div>
+    <p class="eyebrow">Casos de ejemplo · análisis a {{ run_date }}</p>
+    <h1>Un caso de cada tipo</h1>
+    <p class="meta">Empresas ficticias con datos inventados: cada una muestra un caso que la herramienta sabe tratar.
+    Se comparan con las {{ total }} empresas del ejemplo, aunque aquí solo aparecen estas.</p>
+  </div>
+  <p class="meta"><a href="ranking.html">Ranking de los casos</a> · <a href="ranking.csv">CSV para Excel</a></p>
+</header>
+
+<div class="cases">
+  {% for case, company, what in rows %}
+  <article class="case">
+    <h2>{{ case }}</h2>
+    <p class="who">{{ company.name }} · {{ company.issuer_id }} · {{ company.sector_label }}</p>
+    <p class="what">{{ what }}</p>
+    <p class="case-scores">
+      <span>Accionista <strong>{{ company.equity.value_text if company.equity.value is not none else "—" }}</strong></span>
+      <span>Acreedor <strong>{{ company.credit.value_text if company.credit.value is not none else "—" }}</strong></span>
+      <span>Alertas <strong>{{ company.alerts | length }}</strong></span>
+    </p>
+    <p class="go"><a href="{{ company.ficha_path }}">Ver la ficha →</a></p>
+  </article>
+  {% endfor %}
+</div>
+{% endblock %}

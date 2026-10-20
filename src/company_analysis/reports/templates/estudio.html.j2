@@ -66,8 +66,8 @@
 
 <h2>Comparables</h2>
 <p class="muted">Últimos doce meses hasta el último informe publicado antes del {{ run_date }} (la columna
-«Cifras» dice cuál).{% if study.with_prices %} Capitalización en millones de euros.{% endif %} Las puntuaciones comparan cada empresa con las
-otras nueve: 100 es la mejor del grupo en cada factor.</p>
+«Cifras» dice cuál).{% if study.with_prices %} Capitalización en millones de euros.{% endif %} Las puntuaciones comparan cada empresa con
+las de su sector que tienen dato (con todas, si son menos de {{ view.config.scoring.min_peers }}): 100 es la mejor del grupo en cada factor.</p>
 <div class="scroll">
 <table class="peers">
   <thead><tr>
@@ -217,8 +217,8 @@ informe posterior (la herramienta guarda las dos versiones y usa la que se conoc
   {% endif %}
   <li><strong>Crédito.</strong> Sin diferenciales de bonos ni ratings: la puntuación de acreedor solo usa apalancamiento,
   cobertura de intereses y deuda sobre capital. La alerta de rebaja de rating no puede saltar.</li>
-  <li><strong>Grupo pequeño.</strong> Con diez empresas, cada factor se compara con nueve: un cambio pequeño en una empresa
-  mueve los percentiles de las demás.</li>
+  <li><strong>Grupos pequeños.</strong> Con pocas empresas por sector, un cambio pequeño en una empresa mueve los
+  percentiles de las demás.</li>
 </ul>
 
 {% if study.data %}
