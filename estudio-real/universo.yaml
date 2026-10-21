@@ -1,10 +1,11 @@
-# Universo del estudio con datos reales: consumo básico de EE. UU.
+# Universo del estudio con datos reales: grandes empresas de EE. UU.
 #
-# Por qué este grupo: diez emisores grandes que tienen a la vez acciones cotizadas y deuda
-# corporativa en el mercado, que es exactamente lo que el fondo analiza desde las dos vistas. Son
-# comparables entre sí (mismo sector y negocio maduro) y publican sus cuentas en la SEC con la fecha
-# exacta de cada informe, lo que permite una lectura a fecha estricta. Incluyen calendarios fiscales
-# distintos (cierre en mayo, junio, diciembre y años de 52/53 semanas) para probar la herramienta.
+# Por qué este grupo: empezó con diez emisores grandes de consumo básico que tienen a la vez
+# acciones cotizadas y deuda corporativa en el mercado, que es exactamente lo que el fondo analiza
+# desde las dos vistas. Son comparables entre sí (mismo sector y negocio maduro) y publican sus
+# cuentas en la SEC con la fecha exacta de cada informe, lo que permite una lectura a fecha
+# estricta. Incluyen calendarios fiscales distintos (cierre en mayo, junio, diciembre y años de
+# 52/53 semanas) para probar la herramienta.
 #
 # Identificadores verificados el 20/10/2026: ISIN con OpenFIGI, LEI con GLEIF (Kraft Heinz, por
 # nombre: GLEIF no le asocia el ISIN), CIK y mercado con la SEC y Yahoo Finance.
@@ -23,14 +24,39 @@
 # `tags: {ebit: []}` deja sin resultado operativo a una empresa que usa OperatingIncomeLoss para
 # una medida ajustada que no es un resultado operativo (MetLife y Travelers): sin dato, con motivo.
 #
-# Excluidas tras revisar sus datos: Hershey (dos clases de acciones: los datos estructurados solo
-# dan una y la capitalización saldría mal) y Clorox (no publica resultado operativo, así que no hay
-# EBIT ni EBITDA comparables).
+# Segunda ampliación del 21/10/2026: cuatro tecnológicas, cuatro industriales, cuatro de salud y
+# tres de energía, hasta 32 empresas de siete sectores. Muchas grandes empresas de estos sectores no
+# publican un resultado operativo (su cuenta de resultados pasa de los gastos al resultado antes de
+# impuestos), así que no tendrían EBIT ni EBITDA comparables: se han sustituido por otras del mismo
+# negocio que sí lo publican. `depreciation:` fija las etiquetas de amortizaciones que se suman para
+# el EBITDA cuando la habitual se queda corta (Cisco). Los sectores con menos de cinco empresas se
+# comparan con todo el universo (`min_peers` de la metodología).
+#
+# Excluidas tras revisar sus datos:
+# - Hershey: dos clases de acciones; los datos estructurados solo dan una y la capitalización
+#   saldría mal. Por lo mismo, Regeneron. Vertex no tiene bonos.
+# - No publican resultado operativo: Clorox, IBM, Johnson & Johnson, Pfizer, Merck & Co., Eli
+#   Lilly, Bristol-Myers Squibb, Zoetis, Biogen, Exxon Mobil, Chevron, ConocoPhillips, Occidental,
+#   Phillips 66 y Devon; Deere, desde el ejercicio 2025. Exxon, además, cotiza desde julio de 2026 a
+#   través de una sociedad holding nueva con otro CIK y casi sin historia en los datos estructurados.
+# - Caterpillar: sus balances trimestrales separan Maquinaria y Productos Financieros, y en los
+#   datos estructurados solo aparece la deuda consolidada al cierre del año, sin los vencimientos a
+#   un año ni el gasto financiero: no habría vista de acreedor.
+# - Honeywell: contrasplit de 1 por 2 el 29/06/2026 sin la cifra de acciones nueva hasta el
+#   23/07/2026 (la capitalización a 30/06/2026 saldría el doble); además, en plena separación en
+#   varias empresas y con un gasto financiero sin doce meses de dato.
+# - Union Pacific: solo publica «Depreciation» (sin amortización de intangibles), que el estudio no
+#   acepta sola como amortizaciones: no habría EBITDA.
+# - Gilead: etiqueta la amortización de intangibles de los trimestres con una etiqueta que la
+#   herramienta no lee: solo habría EBITDA de ejercicios completos, no de los doce últimos meses.
+# - EOG y Diamondback reparten sus inversiones en varias líneas sin dar el total (no habría flujo de
+#   caja libre); Valero deja de etiquetar sus inversiones con una etiqueta estándar desde el cuarto
+#   trimestre de 2025.
 
 name: "Grandes empresas de EE. UU."
 description: >-
-  Diecisiete grandes empresas de EE. UU. de consumo, eléctricas, banca y seguros, con acciones y
-  bonos en el mercado. Cuentas de la SEC (normas contables de EE. UU., sin ajustes), cotizaciones
+  Treinta y dos grandes empresas de EE. UU. de consumo, tecnología, industria, salud, energía,
+  eléctricas, banca y seguros, con acciones y bonos en el mercado. Cuentas de la SEC (normas contables de EE. UU., sin ajustes), cotizaciones
   de cierre diarias y tipos de cambio del BCE.
 history_start: 2023-01-01
 
@@ -381,3 +407,306 @@ companies:
       - {line: "Deuda", tags: [DebtLongtermAndShorttermCombinedAmount], required: true}
     tags:
       ebit: []
+
+  # --- Tecnología ---------------------------------------------------------------------------------
+  # Ejercicio a 30 de junio. Sin papel comercial desde 2025 (la línea ya no está en el balance). Los
+  # arrendamientos financieros (66.594 M a 30/06/2026, centros de datos) van en «otros pasivos» y no
+  # se incluyen: la deuda económica es mayor. Amortizaciones = inmovilizado + intangibles (de notas).
+  - id: MSFT
+    name: Microsoft Corporation
+    cik: "0000789019"
+    ticker: MSFT
+    isin: US5949181045
+    lei: INR2EJN1ERAN0W5ZP974
+    exchange: XNAS
+    country: US
+    sector: technology
+    industry: software
+    currency: USD
+    fiscal_year_end_month: 6
+    debt:
+      - {line: "Vencimientos a un año de la deuda a largo", tags: [LongTermDebtCurrent]}
+      - {line: "Deuda a largo plazo", tags: [LongTermDebtNoncurrent], required: true}
+
+  # Ejercicio al último sábado de septiembre. Desde el ejercicio 2024 no publica el gasto financiero
+  # (solo «otros ingresos y gastos»): el último dato es de septiembre de 2023, así que la cobertura
+  # de intereses sale «no disponible». Arrendamientos fuera de la deuda.
+  - id: AAPL
+    name: Apple Inc.
+    cik: "0000320193"
+    ticker: AAPL
+    isin: US0378331005
+    lei: HWUPKR0MPOU8FGXBT394
+    exchange: XNAS
+    country: US
+    sector: technology
+    industry: tech_hardware
+    currency: USD
+    fiscal_year_end_month: 9  # último sábado de septiembre
+    debt:
+      - {line: "Papel comercial", tags: [CommercialPaper]}
+      - {line: "Deuda a plazo con vencimiento a un año", tags: [LongTermDebtCurrent]}
+      - {line: "Deuda a plazo a largo", tags: [LongTermDebtNoncurrent], required: true}
+
+  # Ejercicio al último sábado de julio. La deuda a corto ya incluye el papel comercial y los
+  # vencimientos a un año. Amortizaciones fijadas: Cisco etiqueta las del estado de flujos con una
+  # etiqueta propia que la SEC no publica; la estándar solo trae la depreciación del inmovilizado
+  # (700 M, redondeada a cientos de millones y solo anual), así que se le suma la amortización de
+  # intangibles (916 M en 2026). Sin la suma, el EBITDA saldría infravalorado. Al ser anual, el
+  # EBITDA solo está disponible al cierre del ejercicio (en los trimestres sale «no disponible»).
+  - id: CSCO
+    name: Cisco Systems, Inc.
+    cik: "0000858877"
+    ticker: CSCO
+    isin: US17275R1023
+    lei: 549300LKFJ962MZ46593
+    exchange: XNAS
+    country: US
+    sector: technology
+    industry: tech_hardware
+    currency: USD
+    fiscal_year_end_month: 7  # último sábado de julio
+    debt:
+      - {line: "Deuda a corto plazo (incluye papel comercial y vencimientos a un año)", tags: [DebtCurrent]}
+      - {line: "Deuda a largo plazo", tags: [LongTermDebtNoncurrent], required: true}
+    depreciation: [DepreciationDepletionAndAmortization, AmortizationOfIntangibleAssets]
+
+  # Sustituye a IBM. Ejercicio a 31 de mayo. La deuda a largo solo lleva LongTermNotesPayable al
+  # cierre del año; en los trimestres, LongTermNotesAndLoans (mismo importe). Arrendamientos
+  # financieros (9.185 M a 31/08/2026) fuera de la deuda. Inversión en centros de datos mayor que el
+  # flujo operativo y +144 M de acciones en el trimestre a 31/08/2026: son datos reales.
+  - id: ORCL
+    name: Oracle Corporation
+    cik: "0001341439"
+    ticker: ORCL
+    isin: US68389X1054
+    lei: 1Z4GXXU7ZHVWFCD8TV52
+    exchange: XNYS
+    country: US
+    sector: technology
+    industry: software
+    currency: USD
+    fiscal_year_end_month: 5
+    debt:
+      - {line: "Pagarés y otros préstamos a corto", tags: [NotesPayableCurrent, DebtCurrent]}
+      - {line: "Pagarés y otros préstamos a largo", tags: [LongTermNotesAndLoans, LongTermNotesPayable], required: true}
+
+  # --- Industria ----------------------------------------------------------------------------------
+  # Sustituye a Honeywell. La caja incluye la restringida (no publica la caja sin ella). Los pagos
+  # por los litigios (PFAS, tapones auditivos) hunden el flujo operativo de 2025: dato real.
+  - id: MMM
+    name: 3M Company
+    cik: "0000066740"
+    ticker: MMM
+    isin: US88579Y1010
+    lei: LUZQVYP4VS22CLWDAR65
+    exchange: XNYS
+    country: US
+    sector: industrials
+    industry: capital_goods
+    currency: USD
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Préstamos a corto y vencimientos a un año de la deuda a largo", tags: [DebtCurrent]}
+      - {line: "Deuda a largo plazo", tags: [LongTermDebtNoncurrent], required: true}
+
+  # Sustituye a Caterpillar (mismo subsector; compite con su filial ferroviaria Progress Rail). La
+  # titulización de cuentas a cobrar es una venta y no figura como deuda. La caja incluye la
+  # restringida.
+  - id: WAB
+    name: Westinghouse Air Brake Technologies Corporation
+    cik: "0000943452"
+    ticker: WAB
+    isin: US9297401088
+    lei: 06BTX5UWZD0GQ5N5Y745
+    exchange: XNYS
+    country: US
+    sector: industrials
+    industry: capital_goods
+    currency: USD
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Vencimientos a un año de la deuda a largo", tags: [LongTermDebtCurrent]}
+      - {line: "Deuda a largo plazo", tags: [LongTermDebtNoncurrent], required: true}
+
+  # Sustituye a Deere. Su financiera (AGCO Finance, con Rabobank) no consolida: sin deuda de
+  # financiera cautiva. Solo publica el gasto financiero neto de ingresos. 2024 con pérdidas por
+  # ventas de negocios y un cuarto trimestre de 2025 atípico (el estudio lo avisa): datos reales.
+  - id: AGCO
+    name: AGCO Corporation
+    cik: "0000880266"
+    ticker: AGCO
+    isin: US0010841023
+    lei: LYOM0B2GCF1JWXK5ZG04
+    exchange: XNYS
+    country: US
+    sector: industrials
+    industry: capital_goods
+    currency: USD
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Préstamos a corto y vencimientos a un año de la deuda a largo", tags: [DebtCurrent]}
+      - {line: "Deuda a largo plazo", tags: [LongTermDebtNoncurrent], required: true}
+
+  # Sustituye a Union Pacific. Su «deuda a corto» son los vencimientos a un año. La caja incluye la
+  # restringida; el patrimonio atribuible sale de restar minoritarios y las acciones, de la portada
+  # de cada informe (en el balance solo las publica a fin de año).
+  - id: CSX
+    name: CSX Corporation
+    cik: "0000277948"
+    ticker: CSX
+    isin: US1264081035
+    lei: 549300JVQR4N1MMP3Q88
+    exchange: XNAS
+    country: US
+    sector: industrials
+    industry: transportation
+    currency: USD
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Deuda a corto plazo (vencimientos a un año)", tags: [LongTermDebtAndCapitalLeaseObligationsCurrent]}
+      - {line: "Deuda a largo plazo", tags: [LongTermDebtAndCapitalLeaseObligations], required: true}
+
+  # --- Salud --------------------------------------------------------------------------------------
+  # Abbott: tecnología médica, diagnóstico, nutrición y genéricos de marca; la mayor parte del negocio
+  # es tecnología médica. Su balance solo tiene dos líneas de deuda (no presenta préstamos a corto
+  # desde 2022). La deuda a largo sube de 9.896 a unos 29.600 millones en 2026 por la financiación de
+  # la compra de Exact Sciences.
+  - id: ABT
+    name: Abbott Laboratories
+    cik: "0000001800"
+    ticker: ABT
+    isin: US0028241000
+    lei: HQD377W2YR662HK5JX27
+    exchange: XNYS
+    country: US
+    sector: health_care
+    industry: medical_devices
+    currency: USD
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Vencimientos a un año de la deuda a largo", tags: [LongTermDebtCurrent]}
+      - {line: "Deuda a largo plazo", tags: [LongTermDebtNoncurrent], required: true}
+
+  # AbbVie: sustituye a Johnson & Johnson. Sus líneas de deuda incluyen los arrendamientos financieros
+  # (unos 40 millones), porque la empresa los presenta dentro de la deuda. Los préstamos a corto no
+  # aparecen en algunos balances (cuentan como cero).
+  - id: ABBV
+    name: AbbVie Inc.
+    cik: "0001551152"
+    ticker: ABBV
+    isin: US00287Y1091
+    lei: FR5LCKFTG8054YNNRU85
+    exchange: XNYS
+    country: US
+    sector: health_care
+    industry: pharmaceuticals
+    currency: USD
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Préstamos a corto plazo", tags: [ShortTermBorrowings]}
+      - {line: "Vencimientos a un año de la deuda a largo", tags: [LongTermDebtAndCapitalLeaseObligationsCurrent]}
+      - {line: "Deuda a largo plazo", tags: [LongTermDebtAndCapitalLeaseObligations], required: true}
+
+  # Amgen: sustituye a Pfizer (biotecnológica; vende medicamentos con receta). No publica el patrimonio
+  # con minoritarios (no los tiene) y su gasto financiero sale de la etiqueta de intereses de la deuda.
+  - id: AMGN
+    name: Amgen Inc.
+    cik: "0000318154"
+    ticker: AMGN
+    isin: US0311621009
+    lei: 62QBXGPJ34PQ72Z12S66
+    exchange: XNAS
+    country: US
+    sector: health_care
+    industry: pharmaceuticals
+    currency: USD
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Vencimientos a un año de la deuda a largo", tags: [LongTermDebtCurrent]}
+      - {line: "Deuda a largo plazo", tags: [LongTermDebtNoncurrent], required: true}
+
+  # Stryker: sustituye a Merck & Co. (tecnología médica). Los vencimientos a un año incluyen el papel
+  # comercial. Etiqueta fijada: su balance presenta el patrimonio («Total shareholders' equity») con
+  # la etiqueta del patrimonio con minoritarios, pero no tiene minoritarios (no hay esa línea), así
+  # que es el patrimonio de los accionistas; la etiqueta del patrimonio sin minoritarios solo aparece
+  # hasta 2018.
+  - id: SYK
+    name: Stryker Corporation
+    cik: "0000310764"
+    ticker: SYK
+    isin: US8636671013
+    lei: 5493002F0SC4JTBU5137
+    exchange: XNYS
+    country: US
+    sector: health_care
+    industry: medical_devices
+    currency: USD
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Vencimientos a un año de la deuda", tags: [DebtCurrent]}
+      - {line: "Deuda a largo plazo", tags: [LongTermDebtNoncurrent], required: true}
+    tags:
+      equity_attributable: [StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest]
+
+  # --- Energía ------------------------------------------------------------------------------------
+  # Una empresa por cada parte de la cadena del petróleo y el gas: refino (Marathon Petroleum),
+  # producción (EQT) y transporte (Kinder Morgan).
+
+  # Marathon Petroleum: consolida MPLX (participada cotizada), así que su deuda incluye la de MPLX y el
+  # patrimonio total incluye minoritarios importantes. Las líneas de deuda incluyen los arrendamientos
+  # financieros, que la empresa presenta dentro de la deuda.
+  - id: MPC
+    name: Marathon Petroleum Corporation
+    cik: "0001510295"
+    ticker: MPC
+    isin: US56585A1025
+    lei: 3BNYRYQHD39K4LCKQF12
+    exchange: XNYS
+    country: US
+    sector: energy
+    industry: oil_gas
+    currency: USD
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Deuda con vencimiento a un año", tags: [LongTermDebtAndCapitalLeaseObligationsCurrent, DebtCurrent]}
+      - {line: "Deuda a largo plazo", tags: [LongTermDebtAndCapitalLeaseObligations], required: true}
+
+  # EQT: productor de gas natural. Presenta la deuda a largo en varias líneas del balance (línea de
+  # crédito, bonos sénior y, hasta 2024, un préstamo a plazo y un pagaré con EQM Midstream); se usa su
+  # total, que publica en cada informe desde junio de 2022 y coincide con la suma de esas líneas.
+  # Sus cifras vienen en miles de dólares.
+  - id: EQT
+    name: EQT Corporation
+    cik: "0000033213"
+    ticker: EQT
+    isin: US26884L1098
+    lei: 4NT01YGM4X7ZX86ISY52
+    exchange: XNYS
+    country: US
+    sector: energy
+    industry: oil_gas
+    currency: USD
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Vencimientos a un año de la deuda", tags: [LongTermDebtCurrent]}
+      - {line: "Deuda a largo plazo (línea de crédito, bonos y préstamos)", tags: [LongTermDebtNoncurrent], required: true}
+
+  # Kinder Morgan: transporte y almacenamiento de gas. La deuda a largo es el total que presenta el
+  # balance, que incluye el ajuste a valor razonable de la deuda cubierta (180 millones a cierre de
+  # 2025). Solo publica el gasto financiero neto de ingresos financieros.
+  - id: KMI
+    name: Kinder Morgan, Inc.
+    cik: "0001506307"
+    ticker: KMI
+    isin: US49456B1017
+    lei: 549300WR7IX8XE0TBO16
+    exchange: XNYS
+    country: US
+    sector: energy
+    industry: oil_gas
+    currency: USD
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Vencimientos a un año de la deuda", tags: [DebtCurrent]}
+      - {line: "Deuda a largo plazo", tags: [LongTermDebtNoncurrent], required: true}

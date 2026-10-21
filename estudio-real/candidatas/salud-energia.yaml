@@ -1,0 +1,164 @@
+# Estado (21/10/2026): comprobadas las 7 empresas (ABT, ABBV, AMGN, SYK, MPC, EQT, KMI) con
+# comprobar_empresas.py e incorporadas a universo.yaml; pendientes: ninguna. Identificadores verificados: CIK, mercado y cierre
+# fiscal con la SEC; ISIN (dígito de control) con OpenFIGI; LEI con GLEIF (nombre legal y
+# jurisdicción coinciden con el estado de constitución de la SEC).
+
+# --- Salud --------------------------------------------------------------------------------------
+# Excluidas tras revisar sus datos: Johnson & Johnson, Pfizer y Merck & Co. (no publican resultado
+# operativo: su cuenta de resultados pasa de los gastos al resultado antes de impuestos, así que no
+# hay EBIT ni EBITDA comparables). Tampoco lo publican Eli Lilly, Bristol-Myers Squibb, Zoetis ni
+# Biogen; Regeneron tiene dos clases de acciones y Vertex no tiene bonos. Gilead sí publica resultado
+# operativo, pero en los informes trimestrales etiqueta la amortización de intangibles con una
+# etiqueta que la herramienta no lee (AdjustmentForAmortization), así que solo habría EBITDA de
+# ejercicios completos y no de los doce últimos meses. Se sustituyen por AbbVie y Amgen
+# (farmacéuticas) y Stryker (tecnología médica), grandes emisores de EE. UU. con acciones y bonos.
+
+# Abbott: tecnología médica, diagnóstico, nutrición y genéricos de marca; la mayor parte del negocio
+# es tecnología médica. Su balance solo tiene dos líneas de deuda (no presenta préstamos a corto
+# desde 2022). La deuda a largo sube de 9.896 a unos 29.600 millones en 2026 por la financiación de
+# la compra de Exact Sciences.
+- id: ABT
+  name: Abbott Laboratories
+  cik: "0000001800"
+  ticker: ABT
+  isin: US0028241000
+  lei: HQD377W2YR662HK5JX27
+  exchange: XNYS
+  country: US
+  sector: health_care
+  industry: medical_devices
+  currency: USD
+  fiscal_year_end_month: 12
+  debt:
+    - {line: "Vencimientos a un año de la deuda a largo", tags: [LongTermDebtCurrent]}
+    - {line: "Deuda a largo plazo", tags: [LongTermDebtNoncurrent], required: true}
+
+# AbbVie: sustituye a Johnson & Johnson. Sus líneas de deuda incluyen los arrendamientos financieros
+# (unos 40 millones), porque la empresa los presenta dentro de la deuda. Los préstamos a corto no
+# aparecen en algunos balances (cuentan como cero).
+- id: ABBV
+  name: AbbVie Inc.
+  cik: "0001551152"
+  ticker: ABBV
+  isin: US00287Y1091
+  lei: FR5LCKFTG8054YNNRU85
+  exchange: XNYS
+  country: US
+  sector: health_care
+  industry: pharmaceuticals
+  currency: USD
+  fiscal_year_end_month: 12
+  debt:
+    - {line: "Préstamos a corto plazo", tags: [ShortTermBorrowings]}
+    - {line: "Vencimientos a un año de la deuda a largo", tags: [LongTermDebtAndCapitalLeaseObligationsCurrent]}
+    - {line: "Deuda a largo plazo", tags: [LongTermDebtAndCapitalLeaseObligations], required: true}
+
+# Amgen: sustituye a Pfizer (biotecnológica; vende medicamentos con receta). No publica el patrimonio
+# con minoritarios (no los tiene) y su gasto financiero sale de la etiqueta de intereses de la deuda.
+- id: AMGN
+  name: Amgen Inc.
+  cik: "0000318154"
+  ticker: AMGN
+  isin: US0311621009
+  lei: 62QBXGPJ34PQ72Z12S66
+  exchange: XNAS
+  country: US
+  sector: health_care
+  industry: pharmaceuticals
+  currency: USD
+  fiscal_year_end_month: 12
+  debt:
+    - {line: "Vencimientos a un año de la deuda a largo", tags: [LongTermDebtCurrent]}
+    - {line: "Deuda a largo plazo", tags: [LongTermDebtNoncurrent], required: true}
+
+# Stryker: sustituye a Merck & Co. (tecnología médica). Los vencimientos a un año incluyen el papel
+# comercial. Etiqueta fijada: su balance presenta el patrimonio («Total shareholders' equity») con
+# la etiqueta del patrimonio con minoritarios, pero no tiene minoritarios (no hay esa línea), así
+# que es el patrimonio de los accionistas; la etiqueta del patrimonio sin minoritarios solo aparece
+# hasta 2018.
+- id: SYK
+  name: Stryker Corporation
+  cik: "0000310764"
+  ticker: SYK
+  isin: US8636671013
+  lei: 5493002F0SC4JTBU5137
+  exchange: XNYS
+  country: US
+  sector: health_care
+  industry: medical_devices
+  currency: USD
+  fiscal_year_end_month: 12
+  debt:
+    - {line: "Vencimientos a un año de la deuda", tags: [DebtCurrent]}
+    - {line: "Deuda a largo plazo", tags: [LongTermDebtNoncurrent], required: true}
+  tags:
+    equity_attributable: [StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest]
+
+# --- Energía ------------------------------------------------------------------------------------
+# Excluidas tras revisar sus datos: Exxon Mobil, Chevron y ConocoPhillips (no publican resultado
+# operativo; Exxon, además, cotiza desde julio de 2026 a través de una sociedad holding nueva con
+# otro CIK y casi sin historia en los datos estructurados). Tampoco publican resultado operativo
+# Occidental, Phillips 66 ni Devon. EOG y Diamondback sí lo publican, pero reparten sus inversiones
+# en varias líneas sin dar el total (no habría flujo de caja libre), y Valero deja de etiquetar sus
+# inversiones con una etiqueta estándar desde el cuarto trimestre de 2025. Se eligen tres grandes
+# emisores de EE. UU. con acciones y bonos que publican todas las partidas, uno por cada parte de la
+# cadena del petróleo y el gas: refino (Marathon Petroleum), producción (EQT) y transporte (Kinder
+# Morgan).
+
+# Marathon Petroleum: consolida MPLX (participada cotizada), así que su deuda incluye la de MPLX y el
+# patrimonio total incluye minoritarios importantes. Las líneas de deuda incluyen los arrendamientos
+# financieros, que la empresa presenta dentro de la deuda.
+- id: MPC
+  name: Marathon Petroleum Corporation
+  cik: "0001510295"
+  ticker: MPC
+  isin: US56585A1025
+  lei: 3BNYRYQHD39K4LCKQF12
+  exchange: XNYS
+  country: US
+  sector: energy
+  industry: oil_gas
+  currency: USD
+  fiscal_year_end_month: 12
+  debt:
+    - {line: "Deuda con vencimiento a un año", tags: [LongTermDebtAndCapitalLeaseObligationsCurrent, DebtCurrent]}
+    - {line: "Deuda a largo plazo", tags: [LongTermDebtAndCapitalLeaseObligations], required: true}
+
+# EQT: productor de gas natural. Presenta la deuda a largo en varias líneas del balance (línea de
+# crédito, bonos sénior y, hasta 2024, un préstamo a plazo y un pagaré con EQM Midstream); se usa su
+# total, que publica en cada informe desde junio de 2022 y coincide con la suma de esas líneas.
+# Sus cifras vienen en miles de dólares.
+- id: EQT
+  name: EQT Corporation
+  cik: "0000033213"
+  ticker: EQT
+  isin: US26884L1098
+  lei: 4NT01YGM4X7ZX86ISY52
+  exchange: XNYS
+  country: US
+  sector: energy
+  industry: oil_gas
+  currency: USD
+  fiscal_year_end_month: 12
+  debt:
+    - {line: "Vencimientos a un año de la deuda", tags: [LongTermDebtCurrent]}
+    - {line: "Deuda a largo plazo (línea de crédito, bonos y préstamos)", tags: [LongTermDebtNoncurrent], required: true}
+
+# Kinder Morgan: transporte y almacenamiento de gas. La deuda a largo es el total que presenta el
+# balance, que incluye el ajuste a valor razonable de la deuda cubierta (180 millones a cierre de
+# 2025). Solo publica el gasto financiero neto de ingresos financieros.
+- id: KMI
+  name: Kinder Morgan, Inc.
+  cik: "0001506307"
+  ticker: KMI
+  isin: US49456B1017
+  lei: 549300WR7IX8XE0TBO16
+  exchange: XNYS
+  country: US
+  sector: energy
+  industry: oil_gas
+  currency: USD
+  fiscal_year_end_month: 12
+  debt:
+    - {line: "Vencimientos a un año de la deuda", tags: [DebtCurrent]}
+    - {line: "Deuda a largo plazo", tags: [LongTermDebtNoncurrent], required: true}

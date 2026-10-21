@@ -31,6 +31,7 @@ class Industry(StrEnum):
     SOFTWARE = "software"
     SEMICONDUCTORS = "semiconductors"
     IT_SERVICES = "it_services"
+    TECH_HARDWARE = "tech_hardware"
     ELECTRIC_UTILITIES = "electric_utilities"
     BANKS = "banks"
     INSURANCE = "insurance"
@@ -83,6 +84,7 @@ _INDUSTRY_LABELS = {
     Industry.SOFTWARE: "Software",
     Industry.SEMICONDUCTORS: "Semiconductores",
     Industry.IT_SERVICES: "Servicios tecnológicos",
+    Industry.TECH_HARDWARE: "Equipos tecnológicos",
     Industry.ELECTRIC_UTILITIES: "Eléctricas",
     Industry.BANKS: "Bancos",
     Industry.INSURANCE: "Seguros",
@@ -101,6 +103,7 @@ _INDUSTRY_SECTOR = {
     Industry.SOFTWARE: Sector.TECHNOLOGY,
     Industry.SEMICONDUCTORS: Sector.TECHNOLOGY,
     Industry.IT_SERVICES: Sector.TECHNOLOGY,
+    Industry.TECH_HARDWARE: Sector.TECHNOLOGY,
     Industry.ELECTRIC_UTILITIES: Sector.UTILITIES,
     Industry.BANKS: Sector.FINANCIALS,
     Industry.INSURANCE: Sector.FINANCIALS,

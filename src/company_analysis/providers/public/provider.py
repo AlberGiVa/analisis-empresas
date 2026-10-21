@@ -120,6 +120,7 @@ def _company(
         fiscal_year_end_month=company.fiscal_year_end_month,
         debt_lines=company.debt_lines(),
         overrides=company.tags,
+        depreciation_tags=company.depreciation,
     )
     prices: list[EquityPrice] = []
     yahoo: Mapping[str, Any] = {}

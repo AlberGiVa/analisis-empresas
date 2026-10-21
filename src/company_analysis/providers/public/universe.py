@@ -44,6 +44,7 @@ class CompanyEntry(_Model):
     fiscal_year_end_month: int = Field(ge=1, le=12)
     debt: list[DebtLineEntry] = Field(min_length=1)
     tags: dict[FinancialItem, list[str]] = Field(default_factory=dict)  # per-company overrides
+    depreciation: list[str] = Field(default_factory=list)  # tags summed for the EBITDA, if set
 
     @model_validator(mode="after")
     def _one_required_debt_line(self) -> CompanyEntry:

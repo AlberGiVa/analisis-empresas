@@ -391,8 +391,13 @@ def extract_financials(
     fiscal_year_end_month: int,
     debt_lines: Sequence[DebtLine],
     overrides: Mapping[FinancialItem, Sequence[str]] | None = None,
+    depreciation_tags: Sequence[str] = (),
 ) -> Extraction:
-    """Every catalogue item of one company, with its publication dates and its lineage."""
+    """Every catalogue item of one company, with its publication dates and its lineage.
+
+    ``depreciation_tags`` replaces the default depreciation sources of the EBITDA with the sum of
+    those tags (for a company whose usual tag leaves out part of its amortisation).
+    """
     calendar = FiscalCalendar(companyfacts, fiscal_year_end_month)
     result = Extraction()
     chosen: dict[FinancialItem, Series] = {}
@@ -410,7 +415,10 @@ def extract_financials(
         result.lineage.append(_lineage(item, source.label, source.note, series))
 
     # EBITDA = operating income (EBIT) + depreciation and amortisation, both as published.
-    depreciation = choose_source(calendar, companyfacts, DEPRECIATION_SOURCES)
+    depreciation_sources = DEPRECIATION_SOURCES
+    if depreciation_tags:
+        depreciation_sources = (Source(tuple((tag, 1.0) for tag in depreciation_tags)),)
+    depreciation = choose_source(calendar, companyfacts, depreciation_sources)
     if FinancialItem.EBIT in chosen and depreciation is not None:
         ebitda = combine([chosen[FinancialItem.EBIT], depreciation[1]])
         chosen[FinancialItem.EBITDA] = ebitda
@@ -418,7 +426,11 @@ def extract_financials(
             _lineage(
                 FinancialItem.EBITDA,
                 f"OperatingIncomeLoss + {depreciation[0].label}",
-                "calculado: resultado operativo publicado más amortizaciones del estado de flujos",
+                "calculado: resultado operativo publicado más las amortizaciones fijadas en el "
+                "universo"
+                if depreciation_tags
+                else "calculado: resultado operativo publicado más amortizaciones del estado de "
+                "flujos",
                 ebitda,
             )
         )

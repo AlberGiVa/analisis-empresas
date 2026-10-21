@@ -98,6 +98,27 @@ def test_ebitda_is_operating_income_plus_depreciation(extraction: Extraction) ->
     assert ebitda.value == pytest.approx(ebit + depreciation)
 
 
+def test_depreciation_tags_fixed_in_the_universe_are_summed() -> None:
+    # A company whose usual tag leaves out the amortisation of intangibles (Cisco).
+    facts = public_samples.companyfacts()
+    gaap = facts["facts"]["us-gaap"]
+    gaap["AmortizationOfIntangibleAssets"] = gaap["DepreciationAndAmortization"]
+    result = extract_financials(
+        "ZZAA",
+        facts,
+        currency="USD",
+        fiscal_year_end_month=12,
+        debt_lines=DEBT,
+        depreciation_tags=["DepreciationAndAmortization", "AmortizationOfIntangibleAssets"],
+    )
+    (ebitda,) = facts_of(result, FinancialItem.EBITDA, FiscalPeriod.H1, date(2026, 6, 30))
+    ebit = 0.2 * 280 + public_samples.IMPAIRED_QUARTER_EBIT
+    assert ebitda.value == pytest.approx(ebit + 2 * 0.05 * 580)
+    lineage = {entry.item: entry for entry in result.lineage}
+    assert "AmortizationOfIntangibleAssets" in lineage[FinancialItem.EBITDA].source
+    assert "fijadas en el universo" in (lineage[FinancialItem.EBITDA].note or "")
+
+
 def test_cover_page_shares_belong_to_the_period_of_their_report(extraction: Extraction) -> None:
     (shares,) = facts_of(
         extraction, FinancialItem.SHARES_OUTSTANDING, FiscalPeriod.H1, date(2026, 6, 30)

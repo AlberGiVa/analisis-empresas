@@ -6,11 +6,13 @@ descarga o calcula se mezcla con la base principal ni se sube al repositorio.
 
 ## Qué analiza
 
-Diecisiete grandes empresas de EE. UU. con acciones y bonos en el mercado: diez de consumo básico
-(alimentación y bebidas; productos de hogar e higiene), tres eléctricas, dos bancos y dos
-aseguradoras. Publican sus cuentas en la SEC con la fecha exacta de cada informe, y los bancos y las
-aseguradoras muestran con datos reales las métricas que no les aplican. El porqué de cada empresa, sus identificadores verificados y
-cómo se construye su deuda están en [universo.yaml](universo.yaml).
+Treinta y dos grandes empresas de EE. UU. con acciones y bonos en el mercado: diez de consumo
+básico (alimentación y bebidas; productos de hogar e higiene), cuatro tecnológicas, cuatro
+industriales, cuatro de salud, tres de energía, tres eléctricas, dos bancos y dos aseguradoras.
+Publican sus cuentas en la SEC con la fecha exacta de cada informe, y los bancos y las aseguradoras
+muestran con datos reales las métricas que no les aplican. El porqué de cada empresa (y de las que
+se descartaron), sus identificadores verificados y cómo se construye su deuda están en
+[universo.yaml](universo.yaml).
 
 ## Cómo se usa
 
