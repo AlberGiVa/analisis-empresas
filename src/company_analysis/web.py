@@ -1,10 +1,12 @@
 """Public website: tables and views of the tool, open to anyone with the link (GitHub Pages).
 
-- Panel: the day at a glance (companies, alerts, currencies).
+- Panel: the day at a glance (markets, companies, alerts, currencies), Europe first.
+- Europa: European stock markets (TradingView widgets) and the euro's rates, sovereign yields and
+  exchange rates (ECB).
+- Internacional: America, Asia and the rest of the world, commodities and the world economy.
 - Empresas: real US companies with sources that may be republished (SEC accounts, no share prices,
   methodology ``estudio-real/metodologia-web.yaml``), with a sheet per company.
-- Divisas: euro exchange rates of the ECB.
-- Ejemplos: one fictitious company per case the tool handles.
+- Ejemplos: one fictitious company per situation the tool handles, with what its sheet shows.
 - Academy: terms and metric formulas, for whoever wants them.
 
 Every page wears the Luceiro Capital identity, in Spanish and English (``en/``). The analyst's
@@ -57,10 +59,17 @@ from company_analysis.providers.public.provider import (
 )
 from company_analysis.providers.public.universe import UniverseError, load_universe
 from company_analysis.providers.sample_generator import DEMO_AS_OF_DATES
-from company_analysis.reports import RunView, SiteNav, build_run_view, write_reports
+from company_analysis.reports import (
+    CompanyView,
+    RunView,
+    ScoreView,
+    SiteNav,
+    build_run_view,
+    write_reports,
+)
 from company_analysis.reports.render import _common_context, environment
 from company_analysis.reports.study import StudyView, build_study_view, write_study_report
-from company_analysis.reports.views import DISCLAIMER
+from company_analysis.reports.views import DISCLAIMER, MetricLine
 from company_analysis.settings import Settings
 from company_analysis.storage import open_database, save_bundle
 from company_analysis.storage.runs import latest_completed_run
@@ -76,70 +85,182 @@ console = Console(soft_wrap=True)
 
 SECTIONS: tuple[tuple[str, str, str], ...] = (  # (key, label, page from the website root)
     ("inicio", "Panel", "index.html"),
-    ("indices", "Índices", "indices.html"),
+    ("europa", "Europa", "europa.html"),
     ("internacional", "Internacional", "internacional.html"),
     ("reales", "Empresas", "reales/index.html"),
-    ("mercados", "Mercados", "mercados.html"),
     ("ejemplo", "Ejemplos", "ejemplo/index.html"),
     ("academy", "Academy", "academy.html"),
-    ("configuracion", "Configuración", "configuracion.html"),
 )
 REAL_NOTICE = (
     "Empresas reales con datos públicos de uso libre: cuentas de la SEC y tipos de cambio del BCE. "
     "Sin cotizaciones, así que no hay capitalización, PER ni EV/EBITDA."
 )
 SAMPLE_NOTICE = (
-    "Casos de ejemplo: empresas ficticias con datos inventados, una por cada caso que la "
-    "herramienta sabe tratar. Se comparan con las 20 empresas del ejemplo, aunque solo se "
-    "muestran estas."
+    "Ejemplo con empresas ficticias y datos inventados: sirven para ver cómo responde la "
+    "herramienta en cada situación."
 )
-# One fictitious company per case the tool handles (data/sample/README.md):
-# (company, case, what to look at)
-SAMPLE_CASES: tuple[tuple[str, str, str], ...] = (
-    ("VALD", "Empresa sin incidencias", "Todos los datos disponibles: sirve de referencia."),
-    ("ORBE", "EBITDA negativo", "PER y EV/EBITDA «no significativos» y alerta de apalancamiento."),
-    ("HELV", "Empresa sin deuda", "Sin bonos ni puntuación de crédito; deuda neta negativa."),
-    ("CORV", "Falta un dato: inversiones", "FCF yield «sin dato», con el motivo."),
+
+
+@dataclass(frozen=True)
+class SampleCase:
+    """A fictitious company of the sample that shows how the tool handles one situation."""
+
+    issuer_id: str
+    title: str
+    situation: str  # what is special about the company
+    response: str  # what the tool does about it
+    shows: tuple[str, ...]  # lines of its sheet shown as proof (see ``evidence``)
+
+
+# One fictitious company per situation the tool handles (data/sample/README.md), by group:
+# (title, introduction, cases).
+SAMPLE_GROUPS: tuple[tuple[str, str, tuple[SampleCase, ...]], ...] = (
     (
-        "LUMB",
-        "Falta un dato: gastos financieros",
-        "Cobertura de intereses «sin dato», con el motivo.",
+        "La referencia",
+        "Una empresa con todos sus datos: así se ve una ficha completa.",
+        (
+            SampleCase(
+                "VALD",
+                "Empresa sin incidencias",
+                "Industrial con cuentas, cotización y bonos completos.",
+                "Calcula todas las métricas y las dos puntuaciones con todos sus factores.",
+                ("accionista", "acreedor", "pe_ratio", "net_debt_to_ebitda"),
+            ),
+        ),
     ),
     (
-        "SKRV",
-        "Cotización desactualizada",
-        "Las métricas de mercado quedan como «dato desactualizado».",
+        "Cuando falta un dato",
+        "La herramienta nunca estima ni rellena un dato que falta: lo marca, dice por qué y "
+        "puntúa con el resto de factores. Si faltan demasiados, no da puntuación.",
+        (
+            SampleCase(
+                "CORV",
+                "Faltan las inversiones",
+                "No ha publicado sus inversiones en inmovilizado (capex) de 2025.",
+                "Sin inversiones no hay flujo de caja libre: el FCF yield queda «sin dato» y la "
+                "puntuación de accionista se calcula con los demás factores.",
+                ("fcf_yield", "accionista"),
+            ),
+            SampleCase(
+                "LUMB",
+                "Faltan los gastos financieros",
+                "No ha publicado sus gastos financieros de 2025.",
+                "La cobertura de intereses queda «sin dato» y la puntuación de acreedor se "
+                "calcula con los demás factores.",
+                ("interest_coverage", "acreedor"),
+            ),
+            SampleCase(
+                "SKRV",
+                "Cotización desactualizada",
+                "Su última cotización tiene más de tres meses.",
+                "Las métricas que necesitan el precio quedan como «dato desactualizado»; las "
+                "contables, como el ROE, se calculan igual. Le faltan demasiados factores para "
+                "darle puntuación de accionista.",
+                ("pe_ratio", "roe", "accionista"),
+            ),
+        ),
     ),
     (
-        "NEXL",
-        "Reporta en otra divisa",
-        "Cotiza en euros y reporta en dólares: se convierte al tipo de cambio.",
+        "Empresas con características especiales",
+        "Situaciones normales en una cartera que obligan a tratar los datos de otra forma.",
+        (
+            SampleCase(
+                "ORBE",
+                "EBITDA negativo",
+                "Tecnológica en pérdidas: su EBITDA y su beneficio de los últimos doce meses son "
+                "negativos.",
+                "Un múltiplo sobre una cifra negativa no tiene sentido: el PER, el EV/EBITDA y la "
+                "deuda neta/EBITDA salen «no significativo». Además, avisa del apalancamiento.",
+                ("pe_ratio", "ev_to_ebitda", "net_debt_to_ebitda", "alertas"),
+            ),
+            SampleCase(
+                "HELV",
+                "Empresa sin deuda",
+                "Tecnológica sin deuda financiera ni bonos.",
+                "Su deuda neta es negativa (tiene más caja que deuda) y no recibe puntuación de "
+                "acreedor: no hay bonos que analizar.",
+                ("net_debt_to_ebitda", "interest_coverage", "acreedor"),
+            ),
+            SampleCase(
+                "NEXL",
+                "Cotiza en euros y publica en dólares",
+                "Cotiza en Ámsterdam en euros, pero sus cuentas están en dólares.",
+                "Pasa la capitalización a dólares con el tipo de cambio de la fecha de la "
+                "cotización, para que el PER compare cifras en la misma moneda.",
+                ("cotizacion", "divisa", "capitalizacion", "pe_ratio"),
+            ),
+            SampleCase(
+                "PELL",
+                "Ejercicio que cierra en marzo",
+                "Su ejercicio va de abril a marzo.",
+                "Usa el último ejercicio publicado, cerrado en marzo de 2026, y lo compara con "
+                "el año 2025 de las demás empresas.",
+                ("periodo", "revenue_growth"),
+            ),
+            SampleCase(
+                "BVAL",
+                "Banco",
+                "Un banco: su deuda son sobre todo depósitos y su negocio es prestar.",
+                "Las métricas basadas en el EBITDA, la deuda neta o el valor de empresa «no "
+                "aplican» y no cuentan en la puntuación; el PER y el ROE, sí.",
+                ("ev_to_ebitda", "debt_to_equity", "roe", "acreedor"),
+            ),
+            SampleCase(
+                "AUBR",
+                "Aseguradora",
+                "Una aseguradora: invierte las primas que cobra para pagar los siniestros.",
+                "Igual que en los bancos: esas métricas «no aplican» y se puntúa con las demás.",
+                ("fcf_yield", "roe", "accionista"),
+            ),
+        ),
     ),
-    ("ASHC", "Rebaja de rating", "Alerta de rebaja; su bono pasa al tramo BB."),
-    ("VERD", "Subida de rating", "Una subida no genera alerta."),
     (
-        "PELL",
-        "Ejercicio que no cierra en diciembre",
-        "Cierra en marzo y se compara con el año natural.",
+        "Bonos y rating",
+        "Cómo sigue la herramienta los ratings y los diferenciales de los bonos.",
+        (
+            SampleCase(
+                "ASHC",
+                "Rebaja de rating",
+                "Sus bonos bajaron de BBB- a BB+ el 12/03/2026: dejaron de ser grado de inversión.",
+                "Lanza una alerta por cada bono y desde entonces los compara con los del tramo BB.",
+                ("alertas", "bonos"),
+            ),
+            SampleCase(
+                "VERD",
+                "Subida de rating",
+                "Sus bonos subieron de A- a A en 2024.",
+                "Una subida no genera alerta: solo cambia el tramo con el que se comparan.",
+                ("bonos", "alertas"),
+            ),
+            SampleCase(
+                "GRSH",
+                "Tramo de rating con pocos bonos",
+                "Uno de sus bonos es AA-, un tramo con muy pocos bonos en el ejemplo, y otro no "
+                "tiene rating.",
+                "No compara un diferencial con un grupo demasiado pequeño ni con un tramo que no "
+                "existe: lo marca y usa solo el bono que sí se puede comparar.",
+                ("bonos", "spread_vs_rating_bucket"),
+            ),
+        ),
     ),
-    (
-        "GRSH",
-        "Tramo de rating con pocos bonos",
-        "Diferencial «sin comparables suficientes» y un bono sin rating.",
-    ),
-    ("BVAL", "Banco", "Las métricas basadas en EBITDA, deuda neta o EV «no aplican»."),
-    ("AUBR", "Aseguradora", "Igual que los bancos: esas métricas «no aplican»."),
+)
+SAMPLE_CASES: tuple[SampleCase, ...] = tuple(
+    case for _, _, group in SAMPLE_GROUPS for case in group
 )
 MARKER = ".web-generada"  # marks a folder this command may replace
 WEB_METHODOLOGY = "metodologia-web.yaml"
 LOGO = "luceiro-logo.webp"
 ENGLISH = "en"  # folder of the English version
 LANGUAGE_LINK = "#cambiar-idioma"  # replaced by the same page in the other language
+# The language selector at the top right (layout.html.j2): the current language, and a link to the
+# other one. The English pages swap them.
 SWITCH_TO_ENGLISH = (
-    '<a class="lang" href="#cambiar-idioma" hreflang="en" lang="en" translate="no">English</a>'
+    '<span class="lang-opt" aria-current="true" lang="es" translate="no">ES</span>'
+    '<a class="lang-opt" href="#cambiar-idioma" hreflang="en" lang="en" translate="no">EN</a>'
 )
 SWITCH_TO_SPANISH = (
-    '<a class="lang" href="#cambiar-idioma" hreflang="es" lang="es" translate="no">Español</a>'
+    '<a class="lang-opt" href="#cambiar-idioma" hreflang="es" lang="es" translate="no">ES</a>'
+    '<span class="lang-opt" aria-current="true" lang="en" translate="no">EN</span>'
 )
 
 
@@ -171,6 +292,75 @@ def _latest_views(conn: duckdb.DuckDBPyConnection) -> tuple[RunView, RunView | N
     return build_run_view(conn, latest.run_id), previous
 
 
+@dataclass(frozen=True)
+class Evidence:
+    """One line of a sample company's sheet, shown next to its case."""
+
+    label: str
+    value: str
+    state: str | None = None  # why the value is not available (shown instead of it)
+    note: str | None = None
+    alert: bool = False
+
+
+def _metric(company: CompanyView, metric_id: str) -> MetricLine:
+    factors = (*company.equity.factors, *company.credit.factors)
+    for line in (*(factor.metric for factor in factors), *company.magnitudes):
+        if line.metric_id == metric_id:
+            return line
+    raise WebError(f"La ficha de {company.issuer_id} no tiene la métrica {metric_id}.")
+
+
+def _score(score: ScoreView) -> Evidence:
+    note = score.reason or f"Cobertura: {score.coverage_text}"
+    return Evidence(score.title, score.value_text, note=note)
+
+
+def evidence(company: CompanyView, shows: Sequence[str]) -> list[Evidence]:
+    """The lines of the company's sheet that show its case, as the sheet shows them.
+
+    ``shows``: metric identifiers and ``accionista``, ``acreedor`` (scores), ``alertas``,
+    ``bonos``, ``periodo``, ``cotizacion``, ``divisa`` and ``capitalizacion`` (the one the PER
+    uses, in the currency of the accounts).
+    """
+    rows: list[Evidence] = []
+    for item in shows:
+        if item == "accionista":
+            rows.append(_score(company.equity))
+        elif item == "acreedor":
+            rows.append(_score(company.credit))
+        elif item == "alertas":
+            rows.extend(
+                Evidence("Alerta", alert.rule_label, note=alert.message, alert=True)
+                for alert in company.alerts
+            )
+            if not company.alerts:
+                rows.append(Evidence("Alertas", "Ninguna"))
+        elif item == "bonos":
+            rows.extend(
+                Evidence(
+                    f"Bono con vencimiento {bond.maturity_text}",
+                    bond.rating_text,
+                    note=bond.comparison_text,
+                )
+                for bond in company.bonds
+            )
+        elif item == "periodo":
+            rows.append(Evidence("Periodo de referencia", company.reference_text))
+        elif item == "cotizacion":
+            rows.append(Evidence("Cotización", company.price_text))
+        elif item == "divisa":
+            rows.append(Evidence("Divisa de las cuentas", company.currency))
+        elif item == "capitalizacion":
+            inputs = _metric(company, "pe_ratio").inputs
+            name, value = next(i for i in inputs if i[0].startswith("Capitalización"))
+            rows.append(Evidence(name, f"{value} M", note="La que usa el PER"))
+        else:
+            line = _metric(company, item)
+            rows.append(Evidence(line.name, line.value_text, line.status_label, line.detail))
+    return rows
+
+
 def build_sample(work: Path, site: Path, settings: Settings) -> RunView:
     """One fictitious company per case, analysed at the demo dates.
 
@@ -183,7 +373,7 @@ def build_sample(work: Path, site: Path, settings: Settings) -> RunView:
         save_bundle(conn, provider.fetch(), provider.name)
         _analyse(conn, DEMO_AS_OF_DATES, config)
         view, _ = _latest_views(conn)
-    shown = {issuer_id for issuer_id, _, _ in SAMPLE_CASES}
+    shown = {case.issuer_id for case in SAMPLE_CASES}
     missing = shown - {company.issuer_id for company in view.companies}
     if missing:
         raise WebError(f"Faltan en los datos de ejemplo: {', '.join(sorted(missing))}.")
@@ -191,11 +381,23 @@ def build_sample(work: Path, site: Path, settings: Settings) -> RunView:
     section = nav("ejemplo", SAMPLE_NOTICE)
     write_reports(cases, site, folder="ejemplo", site=section)
     env = environment()
-    rows = [(case, cases.company(issuer_id), what) for issuer_id, case, what in SAMPLE_CASES]
+    groups = [
+        (
+            title,
+            introduction,
+            [
+                (case, company, evidence(company, case.shows))
+                for case in group
+                for company in [cases.company(case.issuer_id)]
+            ],
+        )
+        for title, introduction, group in SAMPLE_GROUPS
+    ]
     (site / "ejemplo" / "index.html").write_text(
         env.get_template("web_casos.html.j2").render(
             **_common_context(cases, section) | {"site_root": "../"},
-            rows=rows,
+            groups=groups,
+            shown=len(SAMPLE_CASES),
             total=len(view.companies),
         ),
         encoding="utf-8",
@@ -578,8 +780,7 @@ def write_pages(
                 ),
             },
         ),
-        "mercados.html": ("web_mercados.html.j2", "mercados", {"fx": fx, "market": market}),
-        "indices.html": ("web_indices.html.j2", "indices", {}),
+        "europa.html": ("web_europa.html.j2", "europa", {"fx": fx, "market": market}),
         "internacional.html": ("web_internacional.html.j2", "internacional", {"market": market}),
         "academy.html": (
             "web_academy.html.j2",
@@ -594,7 +795,6 @@ def write_pages(
                 "min_peers": sample.config.scoring.min_peers,
             },
         ),
-        "configuracion.html": ("web_configuracion.html.j2", "configuracion", {}),
     }
     for filename, (template, key, context) in pages.items():
         (site / filename).write_text(

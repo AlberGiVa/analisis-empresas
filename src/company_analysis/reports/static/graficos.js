@@ -274,7 +274,7 @@
     node.querySelector(".hora").textContent = ok ? now.toLocaleTimeString(LOCALE, { hour: "2-digit", minute: "2-digit" }) : "";
   }
 
-  /* --- Market views (Panel and Mercados) ---------------------------------------------------- */
+  /* --- Market views (Panel and Europa) ------------------------------------------------------ */
   var DAY = 864e5;
   var RANGES = { "1M": 31, "3M": 92, "6M": 183, "1A": 366, "2A": 731 };
   var TENOR_YEARS = { "3M": 0.25, "6M": 0.5, "1Y": 1, "2Y": 2, "3Y": 3, "5Y": 5, "7Y": 7, "10Y": 10, "15Y": 15, "20Y": 20, "30Y": 30 };
@@ -350,7 +350,7 @@
     var bondsBox = document.getElementById("grafico-bonos");
     var spreadBox = document.getElementById("grafico-prima");
     var bondsChart = bondsBox && lineChart(bondsBox, { height: 260, decimals: 2, yFormat: function (v) { return num(v, 2) + " %"; } });
-    var spreadChart = spreadBox && lineChart(spreadBox, { height: 260, decimals: 0, yFormat: function (v) { return num(v, 0) + " pb"; } });
+    var spreadChart = spreadBox && lineChart(spreadBox, { height: 260, decimals: 0, yFormat: function (v) { return num(v, 0) + " " + texto("pb", "pb"); } });
     function spread(country) {  /* country minus Germany, in basis points, month by month */
       var de = {}, out = [];
       (data.bonds.DE || []).forEach(function (p) { de[p[0]] = p[1]; });
@@ -398,19 +398,19 @@
           points = data.estr;
           value = num(points[points.length - 1][1], 3) + " %";
           deltaValue = points.length > 1 ? (points[points.length - 1][1] - points[points.length - 2][1]) * 100 : 0;
-          delta = (deltaValue > 0 ? "+" : deltaValue < 0 ? "−" : "") + num(Math.abs(deltaValue), 1) + " pb";
+          delta = (deltaValue > 0 ? "+" : deltaValue < 0 ? "−" : "") + num(Math.abs(deltaValue), 1) + " " + texto("pb", "pb");
         } else if (kind === "dfr" && data.dfr.length) {
           points = data.dfr;
           value = num(points[points.length - 1][1], 2) + " %";
           var yearAgo = valueBefore(points, 365);
           deltaValue = yearAgo === null ? 0 : (points[points.length - 1][1] - yearAgo) * 100;
-          delta = (deltaValue > 0 ? "+" : deltaValue < 0 ? "−" : "") + num(Math.abs(deltaValue), 0) + " pb · 1A";
+          delta = (deltaValue > 0 ? "+" : deltaValue < 0 ? "−" : "") + num(Math.abs(deltaValue), 0) + " " + texto("pb", "pb") + " · " + texto("1a", "1A");
         } else if (kind === "prima") {
           points = spread("ES");
           if (points.length) {
-            value = num(points[points.length - 1][1], 0) + " pb";
+            value = num(points[points.length - 1][1], 0) + " " + texto("pb", "pb");
             deltaValue = points.length > 1 ? points[points.length - 1][1] - points[points.length - 2][1] : 0;
-            delta = (deltaValue > 0 ? "+" : deltaValue < 0 ? "−" : "") + num(Math.abs(deltaValue), 0) + " pb";
+            delta = (deltaValue > 0 ? "+" : deltaValue < 0 ? "−" : "") + num(Math.abs(deltaValue), 0) + " " + texto("pb", "pb");
           }
         } else if (kind === "10Y") {
           var days = Object.keys(data.curve).sort();
@@ -418,7 +418,7 @@
           if (points.length) {
             value = num(points[points.length - 1][1], 2) + " %";
             deltaValue = points.length > 1 ? (points[points.length - 1][1] - points[points.length - 2][1]) * 100 : 0;
-            delta = (deltaValue > 0 ? "+" : deltaValue < 0 ? "−" : "") + num(Math.abs(deltaValue), 1) + " pb";
+            delta = (deltaValue > 0 ? "+" : deltaValue < 0 ? "−" : "") + num(Math.abs(deltaValue), 1) + " " + texto("pb", "pb");
           }
         }
         if (!points || !points.length) return;
@@ -549,32 +549,47 @@
   /* --- TradingView widgets (indices, commodities, Spanish stocks) --------------------------------
    * The data are TradingView's, shown inside its own official widget: they are not copied nor
    * republished here. Each container: <div data-tv="widget-file-name"><script type="application/json">
-   * {config}</script></div>. Strings starting with "@" are labels of the page (translated). */
+   * {config}</script></div>. Strings starting with "@" are labels of the page (translated).
+   * A group of buttons <div data-mapas="box id"><button data-fuente="IBEX35"> switches the index
+   * of a heat map. */
   function tradingview() {
     var boxes = document.querySelectorAll("[data-tv]");
     if (!boxes.length) return;
-    function build() {
+    function buildBox(box) {
       var dark = (getComputedStyle(document.documentElement).colorScheme || "").indexOf("dark") >= 0;
-      boxes.forEach(function (box) {
-        var source = box.querySelector("script[type='application/json']");
-        if (!box._config) box._config = source ? source.textContent : "{}";
-        var config = JSON.parse(box._config, function (key, value) {
-          return typeof value === "string" && value.charAt(0) === "@" ? texto(value.slice(1), value.slice(1)) : value;
-        });
-        config.colorTheme = dark ? "dark" : "light";
-        config.isTransparent = true;
-        config.locale = document.documentElement.lang === "en" ? "en" : "es";
-        box.innerHTML = '<div class="tradingview-widget-container" style="height:100%"><div class="tradingview-widget-container__widget" style="height:100%"></div></div>';
-        var script = document.createElement("script");
-        script.src = "https://s3.tradingview.com/external-embedding/embed-widget-" + box.getAttribute("data-tv") + ".js";
-        script.async = true;
-        script.textContent = JSON.stringify(config);
-        box.firstChild.appendChild(script);
+      var source = box.querySelector("script[type='application/json']");
+      if (!box._config) box._config = source ? source.textContent : "{}";
+      var config = JSON.parse(box._config, function (key, value) {
+        return typeof value === "string" && value.charAt(0) === "@" ? texto(value.slice(1), value.slice(1)) : value;
       });
+      config.colorTheme = dark ? "dark" : "light";
+      config.isTransparent = true;
+      config.locale = document.documentElement.lang === "en" ? "en" : "es";
+      box.innerHTML = '<div class="tradingview-widget-container" style="height:100%"><div class="tradingview-widget-container__widget" style="height:100%"></div></div>';
+      var script = document.createElement("script");
+      script.src = "https://s3.tradingview.com/external-embedding/embed-widget-" + box.getAttribute("data-tv") + ".js";
+      script.async = true;
+      script.textContent = JSON.stringify(config);
+      box.firstChild.appendChild(script);
     }
+    function build() { boxes.forEach(buildBox); }
     build();
+    document.querySelectorAll("[data-mapas]").forEach(function (group) {
+      var box = document.getElementById(group.getAttribute("data-mapas"));
+      if (!box) return;
+      var buttons = group.querySelectorAll("[data-fuente]");
+      buttons.forEach(function (button) {
+        button.addEventListener("click", function () {
+          var config = JSON.parse(box._config);
+          config.dataSource = button.getAttribute("data-fuente");
+          box._config = JSON.stringify(config);
+          buttons.forEach(function (b) { b.setAttribute("aria-pressed", String(b === button)); });
+          buildBox(box);
+        });
+      });
+    });
     var pending = null;
-    window.addEventListener("luceiro:tema", function () {  /* new style or mode: redraw with its theme */
+    window.addEventListener("luceiro:tema", function () {  /* light or dark mode: redraw with its theme */
       clearTimeout(pending);
       pending = setTimeout(build, 300);
     });
@@ -623,7 +638,7 @@
     markets();
   });
   new MutationObserver(function () { window.dispatchEvent(new Event("luceiro:tema")); })
-    .observe(document.documentElement, { attributes: true, attributeFilter: ["data-estilo", "data-theme"] });
+    .observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
   window.Graficos = {
     ecb: ecb, fxSeries: fxSeries, lineChart: lineChart, liveStamp: liveStamp,

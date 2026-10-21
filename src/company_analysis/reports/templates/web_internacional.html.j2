@@ -17,14 +17,48 @@
   <div><p class="eyebrow">Mercados</p><h1>Internacional</h1></div>
   <span class="muted small">Mercados: TradingView · Economía: Banco Mundial</span>
 </div>
+<nav class="jump" aria-label="En esta página">
+  <a href="#america">América</a><a href="#mundo">Asia y resto del mundo</a><a href="#economia-mundial">Economía</a><a href="#cotizaciones">Cotizaciones</a>
+</nav>
 
 <div class="intl">
+  <h2 class="part" id="america">América</h2>
+  <section class="panel-card">
+    <div class="panel-head"><h2>Principales índices</h2><span class="muted small">Datos de TradingView, con el retraso propio de cada mercado</span></div>
+    <div class="tv" data-tv="symbol-overview" style="height:460px"><script type="application/json">
+      {"symbols": [["S&P 500", "FOREXCOM:SPXUSD|1D"], ["Nasdaq 100", "FOREXCOM:NSXUSD|1D"], ["Dow Jones", "FOREXCOM:DJI|1D"],
+                   ["@tsx", "TSX:TSX|1D"], ["@bovespa", "BMFBOVESPA:IBOV|1D"]],
+       "chartOnly": false, "width": "100%", "height": "100%", "autosize": true, "showVolume": false, "showMA": false,
+       "hideDateRanges": false, "hideMarketStatus": false, "hideSymbolLogo": false, "scalePosition": "right",
+       "scaleMode": "Normal", "fontSize": "10", "noTimeScale": false, "valuesTracking": "1",
+       "changeMode": "price-and-percent", "chartType": "area", "lineWidth": 2, "lineType": 0,
+       "dateRanges": ["1d|1", "1m|30", "3m|60", "12m|1D", "60m|1W", "all|1M"]}
+    </script></div>
+  </section>
+
+  <section class="panel-card">
+    <div class="panel-head"><h2>Mapa de la bolsa de EE. UU.</h2>
+      <div class="seg" role="group" aria-label="Índice del mapa" data-mapas="mapa-eeuu">
+        <button type="button" data-fuente="SPX500" aria-pressed="true">S&amp;P 500</button>
+        <button type="button" data-fuente="NASDAQ100" aria-pressed="false">Nasdaq 100</button>
+        <button type="button" data-fuente="DJDJI" aria-pressed="false">Dow Jones</button>
+      </div>
+    </div>
+    <p class="muted small map-note">Tamaño según capitalización; color según la variación del día</p>
+    <div class="tv" id="mapa-eeuu" data-tv="stock-heatmap" style="height:560px"><script type="application/json">
+      {"exchanges": [], "dataSource": "SPX500", "grouping": "sector", "blockSize": "market_cap_basic",
+       "blockColor": "change", "hasTopBar": false, "isDataSetEnabled": false, "isZoomEnabled": true,
+       "hasSymbolTooltip": true, "width": "100%", "height": "100%"}
+    </script></div>
+  </section>
+
+  <h2 class="part" id="mundo">Asia y resto del mundo</h2>
   <section class="panel-card">
     <div class="panel-head"><h2>Renta variable mundial</h2>
       <span class="muted small">MSCI World, índice de referencia del fondo, a través de un ETF que lo replica</span></div>
     <div class="tv" data-tv="symbol-overview" style="height:460px"><script type="application/json">
-      {"symbols": [["MSCI World", "XETR:EUNL|1D"], ["@emergentes", "XETR:IS3N|1D"], ["Stoxx Europe 600", "XETR:EXSA|1D"],
-                   ["S&P 500", "FOREXCOM:SPXUSD|1D"], ["Nikkei 225", "PEPPERSTONE:JPN225|1D"]],
+      {"symbols": [["MSCI World", "XETR:EUNL|1D"], ["@emergentes", "XETR:IS3N|1D"], ["Nikkei 225", "PEPPERSTONE:JPN225|1D"],
+                   ["Hang Seng", "PEPPERSTONE:HK50|1D"], ["FTSE China A50", "PEPPERSTONE:CN50|1D"]],
        "chartOnly": false, "width": "100%", "height": "100%", "autosize": true, "showVolume": false, "showMA": false,
        "hideDateRanges": false, "hideMarketStatus": false, "hideSymbolLogo": false, "scalePosition": "right",
        "scaleMode": "Normal", "fontSize": "10", "noTimeScale": false, "valuesTracking": "1",
@@ -33,6 +67,7 @@
     </script></div>
   </section>
 
+  <h2 class="part" id="economia-mundial">Economía</h2>
   <div class="intl-two">
     <section class="panel-card">
       <div class="panel-head"><h2>Economía mundial</h2><span class="muted small">Último año publicado</span></div>
@@ -52,24 +87,23 @@
     </section>
   </div>
 
+  <h2 class="part" id="cotizaciones">Cotizaciones</h2>
   <section class="panel-card">
-    <div class="panel-head"><h2>Índices del mundo</h2></div>
-    <div class="tv" data-tv="market-quotes" style="height:700px"><script type="application/json">
+    <div class="tv" data-tv="market-quotes" style="height:760px"><script type="application/json">
       {"width": "100%", "height": "100%", "showSymbolLogo": true, "symbolsGroups": [
-        {"name": "@globales", "symbols": [
-          {"name": "XETR:EUNL", "displayName": "MSCI World (ETF)"}, {"name": "XETR:IS3N", "displayName": "@emergentes-etf"},
-          {"name": "XETR:EXSA", "displayName": "Stoxx Europe 600 (ETF)"}]},
-        {"name": "@europa", "symbols": [
-          {"name": "PEPPERSTONE:EUSTX50", "displayName": "Euro Stoxx 50"}, {"name": "XETR:DAX", "displayName": "DAX"},
-          {"name": "PEPPERSTONE:FRA40", "displayName": "CAC 40"}, {"name": "PEPPERSTONE:UK100", "displayName": "FTSE 100"},
-          {"name": "CAPITALCOM:IT40", "displayName": "FTSE MIB"}, {"name": "BME:IBC", "displayName": "IBEX 35"}]},
         {"name": "@america", "symbols": [
           {"name": "FOREXCOM:SPXUSD", "displayName": "S&P 500"}, {"name": "FOREXCOM:NSXUSD", "displayName": "Nasdaq 100"},
-          {"name": "FOREXCOM:DJI", "displayName": "Dow Jones"}, {"name": "TSX:TSX", "displayName": "S&P/TSX (Canadá)"},
-          {"name": "BMFBOVESPA:IBOV", "displayName": "Bovespa (Brasil)"}]},
+          {"name": "FOREXCOM:DJI", "displayName": "Dow Jones"}, {"name": "TSX:TSX", "displayName": "@tsx"},
+          {"name": "BMFBOVESPA:IBOV", "displayName": "@bovespa"}]},
         {"name": "@asia", "symbols": [
           {"name": "PEPPERSTONE:JPN225", "displayName": "Nikkei 225"}, {"name": "PEPPERSTONE:HK50", "displayName": "Hang Seng"},
-          {"name": "PEPPERSTONE:CN50", "displayName": "FTSE China A50"}, {"name": "PEPPERSTONE:AUS200", "displayName": "ASX 200 (Australia)"}]},
+          {"name": "PEPPERSTONE:CN50", "displayName": "FTSE China A50"}, {"name": "PEPPERSTONE:AUS200", "displayName": "@asx"}]},
+        {"name": "@globales", "symbols": [
+          {"name": "XETR:EUNL", "displayName": "MSCI World (ETF)"}, {"name": "XETR:IS3N", "displayName": "@emergentes-etf"}]},
+        {"name": "@materias", "symbols": [
+          {"name": "TVC:UKOIL", "displayName": "Brent"}, {"name": "TVC:USOIL", "displayName": "WTI"},
+          {"name": "TVC:GOLD", "displayName": "@oro"}, {"name": "TVC:SILVER", "displayName": "@plata"},
+          {"name": "CAPITALCOM:NATURALGAS", "displayName": "@gas"}, {"name": "CAPITALCOM:COPPER", "displayName": "@cobre"}]},
         {"name": "@divisas", "symbols": [
           {"name": "FX:EURUSD", "displayName": "EUR/USD"}, {"name": "FX:GBPUSD", "displayName": "GBP/USD"},
           {"name": "FX:USDJPY", "displayName": "USD/JPY"}, {"name": "FX_IDC:USDCNY", "displayName": "USD/CNY"}]},
@@ -78,24 +112,22 @@
       ]}
     </script></div>
   </section>
-
-  <section class="panel-card">
-    <div class="panel-head"><h2>Mapa del S&amp;P 500</h2><span class="muted small">Tamaño según capitalización; color según la variación del día</span></div>
-    <div class="tv" data-tv="stock-heatmap" style="height:560px"><script type="application/json">
-      {"exchanges": [], "dataSource": "SPX500", "grouping": "sector", "blockSize": "market_cap_basic",
-       "blockColor": "change", "hasTopBar": false, "isDataSetEnabled": false, "isZoomEnabled": true,
-       "hasSymbolTooltip": true, "width": "100%", "height": "100%"}
-    </script></div>
-  </section>
 </div>
 
 <div hidden>
+  <span data-texto="tsx">S&amp;P/TSX (Canadá)</span>
+  <span data-texto="bovespa">Bovespa (Brasil)</span>
+  <span data-texto="asx">ASX 200 (Australia)</span>
   <span data-texto="emergentes">MSCI Emergentes</span>
   <span data-texto="emergentes-etf">MSCI Emergentes (ETF)</span>
   <span data-texto="globales">Índices globales</span>
-  <span data-texto="europa">Europa</span>
   <span data-texto="america">América</span>
   <span data-texto="asia">Asia y Pacífico</span>
+  <span data-texto="materias">Materias primas</span>
+  <span data-texto="oro">Oro</span>
+  <span data-texto="plata">Plata</span>
+  <span data-texto="gas">Gas natural</span>
+  <span data-texto="cobre">Cobre</span>
   <span data-texto="divisas">Divisas</span>
   <span data-texto="cripto">Criptomonedas</span>
   <span data-texto="pais-USA">Estados Unidos</span>

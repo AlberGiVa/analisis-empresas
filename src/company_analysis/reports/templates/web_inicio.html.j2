@@ -14,6 +14,7 @@
   .alert-list li:last-child { border-bottom: 0; }
   .panel-card table { border: 0; margin: 0; }
   .panel-card td, .panel-card th { font-size: 13.5px; }
+  .links { display: flex; gap: 16px; font-weight: 600; } .links a { text-decoration: none; }
   .head-row { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 10px 18px; }
   @media (max-width: 1100px) { .dash-two { grid-template-columns: minmax(0, 1fr); } }
 </style>
@@ -24,9 +25,10 @@
     <h1>Panel</h1>
   </div>
   <div class="clocks">
-    <span class="clock" data-mercado data-zona="America/New_York" data-horario="09:30-16:00">Nueva York <span class="hora"></span> <span class="estado"></span></span>
-    <span class="clock" data-mercado data-zona="Europe/London" data-horario="08:00-16:30">Londres <span class="hora"></span> <span class="estado"></span></span>
+    <span class="clock" data-mercado data-zona="Europe/Madrid" data-horario="09:00-17:30">Madrid <span class="hora"></span> <span class="estado"></span></span>
     <span class="clock" data-mercado data-zona="Europe/Berlin" data-horario="09:00-17:30">Fráncfort <span class="hora"></span> <span class="estado"></span></span>
+    <span class="clock" data-mercado data-zona="Europe/London" data-horario="08:00-16:30">Londres <span class="hora"></span> <span class="estado"></span></span>
+    <span class="clock" data-mercado data-zona="America/New_York" data-horario="09:30-16:00">Nueva York <span class="hora"></span> <span class="estado"></span></span>
     <span class="clock" data-mercado data-zona="Asia/Tokyo" data-horario="09:00-15:00">Tokio <span class="hora"></span> <span class="estado"></span></span>
   </div>
 </div>
@@ -46,11 +48,13 @@
   </div>
 
   <section class="panel-card">
-    <div class="panel-head"><h2>Índices</h2><a href="indices.html">Ver índices →</a></div>
+    <div class="panel-head"><h2>Bolsas</h2><span class="links"><a href="europa.html">Europa →</a><a href="internacional.html">Internacional →</a></span></div>
     <div class="tv" data-tv="ticker-tape" style="height:78px"><script type="application/json">
       {"symbols": [{"proName": "BME:IBC", "title": "IBEX 35"}, {"proName": "PEPPERSTONE:EUSTX50", "title": "Euro Stoxx 50"},
-                   {"proName": "XETR:DAX", "title": "DAX"}, {"proName": "FOREXCOM:SPXUSD", "title": "S&P 500"},
-                   {"proName": "FOREXCOM:NSXUSD", "title": "Nasdaq 100"}, {"proName": "PEPPERSTONE:JPN225", "title": "Nikkei 225"},
+                   {"proName": "XETR:DAX", "title": "DAX"}, {"proName": "PEPPERSTONE:FRA40", "title": "CAC 40"},
+                   {"proName": "PEPPERSTONE:UK100", "title": "FTSE 100"}, {"proName": "CAPITALCOM:IT40", "title": "FTSE MIB"},
+                   {"proName": "FOREXCOM:SPXUSD", "title": "S&P 500"}, {"proName": "FOREXCOM:NSXUSD", "title": "Nasdaq 100"},
+                   {"proName": "PEPPERSTONE:JPN225", "title": "Nikkei 225"},
                    {"proName": "TVC:UKOIL", "title": "Brent"}, {"proName": "TVC:GOLD", "title": "@oro"}],
        "showSymbolLogo": true, "displayMode": "adaptive"}
     </script></div>
@@ -71,7 +75,7 @@
         </div>
       </div>
       <div class="chart-box" id="grafico-fx" data-alto="280"></div>
-      <p class="more"><a href="mercados.html">Ver mercados →</a></p>
+      <p class="more"><a href="europa.html#divisas">Ver divisas y tipos →</a></p>
     </section>
 
     <section class="panel-card">

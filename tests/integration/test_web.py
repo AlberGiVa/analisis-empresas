@@ -8,7 +8,7 @@ import pytest
 from typer.testing import CliRunner
 
 from company_analysis.settings import PROJECT_ROOT, Settings
-from company_analysis.web import SAMPLE_CASES, app
+from company_analysis.web import SAMPLE_CASES, SWITCH_TO_ENGLISH, SWITCH_TO_SPANISH, app
 from tests import public_samples
 
 runner = CliRunner()
@@ -61,8 +61,9 @@ def test_the_english_site_mirrors_the_spanish_one(site: Path) -> None:
         assert '<html lang="en">' in english.read_text(encoding="utf-8"), relative
     home = (site / "index.html").read_text(encoding="utf-8")
     english_home = (site / "en" / "index.html").read_text(encoding="utf-8")
-    assert 'href="en/index.html" hreflang="en" lang="en" translate="no">English</a>' in home
-    assert 'href="../index.html" hreflang="es" lang="es" translate="no">Español</a>' in english_home
+    # The language selector: the current language, and a link to the same page in the other one.
+    assert SWITCH_TO_ENGLISH.replace("#cambiar-idioma", "en/index.html") in home
+    assert SWITCH_TO_SPANISH.replace("#cambiar-idioma", "../index.html") in english_home
     ficha = (site / "en" / "reales" / "fichas" / "ZZAA.html").read_text(encoding="utf-8")
     assert 'href="../../../reales/fichas/ZZAA.html"' in ficha
 
@@ -88,8 +89,7 @@ def test_every_section_is_built(site: Path) -> None:
         "ejemplo/ranking.html",
         "ejemplo/ranking.csv",
         "academy.html",
-        "mercados.html",
-        "indices.html",
+        "europa.html",
         "internacional.html",
         "marca/graficos.js",
         ".nojekyll",
@@ -100,6 +100,10 @@ def test_every_section_is_built(site: Path) -> None:
     home = (site / "index.html").read_text(encoding="utf-8")
     assert "Zeta Foods Inc." in home  # the companies table of the dashboard
     assert 'href="reales/index.html"' in home
+    cases = (site / "ejemplo" / "index.html").read_text(encoding="utf-8")
+    for case in SAMPLE_CASES:  # each case with what its sheet shows, and a link to it
+        assert case.title in cases, case.issuer_id
+        assert f'href="fichas/{case.issuer_id}.html"' in cases, case.issuer_id
 
 
 def test_every_page_has_the_navigation_and_working_links(site: Path) -> None:

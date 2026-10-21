@@ -1,0 +1,181 @@
+{% extends "web_base.html.j2" %}
+{% block title %}Europa{% endblock %}
+{% block content %}
+<style>
+  .eu { display: grid; gap: 16px; margin-top: 14px; }
+  .eu-two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .tv { min-height: 120px; }
+  .fx-table td, .fx-table th { vertical-align: middle; }
+  .fx-table .code { font-family: var(--font-mono); font-weight: 600; }
+  .fx-table .spark { width: 140px; height: 36px; }
+  .panel-card table { border: 0; margin: 0; }
+  @media (max-width: 980px) { .eu-two { grid-template-columns: minmax(0, 1fr); } }
+</style>
+
+<div class="panel-head">
+  <div><p class="eyebrow">Mercados</p><h1>Europa</h1></div>
+  <span class="live"><span class="estado">Datos de la última actualización</span> <span class="hora"></span></span>
+</div>
+<nav class="jump" aria-label="En esta página">
+  <a href="#bolsas">Bolsas</a><a href="#tipos">Tipos de interés</a><a href="#deuda">Deuda pública</a><a href="#divisas">Divisas</a>
+</nav>
+
+<div class="ticker" aria-hidden="true"><div class="ticker-track"></div></div>
+
+<div class="eu">
+  <div class="kpis">
+    <div class="kpi" data-kpi="USD"><span class="k-nombre">EUR/USD</span><span class="k-valor">—</span><span class="k-spark"></span><span class="k-cambio"></span><span class="k-fecha"></span></div>
+    <div class="kpi" data-kpi="GBP"><span class="k-nombre">EUR/GBP</span><span class="k-valor">—</span><span class="k-spark"></span><span class="k-cambio"></span><span class="k-fecha"></span></div>
+    <div class="kpi" data-kpi="estr"><span class="k-nombre">€STR</span><span class="k-valor">—</span><span class="k-spark"></span><span class="k-cambio"></span><span class="k-fecha"></span></div>
+    <div class="kpi" data-kpi="10Y"><span class="k-nombre">Bono AAA del euro a 10 años</span><span class="k-valor">—</span><span class="k-spark"></span><span class="k-cambio"></span><span class="k-fecha"></span></div>
+    <div class="kpi" data-kpi="prima"><span class="k-nombre">Prima de riesgo de España</span><span class="k-valor">—</span><span class="k-spark"></span><span class="k-cambio"></span><span class="k-fecha"></span></div>
+    <div class="kpi" data-kpi="dfr"><span class="k-nombre">Tipo de depósito del BCE</span><span class="k-valor">—</span><span class="k-spark"></span><span class="k-cambio"></span><span class="k-fecha"></span></div>
+  </div>
+
+  <h2 class="part" id="bolsas">Bolsas</h2>
+  <section class="panel-card">
+    <div class="panel-head"><h2>Principales índices</h2><span class="muted small">Datos de TradingView, con el retraso propio de cada mercado</span></div>
+    <div class="tv" data-tv="symbol-overview" style="height:460px"><script type="application/json">
+      {"symbols": [["IBEX 35", "BME:IBC|1D"], ["Euro Stoxx 50", "PEPPERSTONE:EUSTX50|1D"], ["DAX", "XETR:DAX|1D"],
+                   ["CAC 40", "PEPPERSTONE:FRA40|1D"], ["FTSE 100", "PEPPERSTONE:UK100|1D"], ["FTSE MIB", "CAPITALCOM:IT40|1D"]],
+       "chartOnly": false, "width": "100%", "height": "100%", "autosize": true, "showVolume": false, "showMA": false,
+       "hideDateRanges": false, "hideMarketStatus": false, "hideSymbolLogo": false, "scalePosition": "right",
+       "scaleMode": "Normal", "fontSize": "10", "noTimeScale": false, "valuesTracking": "1",
+       "changeMode": "price-and-percent", "chartType": "area", "lineWidth": 2, "lineType": 0,
+       "dateRanges": ["1d|1", "1m|30", "3m|60", "12m|1D", "60m|1W", "all|1M"]}
+    </script></div>
+  </section>
+
+  <section class="panel-card">
+    <div class="panel-head"><h2>Mapa de la bolsa</h2>
+      <div class="seg" role="group" aria-label="Índice del mapa" data-mapas="mapa-europa">
+        <button type="button" data-fuente="IBEX35" aria-pressed="true">IBEX 35</button>
+        <button type="button" data-fuente="AllES" aria-pressed="false">Bolsa española</button>
+        <button type="button" data-fuente="DAX" aria-pressed="false">DAX</button>
+        <button type="button" data-fuente="FTSEMIB" aria-pressed="false">FTSE MIB</button>
+      </div>
+    </div>
+    <p class="muted small map-note">Tamaño según capitalización; color según la variación del día</p>
+    <div class="tv" id="mapa-europa" data-tv="stock-heatmap" style="height:560px"><script type="application/json">
+      {"exchanges": [], "dataSource": "IBEX35", "grouping": "sector", "blockSize": "market_cap_basic",
+       "blockColor": "change", "hasTopBar": false, "isDataSetEnabled": false, "isZoomEnabled": true,
+       "hasSymbolTooltip": true, "width": "100%", "height": "100%"}
+    </script></div>
+  </section>
+
+  <div class="eu-two">
+    <section class="panel-card">
+      <div class="panel-head"><h2>Cotizaciones</h2></div>
+      <div class="tv" data-tv="market-quotes" style="height:640px"><script type="application/json">
+        {"width": "100%", "height": "100%", "showSymbolLogo": true, "symbolsGroups": [
+          {"name": "@indices", "symbols": [
+            {"name": "BME:IBC", "displayName": "IBEX 35"}, {"name": "PEPPERSTONE:EUSTX50", "displayName": "Euro Stoxx 50"},
+            {"name": "XETR:EXSA", "displayName": "Stoxx Europe 600 (ETF)"}, {"name": "XETR:DAX", "displayName": "DAX"},
+            {"name": "PEPPERSTONE:FRA40", "displayName": "CAC 40"}, {"name": "PEPPERSTONE:UK100", "displayName": "FTSE 100"},
+            {"name": "CAPITALCOM:IT40", "displayName": "FTSE MIB"}]},
+          {"name": "@renta-fija", "symbols": [
+            {"name": "EUREX:FGBL1!", "displayName": "@bund"}]}
+        ]}
+      </script></div>
+    </section>
+    <section class="panel-card">
+      <div class="panel-head"><h2>Valores del IBEX 35</h2></div>
+      <div class="tv" data-tv="market-quotes" style="height:640px"><script type="application/json">
+        {"width": "100%", "height": "100%", "showSymbolLogo": true, "symbolsGroups": [
+          {"name": "@grandes-valores", "symbols": [
+            {"name": "BME:SAN", "displayName": "Santander"}, {"name": "BME:BBVA", "displayName": "BBVA"},
+            {"name": "BME:ITX", "displayName": "Inditex"}, {"name": "BME:IBE", "displayName": "Iberdrola"},
+            {"name": "BME:CABK", "displayName": "CaixaBank"}, {"name": "BME:TEF", "displayName": "Telefónica"},
+            {"name": "BME:REP", "displayName": "Repsol"}, {"name": "BME:AENA", "displayName": "Aena"},
+            {"name": "BME:AMS", "displayName": "Amadeus"}, {"name": "BME:IAG", "displayName": "IAG"},
+            {"name": "BME:ACS", "displayName": "ACS"}, {"name": "BME:ELE", "displayName": "Endesa"},
+            {"name": "BME:NTGY", "displayName": "Naturgy"}, {"name": "BME:CLNX", "displayName": "Cellnex"},
+            {"name": "BME:SAB", "displayName": "Banco Sabadell"}, {"name": "BME:BKT", "displayName": "Bankinter"},
+            {"name": "BME:MAP", "displayName": "Mapfre"}, {"name": "BME:GRF", "displayName": "Grifols"}]}
+        ]}
+      </script></div>
+    </section>
+  </div>
+
+  <h2 class="part" id="tipos">Tipos de interés</h2>
+  <div class="eu-two">
+    <section class="panel-card">
+      <div class="panel-head"><h2>Curva de tipos AAA del euro</h2>
+        <div class="legend"><span><i></i>Hoy</span><span><i class="muted"></i>Hace un mes y hace un año</span></div></div>
+      <div class="chart-box" id="grafico-curva"></div>
+    </section>
+    <section class="panel-card">
+      <div class="panel-head"><h2>€STR</h2><span class="muted small">Tipo de interés a un día del euro</span></div>
+      <div class="chart-box" id="grafico-estr"></div>
+    </section>
+  </div>
+
+  <h2 class="part" id="deuda">Deuda pública</h2>
+  <div class="eu-two">
+    <section class="panel-card">
+      <div class="panel-head"><h2>Deuda pública a 10 años</h2>
+        <div class="legend"><span><i class="c1"></i>España</span><span><i class="c2"></i>Alemania</span><span><i class="c3"></i>Italia</span><span><i class="c4"></i>Francia</span></div></div>
+      <div class="chart-box" id="grafico-bonos"></div>
+    </section>
+    <section class="panel-card">
+      <div class="panel-head"><h2>Prima de riesgo frente a Alemania</h2>
+        <div class="legend"><span><i class="c1"></i>España</span><span><i class="c3"></i>Italia</span></div></div>
+      <div class="chart-box" id="grafico-prima"></div>
+    </section>
+  </div>
+
+  <h2 class="part" id="divisas">Divisas</h2>
+  <section class="panel-card" id="fx-datos">
+    <div class="panel-head">
+      <h2>Divisas frente al euro</h2>
+      <div class="seg" role="group" aria-label="Periodo">
+        <button type="button" data-rango="1M" aria-pressed="false">1M</button>
+        <button type="button" data-rango="3M" aria-pressed="false">3M</button>
+        <button type="button" data-rango="6M" aria-pressed="false">6M</button>
+        <button type="button" data-rango="1A" aria-pressed="true">1A</button>
+        <button type="button" data-rango="2A" aria-pressed="false">2A</button>
+      </div>
+    </div>
+    <div class="heat" id="mapa-fx"></div>
+    <p class="stats" style="margin-top:14px"><span><b id="fx-titulo">EUR/USD</b></span>
+      <span>Último <b id="fx-ultimo">—</b></span><span>En el periodo <b id="fx-cambio">—</b></span>
+      <span>Mínimo <b id="fx-min">—</b></span><span>Máximo <b id="fx-max">—</b></span></p>
+    <div class="chart-box" id="grafico-fx"></div>
+  </section>
+
+  <section class="panel-card">
+    <div class="panel-head"><h2>Tipos de cambio</h2><span class="muted small">Unidades por euro · BCE · <span data-fecha-mercado>{% if fx %}{{ fx[0].day.strftime("%d/%m/%Y") }}{% endif %}</span></span></div>
+    <div class="scroll">
+    <table class="fx-table">
+      <thead><tr><th>Divisa</th><th></th><th class="num">Por euro</th><th class="num">Euros por unidad</th>
+        <th class="num">1 semana</th><th class="num">1 mes</th><th class="num">1 año</th><th class="num">En el año</th><th>Último año</th></tr></thead>
+      <tbody>
+      {% for row in fx %}
+        <tr data-cur="{{ row.currency }}">
+          <td class="code">{{ row.currency }}</td><td>{{ row.name }}</td>
+          <td class="num c-valor">{{ row.rate_text }}</td><td class="num c-inv">{{ row.inverse_text }}</td>
+          <td class="num c-1s {{ row.changes[0][1] }}">{{ row.changes[0][0] }}</td>
+          <td class="num c-1m {{ row.changes[1][1] }}">{{ row.changes[1][0] }}</td>
+          <td class="num c-1a {{ row.changes[2][1] }}">{{ row.changes[2][0] }}</td>
+          <td class="num c-ytd {{ row.changes[3][1] }}">{{ row.changes[3][0] }}</td>
+          <td class="c-spark">{{ row.spark }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  </section>
+</div>
+
+<div hidden>
+  <span data-texto="indices">Índices</span>
+  <span data-texto="renta-fija">Renta fija</span>
+  <span data-texto="grandes-valores">Grandes valores</span>
+  <span data-texto="bund">Futuro del Bund alemán</span>
+  <span data-texto="pais-ES">España</span><span data-texto="pais-DE">Alemania</span>
+  <span data-texto="pais-IT">Italia</span><span data-texto="pais-FR">Francia</span>
+  <span data-texto="prima-ES">España</span><span data-texto="prima-IT">Italia</span>
+  <span data-texto="bonos">Deuda pública a 10 años</span><span data-texto="prima">Prima de riesgo frente a Alemania</span>
+</div>
+<script type="application/json" id="mercado">{{ market }}</script>
+{% endblock %}

@@ -1,19 +1,14 @@
-{# Styles of the public website. "Luceiro" (default) is the identity of docs/muestra-luceiro-capital.html;
-   "Terminal" and "Prensa" are alternatives the viewer picks on the Configuración page. Preferences are
-   attributes on <html> (data-estilo, data-theme, data-densidad, data-texto) saved in localStorage. #}
+{# Styles of the public website: the identity of docs/muestra-luceiro-capital.html. Light or dark mode
+   follows the system unless the viewer picks one (data-theme on <html>, saved in localStorage). #}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Marcellus&family=Playfair+Display:wght@600;700&family=Source+Serif+4:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Marcellus&display=swap">
 <script src="{{ site_root }}marca/graficos.js" defer></script>
 <script>
-  (function () {  /* apply the saved preferences before the page is painted */
-    var root = document.documentElement;
-    function get(key) { try { return localStorage.getItem(key); } catch (e) { return null; } }
-    var tema = get("luceiro-tema"), estilo = get("luceiro-estilo");
-    if (tema === "light" || tema === "dark") root.setAttribute("data-theme", tema);
-    if (estilo === "terminal" || estilo === "prensa") root.setAttribute("data-estilo", estilo);
-    if (get("luceiro-densidad") === "compacta") root.setAttribute("data-densidad", "compacta");
-    if (get("luceiro-texto") === "grande") root.setAttribute("data-texto", "grande");
+  (function () {  /* apply the saved mode before the page is painted */
+    var tema = null;
+    try { tema = localStorage.getItem("luceiro-tema"); } catch (e) { /* no storage */ }
+    if (tema === "light" || tema === "dark") document.documentElement.setAttribute("data-theme", tema);
   })();
 </script>
 <style>
@@ -115,120 +110,33 @@
     .nav { order: 3; flex-basis: 100%; }
     .side-foot { margin-left: auto; }
   }
-  @media print { .side, .site-notice { display: none; } .shell { display: block; } }
-  .lang { font-weight: 600; text-decoration: none; }
+  @media print { .side, .site-notice, .topbar { display: none; } .shell { display: block; } }
 
-  /* ---------- Preferences: density and text size (every style) ---------- */
-  :root[data-densidad="compacta"] th, :root[data-densidad="compacta"] td { padding: 3px 7px; font-size: 13px; line-height: 1.35; }
-  :root[data-densidad="compacta"] .tile, :root[data-densidad="compacta"] .company { padding: 12px 14px; }
-  :root[data-densidad="compacta"] h2 { margin-top: 26px; }
-  :root[data-texto="grande"] .content { zoom: 1.12; }
+  /* Top bar: where the page is and the language selector */
+  .topbar { position: sticky; top: 0; z-index: 15; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+            padding: 9px max(clamp(16px, 4vw, 48px), env(safe-area-inset-right, 0px)) 9px max(clamp(16px, 4vw, 48px), env(safe-area-inset-left, 0px));
+            background: color-mix(in srgb, var(--surface) 90%, transparent); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+            border-bottom: 1px solid var(--line); }
+  .crumb { margin: 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; font-weight: 600;
+           letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  .crumb span { margin: 0 4px; color: var(--line-strong); }
+  .lang-switch { display: inline-flex; flex: none; align-items: center; gap: 2px; padding: 3px 3px 3px 10px; border: 1px solid var(--line);
+                 border-radius: 999px; background: var(--soft); }
+  .lang-switch .globe { fill: none; stroke: var(--muted); stroke-width: 1.2; margin-right: 5px; }
+  .lang-opt { padding: 3px 11px; border-radius: 999px; font-size: 12.5px; font-weight: 700; letter-spacing: .06em; line-height: 1.5;
+              color: var(--ink-2); text-decoration: none; }
+  a.lang-opt:hover { color: var(--text); background: var(--surface); }
+  .lang-opt[aria-current] { background: var(--accent); color: var(--surface); }
+  @media (max-width: 1060px) { .topbar { position: static; } }
 
-  /* ---------- Style "Terminal": financial data terminal, always dark ---------- */
-  :root[data-estilo="terminal"] {
-    color-scheme: dark;
-    --brand: #ff9e1b;
-    --bg: #000000; --surface: #0d0d0d; --soft: #161616; --text: #f2f2f2; --ink-2: #c9c9c9;
-    --muted: #8c8c8c; --line: #2b2b2b; --line-strong: #3d3d3d;
-    --accent: #ff9e1b; --accent-soft: #2a1c05;
-    --warn-bg: #2d2000; --warn-text: #ffc94d; --bad-bg: #2e0b0b; --bad-text: #ff6b6b;
-    --ok-bg: #0b2410; --ok-text: #4fdc6a; --warning: #ffc94d;
-    --chart-grid: #1f1f1f; --chart-median: #5a5a5a; --chart-dot: #ff9e1b;
-    --hero-bg: #0d0d0d; --hero-ink: #ff9e1b; --hero-ink-2: #d9d9d9; --hero-line: rgba(255, 158, 27, 0.55);
-    --shadow: none;
-    --font-display: "IBM Plex Mono", Consolas, ui-monospace, monospace;
-    --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
-    --font-mono: "IBM Plex Mono", Consolas, ui-monospace, monospace;
-  }
-  [data-estilo="terminal"] body { font-size: 14px; }
-  [data-estilo="terminal"] h1, [data-estilo="terminal"] h2 { font-weight: 600; text-transform: uppercase; letter-spacing: 0.02em; }
-  [data-estilo="terminal"] h1 { font-size: clamp(22px, 2.4vw, 30px); color: var(--accent); }
-  [data-estilo="terminal"] h2 { font-size: 17px; color: var(--accent); border-bottom: 1px solid var(--accent); }
-  [data-estilo="terminal"] h3 { font-family: var(--font-mono); text-transform: uppercase; font-size: 14px; letter-spacing: 0.04em; }
-  [data-estilo="terminal"] :is(.hero-card, .mini, .mini-number, .tile, .list, .facts, table, .card, .company,
-    .disclaimer, .btn, .chip, .theme, .theme button, .nav a, .two-views > div, .logo-plate, .badge) { border-radius: 2px; }
-  [data-estilo="terminal"] .content { border-top: 3px solid var(--accent); }
-  [data-estilo="terminal"] .side { border-right-color: var(--accent); }
-  [data-estilo="terminal"] .nav { counter-reset: tecla; }
-  [data-estilo="terminal"] .nav a { font-family: var(--font-mono); text-transform: uppercase; font-size: 13px; letter-spacing: 0.04em; }
-  [data-estilo="terminal"] .nav a::before { counter-increment: tecla; content: "F" counter(tecla); display: inline-block;
-    min-width: 2.6em; margin-right: 6px; color: var(--muted); }
-  [data-estilo="terminal"] .nav a[aria-current="page"] { background: var(--accent); color: #000000; }
-  [data-estilo="terminal"] .nav a[aria-current="page"]::before { color: #000000; }
-  [data-estilo="terminal"] .site-notice { background: var(--accent-soft); color: var(--accent); font-family: var(--font-mono); font-size: 12.5px; }
-  [data-estilo="terminal"] th { background: #1a1a1a; color: var(--accent); font-family: var(--font-mono); text-transform: uppercase;
-    letter-spacing: 0.05em; font-size: 11.5px; }
-  [data-estilo="terminal"] td { font-family: var(--font-mono); font-size: 12.5px; }
-  [data-estilo="terminal"] th { font-size: 11px; }
-  [data-estilo="terminal"] .hero-card h1 { font-size: clamp(28px, 3.4vw, 44px); line-height: 1.12; }
-  [data-estilo="terminal"] tbody tr:nth-child(even) > td { background: #070707; }
-  [data-estilo="terminal"] .num, [data-estilo="terminal"] .fact b, [data-estilo="terminal"] .mini-number .v { font-family: var(--font-mono); }
-  [data-estilo="terminal"] .eyebrow { font-family: var(--font-mono); color: var(--accent); }
-  [data-estilo="terminal"] .hero-card { border: 1px solid var(--accent); }
-  [data-estilo="terminal"] .hero-card h1 { color: var(--hero-ink); }
-  [data-estilo="terminal"] .btn-light { background: var(--accent); color: #000000; }
-  [data-estilo="terminal"] .btn-ghost { color: var(--accent); }
-  [data-estilo="terminal"] .mini { border: 1px solid var(--line-strong); box-shadow: none; }
-  [data-estilo="terminal"] .disclaimer { border-left-color: var(--accent); }
-  [data-estilo="terminal"] .theme { display: none; }  /* always dark */
-
-  /* ---------- Style "Prensa": financial newspaper on salmon paper ---------- */
-  :root[data-estilo="prensa"] {
-    color-scheme: light;
-    --brand: #7d1a3a;
-    --bg: #f7ece0; --surface: #fbf5ee; --soft: #f1e3d4; --text: #26211d; --ink-2: #4a423b;
-    --muted: #6e6359; --line: #e2d2c1; --line-strong: #cdb8a3;
-    --accent: #7d1a3a; --accent-soft: #f1dde2;
-    --warn-bg: #f8e6c4; --warn-text: #7a4b00; --bad-bg: #f6dada; --bad-text: #9c1c1c;
-    --ok-bg: #dfeadf; --ok-text: #285f2c; --warning: #c47f00;
-    --chart-grid: #eadccd; --chart-median: #b9a48e; --chart-dot: #1f4e79;
-    --hero-bg: #1f2a44; --hero-ink: #fbf5ee; --hero-ink-2: #d9cfc4; --hero-line: rgba(251, 245, 238, 0.45);
-    --shadow: none;
-    --font-display: "Playfair Display", Georgia, "Times New Roman", serif;
-    --font-body: "Source Serif 4", Georgia, "Times New Roman", serif;
-    --font-mono: "IBM Plex Mono", Consolas, ui-monospace, monospace;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root[data-estilo="prensa"]:not([data-theme="light"]) {
-      color-scheme: dark;
-      --brand: #e58fa6;
-      --bg: #1c1814; --surface: #241f1a; --soft: #2c2620; --text: #f1e8dd; --ink-2: #d2c6b8;
-      --muted: #a3968a; --line: #3a332c; --line-strong: #4b4239;
-      --accent: #e58fa6; --accent-soft: #3a1f28;
-      --warn-bg: #3d2d10; --warn-text: #f2c46b; --bad-bg: #3d1a1a; --bad-text: #f39a9a;
-      --ok-bg: #1f3322; --ok-text: #8fd49a; --warning: #f2c46b;
-      --chart-grid: #2e2822; --chart-median: #6b5d50; --chart-dot: #8fb8e0;
-      --hero-bg: #141b2d; --hero-ink: #f1e8dd; --hero-ink-2: #c9bfb3; --hero-line: rgba(241, 232, 221, 0.35);
-    }
-  }
-  :root[data-estilo="prensa"][data-theme="dark"] {
-    color-scheme: dark;
-    --brand: #e58fa6;
-    --bg: #1c1814; --surface: #241f1a; --soft: #2c2620; --text: #f1e8dd; --ink-2: #d2c6b8;
-    --muted: #a3968a; --line: #3a332c; --line-strong: #4b4239;
-    --accent: #e58fa6; --accent-soft: #3a1f28;
-    --warn-bg: #3d2d10; --warn-text: #f2c46b; --bad-bg: #3d1a1a; --bad-text: #f39a9a;
-    --ok-bg: #1f3322; --ok-text: #8fd49a; --warning: #f2c46b;
-    --chart-grid: #2e2822; --chart-median: #6b5d50; --chart-dot: #8fb8e0;
-    --hero-bg: #141b2d; --hero-ink: #f1e8dd; --hero-ink-2: #c9bfb3; --hero-line: rgba(241, 232, 221, 0.35);
-  }
-  [data-estilo="prensa"] body { font-size: 16px; line-height: 1.6; }
-  [data-estilo="prensa"] h1, [data-estilo="prensa"] h2 { font-weight: 700; letter-spacing: -0.01em; }
-  [data-estilo="prensa"] h2 { border-bottom: 0; border-top: 3px solid var(--text); padding-top: 8px; }
-  [data-estilo="prensa"] :is(.hero-card, .mini, .mini-number, .tile, .list, .facts, table, .card, .company,
-    .disclaimer, .btn, .chip, .two-views > div, .badge) { border-radius: 0; }
-  [data-estilo="prensa"] .hero-card::before { inset: 8px; border-width: 1px; border-radius: 0; }
-  [data-estilo="prensa"] .eyebrow { font-family: var(--font-body); font-weight: 600; letter-spacing: 0.12em; }
-  [data-estilo="prensa"] table { border-left: 0; border-right: 0; border-top: 2px solid var(--text); background: transparent; }
-  [data-estilo="prensa"] th { background: transparent; color: var(--text); text-transform: uppercase; letter-spacing: 0.06em;
-    font-size: 11.5px; border-bottom: 1px solid var(--text); }
-  [data-estilo="prensa"] .num, [data-estilo="prensa"] .fact b { font-variant-numeric: tabular-nums lining-nums; }
-  [data-estilo="prensa"] .nav a { font-size: 16px; }
-  [data-estilo="prensa"] .nav a[aria-current="page"] { background: transparent; color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); border-radius: 0; }
-  [data-estilo="prensa"] .side { background: var(--bg); }
-  [data-estilo="prensa"] .tile, [data-estilo="prensa"] .list, [data-estilo="prensa"] .company { background: var(--surface); }
-  [data-estilo="prensa"] .disclaimer { border-left-color: var(--accent); background: transparent; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
-  @media (max-width: 1060px) { [data-estilo="prensa"] .nav a[aria-current="page"] { box-shadow: inset 0 -3px 0 var(--accent); } }
+  /* Jumps to the parts of a long page, and the parts' titles */
+  .jump { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 2px; }
+  .jump a { padding: 4px 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--ink-2);
+            font-size: 13px; font-weight: 600; text-decoration: none; }
+  .jump a:hover { border-color: var(--accent); color: var(--accent); }
+  h2.part { margin: 18px 0 -2px; font-size: 26px; }
+  [id] { scroll-margin-top: 64px; }
+  .map-note { margin: -4px 0 8px; }
 
   /* ---------- Charts and live data (graficos.js) ---------- */
   :root { --up: var(--ok-text); --down: var(--bad-text); --live: #16a34a; }
@@ -338,7 +246,6 @@
   :root { --c2: #5f6b78; --c3: #c0812a; --c4: #3b6fb6; }
   @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --c2: #a3adb8; --c3: #d9a24e; --c4: #7aa5e6; } }
   :root[data-theme="dark"] { --c2: #a3adb8; --c3: #d9a24e; --c4: #7aa5e6; }
-  :root[data-estilo="terminal"] { --c2: #bdbdbd; --c3: #4fc3f7; --c4: #b388ff; }
   .chart-line.chart-c2 { stroke: var(--c2); } .chart-line.chart-c3 { stroke: var(--c3); } .chart-line.chart-c4 { stroke: var(--c4); }
   .chart-mark.chart-c2 { fill: var(--c2); } .chart-mark.chart-c3 { fill: var(--c3); } .chart-mark.chart-c4 { fill: var(--c4); }
   .legend i.c1 { background: var(--chart-dot); } .legend i.c2 { background: var(--c2); }

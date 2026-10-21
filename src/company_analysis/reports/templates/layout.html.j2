@@ -83,7 +83,6 @@
     </nav>
     <div class="side-foot">
       <p>Prototipo de la herramienta de análisis. Nada de esta web es una recomendación de inversión.</p>
-      <a class="lang" href="#cambiar-idioma" hreflang="en" lang="en" translate="no">English</a>
       <div class="theme" role="group" aria-label="Tema">
         <button type="button" data-theme-btn="system" aria-pressed="true">Auto</button>
         <button type="button" data-theme-btn="light" aria-pressed="false">Claro</button>
@@ -92,6 +91,13 @@
     </div>
   </aside>
   <div class="content">
+    <div class="topbar">
+      <p class="crumb">Luceiro Capital <span aria-hidden="true">/</span> {% for key, label, href in site.links if key == site.active %}{{ label }}{% endfor %}</p>
+      <div class="lang-switch" role="group" aria-label="Idioma">
+        <svg class="globe" viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><circle cx="8" cy="8" r="6.5"/><path d="M1.5 8h13M8 1.5c1.9 1.8 2.8 4 2.8 6.5S9.9 12.7 8 14.5M8 1.5C6.1 3.3 5.2 5.5 5.2 8s.9 4.7 2.8 6.5"/></svg>
+        <span class="lang-opt" aria-current="true" lang="es" translate="no">ES</span><a class="lang-opt" href="#cambiar-idioma" hreflang="en" lang="en" translate="no">EN</a>
+      </div>
+    </div>
 {% if site.notice %}<p class="site-notice">{{ site.notice }}</p>{% endif %}
 {% endif %}
 <main>

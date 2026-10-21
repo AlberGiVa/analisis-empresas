@@ -95,18 +95,22 @@ Una web estática en GitHub Pages para consultar la herramienta desde cualquier 
 dirección de la web, sin usuario ni contraseña. Pide a los buscadores que no la muestren, así que
 llega quien tenga el enlace (no es una protección: cualquiera con la dirección puede entrar). Solo
 muestra datos que se pueden republicar:
-- **Panel:** el día de un vistazo (empresas, alertas y divisas).
+- **Panel:** el día de un vistazo, con Europa primero: bolsas, divisas y tipos del euro, empresas y
+  alertas.
+- **Europa:** bolsas europeas (índices, valores del IBEX 35 y mapas del IBEX 35, la bolsa española,
+  el DAX y el FTSE MIB) y tipos de interés, deuda pública y divisas del euro (BCE).
+- **Internacional:** América (con mapas del S&P 500, el Nasdaq 100 y el Dow Jones), Asia y el resto
+  del mundo, materias primas, economía mundial y calendario económico.
 - **Empresas:** comparables, cambios y alertas de las empresas reales, con las cuentas de la SEC y sin
   cotizaciones (sus condiciones no permiten publicarlas), y una ficha por empresa.
-- **Divisas:** tipos de cambio del BCE con sus variaciones y un año de evolución.
-- **Ejemplos:** una empresa ficticia por cada caso que trata la herramienta (13).
+- **Ejemplos:** una empresa ficticia por cada situación que trata la herramienta (13): qué le pasa,
+  qué hace la herramienta y cómo sale en su ficha.
 - **Academy:** glosario y métricas, sin más explicación técnica (la documentación de la herramienta no
   se publica).
 
-Toda la web lleva la imagen de Luceiro Capital: logo, colores y tipografía. En **Configuración**
-cada visitante elige el estilo (Luceiro, Terminal o Prensa), el modo claro u oscuro, la densidad
-de las tablas y el tamaño del texto; se guarda solo en su navegador. Está en **español e inglés**:
-la versión inglesa vive en `/en/` y cada página enlaza con su equivalente en el otro idioma.
+Toda la web lleva la imagen de Luceiro Capital: logo, colores y tipografía, en modo claro u
+oscuro. Está en **español e inglés**: el selector de idioma, arriba a la derecha, lleva a la misma
+página en el otro idioma (la versión inglesa vive en `/en/`).
 
 El diario del analista nunca se publica.
 

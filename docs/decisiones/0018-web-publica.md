@@ -29,13 +29,12 @@ vienen de Nasdaq y Yahoo Finance, y sus condiciones no permiten publicarlas.
   Albert Sans, índice lateral y modo claro u oscuro (`web_estilo.html.j2`). El logo está en
   `reports/static/luceiro-logo.webp`. La muestra se publica tal cual como `presentacion.html`, con
   un enlace de vuelta a la web. Los informes locales mantienen su diseño sobrio.
-- **Estilos y Configuración.** Además de Luceiro (el de serie), dos estilos: Terminal (inspirado
-  en los terminales de datos financieros: fondo negro, ámbar y letra monoespaciada; siempre
-  oscuro) y Prensa (papel salmón y tipografía de periódico). La página Configuración deja elegir
-  estilo, modo claro u oscuro, densidad de las tablas y tamaño del texto. Son atributos de
-  `<html>` guardados en el navegador de cada visitante (`localStorage`); nada se envía a ningún
-  sitio.
-- **Español e inglés.** La web se genera en español y se copia traducida en `en/`. El módulo
+- **Un solo estilo.** Hubo una página Configuración con dos estilos más (Terminal y Prensa),
+  densidad de tablas y tamaño del texto; el usuario pidió quitarla el 21/10/2026. Queda la
+  identidad de Luceiro en modo claro u oscuro, que se guarda en el navegador de cada visitante
+  (`localStorage`); nada se envía a ningún sitio.
+- **Español e inglés.** Selector de idioma arriba a la derecha (ES | EN), que lleva a la misma
+  página en el otro idioma. La web se genera en español y se copia traducida en `en/`. El módulo
   `i18n` traduce cada texto del HTML con el catálogo `i18n/en.yaml`: frases exactas y patrones
   para las que llevan cifras, fechas o nombres, y pasa las cifras a notación inglesa. Así el
   núcleo sigue en español y no hay que traducir dos veces las plantillas. Un texto nuevo que el
@@ -50,7 +49,13 @@ vienen de Nasdaq y Yahoo Finance, y sus condiciones no permiten publicarlas.
     los tests o para trabajar sin conexión);
   - `--fecha AAAA-MM-DD` (repetible): por defecto, fin del semestre anterior y hoy;
   - `--abrir`: abre la página de inicio en el navegador.
-- **Páginas**, todas con la misma barra de navegación y adaptadas al móvil y al modo oscuro:
+- **Páginas** (estructura de octubre de 2026, por petición del usuario: «primero lo europeo y
+  todo lo demás en internacional»): Panel, Europa (bolsas europeas con mapas de TradingView, y
+  tipos, deuda pública y divisas del euro del BCE), Internacional (América, Asia y resto del
+  mundo, materias primas, economía mundial), Empresas, Ejemplos (cada caso con su situación, lo
+  que hace la herramienta y las líneas reales de su ficha) y Academy. La lista de abajo es la
+  versión inicial.
+- **Páginas iniciales**, todas con la misma barra de navegación y adaptadas al móvil y al modo oscuro:
   - Inicio: qué es la herramienta, resumen de las dos secciones, últimas alertas de las empresas
     reales;
   - Empresas reales: el informe del estudio de las empresas reales, con ranking, CSV y fichas;
