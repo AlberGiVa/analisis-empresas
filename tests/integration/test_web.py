@@ -19,8 +19,8 @@ LINK = re.compile(r'(?:href|src)="([^"]+)"')
 def _study(root: Path, *, prices: bool) -> Path:
     """A study folder like ``estudio-real/`` with a synthetic download; returns the download."""
     shutil.copy(PROJECT_ROOT / "estudio-real" / "metodologia-web.yaml", root)
-    public_samples.write_universe(root)
-    return public_samples.write_snapshot(root / "descarga", prices=prices)
+    public_samples.write_universe(root, european=True)
+    return public_samples.write_snapshot(root / "descarga", prices=prices, european=True)
 
 
 def _build(target: Path, snapshot: Path, *options: str) -> str:
@@ -85,6 +85,8 @@ def test_every_section_is_built(site: Path) -> None:
         "reales/ranking.html",
         "reales/ranking.csv",
         "reales/fichas/ZZAA.html",
+        "reales/fichas/ZZEU.html",
+        "reales/epi.html",
         "ejemplo/index.html",
         "ejemplo/ranking.html",
         "ejemplo/ranking.csv",
@@ -100,6 +102,10 @@ def test_every_section_is_built(site: Path) -> None:
     home = (site / "index.html").read_text(encoding="utf-8")
     assert "Zeta Foods Inc." in home  # the companies table of the dashboard
     assert 'href="reales/index.html"' in home
+    assert 'data-zona="europa"' in home  # the dashboard picks Europe, the US or the PPE sector
+    study = (site / "reales" / "index.html").read_text(encoding="utf-8")
+    assert study.index('id="europa"') < study.index('id="eeuu"')  # Europe first
+    assert "Europa Alimentación, S.A." in study
     cases = (site / "ejemplo" / "index.html").read_text(encoding="utf-8")
     for case in SAMPLE_CASES:  # each case with what its sheet shows, and a link to it
         assert case.title in cases, case.issuer_id
@@ -121,7 +127,10 @@ def test_every_page_has_the_navigation_and_working_links(site: Path) -> None:
 def test_the_real_companies_never_show_share_prices(site: Path) -> None:
     for page in (site / "reales").rglob("*.html"):
         html = page.read_text(encoding="utf-8")
-        assert "Nasdaq" not in html, page
+        if (
+            page.name != "epi.html"
+        ):  # it names markets ("Nasdaq: LAKE"); its prices are TradingView's
+            assert "Nasdaq" not in html, page
         assert "Yahoo" not in html, page
     study = (site / "reales" / "index.html").read_text(encoding="utf-8")
     assert "Rentabilidad frente a apalancamiento" in study

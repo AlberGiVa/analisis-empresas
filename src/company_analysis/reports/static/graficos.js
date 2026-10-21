@@ -200,9 +200,10 @@
   function bars(box) {
     var rows = JSON.parse(box.querySelector("script[type='application/json']").textContent);
     var key = box.getAttribute("data-orden") || "a";
+    var zone = null;  /* a group of companies (zones below): rows carry theirs in "z" */
     function render() {
       box.querySelectorAll(".bar-row").forEach(function (r) { r.remove(); });
-      rows.slice().sort(function (a, b) { return (b[key] === null ? -1 : b[key]) - (a[key] === null ? -1 : a[key]); })
+      rows.filter(function (r) { return !zone || !r.z || r.z.indexOf(zone) >= 0; }).sort(function (a, b) { return (b[key] === null ? -1 : b[key]) - (a[key] === null ? -1 : a[key]); })
         .forEach(function (r) {
           var row = document.createElement("a");
           row.className = "bar-row";
@@ -234,7 +235,25 @@
         render();
       });
     });
+    window.addEventListener("luceiro:zona", function (event) { zone = event.detail; render(); });
     render();
+  }
+
+  /* Groups of companies (Europe, US, PPE sector): every [data-zona-btn] button picks one, and the
+   * elements marked data-zona="europa epi" show only while one of their groups is picked. */
+  function zones() {
+    var buttons = document.querySelectorAll("[data-zona-btn]");
+    if (!buttons.length) return;
+    function pick(zone) {
+      buttons.forEach(function (b) { b.setAttribute("aria-pressed", String(b.getAttribute("data-zona-btn") === zone)); });
+      document.querySelectorAll("[data-zona]").forEach(function (node) {
+        node.hidden = node.getAttribute("data-zona").split(" ").indexOf(zone) < 0;
+      });
+      window.dispatchEvent(new CustomEvent("luceiro:zona", { detail: zone }));
+    }
+    buttons.forEach(function (b) { b.addEventListener("click", function () { pick(b.getAttribute("data-zona-btn")); }); });
+    var pressed = document.querySelector("[data-zona-btn][aria-pressed='true']");
+    pick(pressed ? pressed.getAttribute("data-zona-btn") : buttons[0].getAttribute("data-zona-btn"));
   }
 
   /* --- Small live touches -------------------------------------------------------------------- */
@@ -634,6 +653,7 @@
     world();
     document.querySelectorAll("[data-contar]").forEach(countUp);
     document.querySelectorAll(".bars").forEach(bars);
+    zones();
     if (document.querySelector("[data-mercado]")) { clocks(); setInterval(clocks, 30000); }
     markets();
   });

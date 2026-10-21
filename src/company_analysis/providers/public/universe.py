@@ -1,11 +1,14 @@
 """The study universe: which companies, how they are identified and how their debt is built.
 
 The file is written and reviewed by hand (``estudio-real/universo.yaml``). It contains no market
-data, only identifiers and mapping decisions, so it can live in the repository.
+data, only identifiers and mapping decisions, so it can live in the repository. Each company's
+accounts come from the SEC (``sec``, US companies, identified by their CIK) or from the annual
+reports European listed companies publish in XBRL (``esef``, identified by their LEI).
 """
 
 from datetime import date
 from pathlib import Path
+from typing import Literal
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
@@ -32,7 +35,8 @@ class DebtLineEntry(_Model):
 class CompanyEntry(_Model):
     id: IssuerId
     name: str = Field(min_length=1)
-    cik: str = Field(pattern=r"^\d{10}$")
+    source: Literal["sec", "esef"] = "sec"
+    cik: str | None = Field(default=None, pattern=r"^\d{10}$")
     ticker: str = Field(min_length=1)
     isin: str
     lei: str | None = None
@@ -43,13 +47,18 @@ class CompanyEntry(_Model):
     currency: CurrencyCode
     fiscal_year_end_month: int = Field(ge=1, le=12)
     debt: list[DebtLineEntry] = Field(min_length=1)
-    tags: dict[FinancialItem, list[str]] = Field(default_factory=dict)  # per-company overrides
+    # Per-company overrides; "-Name" reads a tag with its sign changed, "A+B" adds two tags.
+    tags: dict[FinancialItem, list[str]] = Field(default_factory=dict)
     depreciation: list[str] = Field(default_factory=list)  # tags summed for the EBITDA, if set
 
     @model_validator(mode="after")
     def _one_required_debt_line(self) -> CompanyEntry:
         if not any(line.required for line in self.debt):
             raise ValueError(f"{self.id}: al menos una línea de deuda debe ser obligatoria")
+        if self.source == "sec" and self.cik is None:
+            raise ValueError(f"{self.id}: las cuentas de la SEC necesitan el CIK")
+        if self.source == "esef" and self.lei is None:
+            raise ValueError(f"{self.id}: los informes ESEF se buscan por el LEI")
         return self
 
     def issuer(self) -> Issuer:

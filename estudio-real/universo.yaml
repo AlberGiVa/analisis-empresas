@@ -1,4 +1,4 @@
-# Universo del estudio con datos reales: grandes empresas de EE. UU.
+# Universo del estudio con datos reales: grandes empresas de Europa y EE. UU.
 #
 # Por qué este grupo: empezó con diez emisores grandes de consumo básico que tienen a la vez
 # acciones cotizadas y deuda corporativa en el mercado, que es exactamente lo que el fondo analiza
@@ -32,6 +32,18 @@
 # el EBITDA cuando la habitual se queda corta (Cisco). Los sectores con menos de cinco empresas se
 # comparan con todo el universo (`min_peers` de la metodología).
 #
+# Tercera ampliación del 21/10/2026: Europa y el sector de los EPI. Las europeas no están en la SEC:
+# sus cuentas salen de su informe financiero anual oficial en XBRL (formato ESEF, normas NIIF), que
+# recoge filings.xbrl.org (`source: esef`; decisión 0019). Solo hay informes anuales, así que sus
+# doce últimos meses son su último ejercicio, y no hay cotizaciones europeas de uso libre. En sus
+# etiquetas, una sin prefijo es de las NIIF (`ifrs-full`) y las de la propia empresa llevan el suyo
+# (`ibe:…`); una etiqueta fijada con «-» delante se lee con el signo cambiado. Deuda: préstamos,
+# bonos y pagarés; ni derivados ni arrendamientos, salvo que la empresa los presente dentro de su
+# deuda (cada empresa lo dice). Los fabricantes de equipos de protección individual (industria
+# `personal_protection`) se comparan en su propia página de la web. La revisión completa de cada
+# grupo, con las empresas descartadas y por qué, está en `estudio-real/candidatas/`
+# (europa-*.yaml y epi.yaml).
+#
 # Excluidas tras revisar sus datos:
 # - Hershey: dos clases de acciones; los datos estructurados solo dan una y la capitalización
 #   saldría mal. Por lo mismo, Regeneron. Vertex no tiene bonos.
@@ -52,12 +64,18 @@
 # - EOG y Diamondback reparten sus inversiones en varias líneas sin dar el total (no habría flujo de
 #   caja libre); Valero deja de etiquetar sus inversiones con una etiqueta estándar desde el cuarto
 #   trimestre de 2025.
+# - Europa: TotalEnergies (no publica resultado operativo), Enel (sin el informe de 2025), Banco
+#   Santander (su deuda emitida solo aparece desglosada) y Novo Nordisk (pendiente de revisar).
+# - EPI: Avon Technologies (no etiqueta amortizaciones, gasto financiero ni acciones) y Alpha Pro
+#   Tech (sin deuda financiera). Dräger, Ansell y Delta Plus no tienen cuentas de uso libre.
 
-name: "Grandes empresas de EE. UU."
+name: "Grandes empresas de Europa y EE. UU."
 description: >-
-  Treinta y dos grandes empresas de EE. UU. de consumo, tecnología, industria, salud, energía,
-  eléctricas, banca y seguros, con acciones y bonos en el mercado. Cuentas de la SEC (normas contables de EE. UU., sin ajustes), cotizaciones
-  de cierre diarias y tipos de cambio del BCE.
+  58 grandes empresas de Europa (23) y EE. UU. (35) de consumo,
+  tecnología, industria, salud, energía, eléctricas, telecomunicaciones, banca y seguros, y los
+  fabricantes cotizados de equipos de protección individual. Cuentas de los informes anuales
+  oficiales de las europeas y de la SEC (sin ajustes), cotizaciones de cierre diarias de las de
+  EE. UU. y tipos de cambio del BCE.
 history_start: 2023-01-01
 
 companies:
@@ -710,3 +728,751 @@ companies:
     debt:
       - {line: "Vencimientos a un año de la deuda", tags: [DebtCurrent]}
       - {line: "Deuda a largo plazo", tags: [LongTermDebtNoncurrent], required: true}
+
+  # --- Equipos de protección individual (EPI) ------------------------------------------------------
+  # MSA Safety: cascos, equipos de respiración autónoma (bomberos), detección de gases y anticaídas.
+  # Su deuda son pagarés sénior colocados de forma privada (con Prudential; 299 M a 31/12/2025) y
+  # disposiciones de su línea de crédito (282 M): sin bonos cotizados. La deuda a un año lleva
+  # DebtCurrent o LongTermDebtCurrent (mismo importe); las dos líneas suman su LongTermDebt total.
+  # Etiqueta fijada: desde 2022 presenta su patrimonio con la etiqueta del patrimonio con
+  # minoritarios, pero no los tiene (a cero desde septiembre de 2021), así que es el patrimonio de
+  # los accionistas; la etiqueta sin minoritarios solo llega a 2021 (como Stryker).
+  - id: MSA
+    name: MSA Safety Incorporated
+    cik: "0000066570"
+    ticker: MSA
+    isin: US5534981064
+    lei: 529900DVA3258XK11O39
+    exchange: XNYS
+    country: US
+    sector: industrials
+    industry: personal_protection
+    currency: USD
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Pagarés y vencimientos a un año de la deuda a largo", tags: [DebtCurrent, LongTermDebtCurrent]}
+      - {line: "Deuda a largo plazo", tags: [LongTermDebtNoncurrent], required: true}
+    tags:
+      equity_attributable: [StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest]
+
+  # Lakeland Industries (opera como Lakeland Fire + Safety): ropa de protección química e ignífuga y
+  # equipos para bomberos. Ejercicio a 31 de enero. Microempresa (193 M USD de ventas), por debajo
+  # del resto del universo, y sin bonos: su deuda es la línea de crédito (28,5 M dispuestos a
+  # 31/01/2026, que presenta a largo plazo) y préstamos pequeños. Deuda: la línea a largo cambia de
+  # etiqueta (LongTermLoansPayable hasta octubre de 2025, LongTermDebt desde enero de 2026; mismo
+  # importe donde coinciden) y va primero LongTermLoansPayable porque el LongTermDebt de julio de
+  # 2024 (2,9 M) es una partida parcial; la de a un año, entre tres etiquetas con el mismo importe
+  # donde coinciden. La obligatoria es la de a un año: en 2023 no tenía deuda a largo (la línea no
+  # aparece) y sí presentaba sus préstamos a corto (casi cero). Amortizaciones fijadas: la etiqueta
+  # habitual (DepreciationDepletionAndAmortization) solo trae la depreciación del inmovilizado y solo
+  # en los cierres (2,8 M en el ejercicio 2026); la línea del estado de flujos (5,1 M, con la
+  # amortización de intangibles) es DepreciationAndAmortization. Hoy la herramienta ya la elige
+  # (llega al último trimestre), pero con el próximo informe anual empatarían y ganaría la otra.
+  # Pérdidas y flujo operativo negativo en el ejercicio 2026 (deterioro del fondo de comercio,
+  # aranceles, provisión sobre impuestos diferidos): datos reales.
+  - id: LAKE
+    name: Lakeland Industries, Inc.
+    cik: "0000798081"
+    ticker: LAKE
+    isin: US5117951062
+    lei: 549300HGP70IM9WKU164
+    exchange: XNAS
+    country: US
+    sector: industrials
+    industry: personal_protection
+    currency: USD
+    fiscal_year_end_month: 1
+    debt:
+      - {line: "Préstamos a corto y vencimientos a un año", tags: [LongTermDebtCurrent, LoansPayableCurrent, ShortTermBorrowings], required: true}
+      - {line: "Deuda a largo plazo (incluye la línea de crédito)", tags: [LongTermLoansPayable, LongTermDebt]}
+    depreciation: [DepreciationAndAmortization]
+
+  # Cadre Holdings: añadida al grupo. Chalecos y placas antibalas (Safariland; TYR Tactical desde
+  # enero de 2026) y trajes y equipos de desactivación de explosivos (Med-Eng), además de
+  # equipamiento policial (fundas, cinturones) y, desde 2024, seguridad nuclear (contención,
+  # instrumentación). No publica las ventas por producto: la protección balística y antiexplosivos
+  # es su negocio principal, pero no todo es EPI (decidir si encaja en la industria). Sin bonos:
+  # préstamos bancarios a plazo y línea de crédito (309,1 M de principal a 31/12/2025; 307,3 M en
+  # balance, netos de gastos de formalización). La deuda a largo incluye la línea de crédito cuando
+  # está dispuesta (62,5 M en marzo de 2026). Arrendamientos financieros (2,8 M) fuera. Gasto
+  # financiero: solo publica el neto de ingresos («Interest expense, net») desde el informe anual de
+  # 2025; la herramienta lo toma con su nota. Sin minoritarios. Resultado operativo atípico en el
+  # primer trimestre de 2026 (el estudio lo avisa): dato del informe.
+  - id: CDRE
+    name: Cadre Holdings, Inc.
+    cik: "0001860543"
+    ticker: CDRE
+    isin: US12763L1052
+    lei: 2549006IKQEWJ8M7CB97
+    exchange: XNYS
+    country: US
+    sector: industrials
+    industry: personal_protection
+    currency: USD
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Vencimientos a un año de la deuda", tags: [DebtCurrent, LongTermDebtCurrent]}
+      - {line: "Deuda a largo plazo (incluye la línea de crédito)", tags: [LongTermDebtNoncurrent], required: true}
+
+  # =================================================================================================
+  # Europa (informes anuales ESEF)
+  # =================================================================================================
+
+  # --- Eléctricas -------------------------------------------------------------------------------
+  # Iberdrola. Deuda: sus dos líneas propias «Deudas con entidades de crédito y obligaciones u otros
+  # valores negociables» (no corriente y corriente; incluyen el papel comercial), 54.090 M a
+  # 31/12/2025. Fuera, dentro de los pasivos financieros del balance: derivados (1.998 M),
+  # arrendamientos (2.594 M), «instrumentos de capital con características de pasivo financiero»
+  # (692 M, socios fiscales de parques renovables en EE. UU.), proveedores y otros pasivos
+  # financieros. Por eso no sirve `NoncurrentFinancialLiabilities` (48.024 M, que mezcla todo eso).
+  # Gasto financiero: no etiqueta los intereses aparte; se usa el total de gastos financieros
+  # (3.983 M, incluye diferencias de cambio y derivados). EBITDA del estudio 15.558 M frente a los
+  # 15.956 M que publica (resta 398 M de deterioro de cuentas a cobrar).
+  - id: IBE
+    name: Iberdrola, S.A.
+    source: esef
+    ticker: IBE
+    isin: ES0144580Y14
+    lei: 5QK37QC7NWOJ8D7WVQ45
+    exchange: XMAD
+    country: ES
+    sector: utilities
+    industry: electric_utilities
+    currency: EUR
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Deudas con entidades de crédito y obligaciones a corto", tags: [ibe:DeudasConEntidadesDeCreditoYObligacionesUOtrosValoresNegociablesCorrientes]}
+      - {line: "Deudas con entidades de crédito y obligaciones a largo", tags: [ibe:DeudasConEntidadesDeCreditoYObligacionesUOtrosValoresNegociables], required: true}
+
+  # Endesa (controlada por Enel). Deuda: sus líneas «Deuda financiera no corriente» y «corriente»
+  # (10.427 M a 31/12/2025), que el balance presenta sin derivados ni otros pasivos financieros.
+  # Según la nota de deuda incluyen bonos y pagarés (364 M), préstamos bancarios (5.632 M), otros
+  # préstamos, sobre todo de Enel Finance International (3.635 M), y arrendamientos (796 M), que
+  # la empresa presenta dentro de su deuda y no se pueden separar. Amortizaciones fijadas: la
+  # etiqueta por defecto que encuentra es el ajuste del estado de flujos (2.425 M), que suma
+  # también 169 M de deterioro de activos financieros (pérdidas crediticias de clientes), que no
+  # son amortizaciones; se usa su línea propia de la cuenta de resultados «amortizaciones y
+  # pérdidas por deterioro de activos no financieros» (2.256 M), igual que en Iberdrola y Naturgy.
+  # EBITDA del estudio 5.587 M frente a los 5.756 M que publica. Inversiones: incluyen las de
+  # intangibles (no publica las de inmovilizado material por separado).
+  - id: ELE
+    name: Endesa, S.A.
+    source: esef
+    ticker: ELE
+    isin: ES0130670112
+    lei: 549300LHK07F2CHV4X31
+    exchange: XMAD
+    country: ES
+    sector: utilities
+    industry: electric_utilities
+    currency: EUR
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Deuda financiera corriente", tags: [CurrentFinancialLiabilities]}
+      - {line: "Deuda financiera no corriente", tags: [NoncurrentFinancialLiabilities], required: true}
+    depreciation: [ele:DepreciationAmortisationAndImpairmentLossReversalOfImpairmentLossRecognisedInProfitOrLossNonFinancialAssets]
+
+  # Naturgy: gas y electricidad (redes, generación y comercialización); se clasifica con las
+  # eléctricas, la única industria de servicios públicos de la lista. Deuda: obligaciones y deuda
+  # con entidades de crédito, no corriente (12.874 M) y corriente (2.606 M) a 31/12/2025; los
+  # arrendamientos (1.278 M) van en líneas aparte y no se suman. La línea corriente incluye 11 M de
+  # derivados de cobertura (14 M en la no corriente de 2024) que no se pueden separar. Sin
+  # beneficio bruto (no lo publica). EBITDA del estudio 5.192 M frente a los 5.334 M que publica
+  # (resta 139 M de deterioro por pérdidas crediticias y 3 M de otros resultados). Inversiones:
+  # incluyen las de intangibles.
+  - id: NTGY
+    name: Naturgy Energy Group, S.A.
+    source: esef
+    ticker: NTGY
+    isin: ES0116870314
+    lei: TL2N6M87CW970S5SV098
+    exchange: XMAD
+    country: ES
+    sector: utilities
+    industry: electric_utilities
+    currency: EUR
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Obligaciones y deuda con entidades de crédito a corto", tags: [CurrentBorrowingsAndCurrentPortionOfNoncurrentBorrowings]}
+      - {line: "Obligaciones y deuda con entidades de crédito a largo", tags: [LongtermBorrowings], required: true}
+
+  # --- Petróleo y gas -----------------------------------------------------------------------------
+  # Repsol. Ventas: etiqueta fijada. No usa la etiqueta de ingresos totales; se toma su línea
+  # «Ventas» (54.421 M en 2025, con 6.512 M de impuestos especiales sobre hidrocarburos, que la
+  # empresa cuenta como ingreso). Quedan fuera los 440 M de prestación de servicios (los ingresos
+  # ordinarios son 54.861 M): la herramienta no suma etiquetas de ingresos. Deuda: sus líneas
+  # «Pasivos financieros no corrientes» (11.410 M) y «corrientes» (2.018 M) del balance, las únicas
+  # etiquetadas. Según la nota 12 contienen bonos y papel comercial (6.554 M), préstamos (1.307 M,
+  # incluida la línea de crédito de NEO NEXT para el desmantelamiento del Mar del Norte) y deuda
+  # con entidades de crédito (2.483 M), pero también arrendamientos (2.894 M), que la empresa
+  # presenta dentro, y derivados financieros (184 M; los comerciales van en otras líneas): la deuda
+  # sale unos 3.000 M por encima de la deuda en sentido estricto (10.344 M). Patrimonio atribuible:
+  # no lo etiqueta (solo «fondos propios» y el total con minoritarios), así que queda sin dato. Su
+  # gasto financiero sí es el de intereses (291 M). Amortizaciones sin deterioros (en 2025 son
+  # -1 M; en 2024, 946 M, que restan del EBITDA de ese año).
+  - id: REP
+    name: Repsol, S.A.
+    source: esef
+    ticker: REP
+    isin: ES0173516115
+    lei: BSYCX13Y0NOTV14V9N85
+    exchange: XMAD
+    country: ES
+    sector: energy
+    industry: oil_gas
+    currency: EUR
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Pasivos financieros corrientes (incluyen arrendamientos y derivados)", tags: [CurrentFinancialLiabilities]}
+      - {line: "Pasivos financieros no corrientes (incluyen arrendamientos y derivados)", tags: [NoncurrentFinancialLiabilities], required: true}
+    tags:
+      revenue: [RevenueFromSaleOfGoods]
+
+  # --- Consumo ------------------------------------------------------------------------------------
+  # Inditex: ejercicio a 31 de enero (el de 2025 cerró el 31/01/2026). Deuda casi nula: 2 M de
+  # deuda financiera corriente y ninguna a largo; los arrendamientos (5.933 M) van aparte y no se
+  # suman, y la financiación de proveedores (confirming, 1.335 M) está en acreedores comerciales.
+  # La caja del estudio (5.276 M) no incluye las inversiones financieras temporales (5.684 M), así
+  # que su caja neta sale menor que la posición financiera neta que publica (10.958 M). Gasto
+  # financiero sin dato: la cuenta de resultados solo da el resultado financiero neto (-80 M); los
+  # gastos financieros (155 M) solo aparecen en el texto de la nota 9 y la única cifra etiquetada,
+  # 215 M, son los intereses de arrendamientos (estado de flujos), que no corresponden a la deuda.
+  # EBITDA del estudio = el que publica (11.267 M).
+  - id: ITX
+    name: Industria de Diseño Textil, S.A.
+    source: esef
+    ticker: ITX
+    isin: ES0148396007
+    lei: 549300TTCXZOGZM2EY83
+    exchange: XMAD
+    country: ES
+    sector: consumer
+    industry: retail
+    currency: EUR
+    fiscal_year_end_month: 1
+    debt:
+      - {line: "Deuda financiera corriente", tags: [CurrentBorrowingsAndCurrentPortionOfNoncurrentBorrowings]}
+      - {line: "Deuda financiera no corriente", tags: [LongtermBorrowings], required: true}
+
+  # --- Telecomunicaciones -------------------------------------------------------------------------
+  # Telefónica. Deuda: sus líneas «Pasivos financieros no corrientes» (30.120 M) y «corrientes»
+  # (4.219 M), las únicas etiquetadas. Según su nota de pasivos financieros contienen bonos
+  # (27.913 M), pagarés y papel comercial (1.418 M) y préstamos (2.740 M), pero también derivados
+  # (2.268 M) que no se pueden separar: la deuda sale un 7 % por encima de la deuda en sentido
+  # estricto (32.071 M). Los arrendamientos (7.582 M) van en líneas aparte y no se suman.
+  # Inversiones: etiqueta fijada con el signo cambiado. No usa las etiquetas estándar; su línea
+  # propia del estado de flujos «(Pagos)/cobros por inversiones materiales e intangibles» va en
+  # negativo (-5.055 M en 2025; -4.851 M en 2024) y se lee como 5.055 M. Incluye inmovilizado
+  # material e intangibles (con el espectro) y es neta de los cobros por desinversiones: según su
+  # nota, pagos de 5.446 M menos cobros de 391 M (el bruto solo está en el texto de la nota). Es de
+  # las actividades continuadas, mientras que el flujo operativo es el total (9.722 M, con 181 M de
+  # las interrumpidas). Cifras de 2025
+  # reales y atípicas: beneficio atribuido de -4.318 M (salida de Hispanoamérica, en actividades
+  # interrumpidas, y deterioros) y resultado de explotación de 1.319 M, tras 2.663 M de provisiones
+  # por planes de reestructuración de plantilla (2.322 M en Telefónica España) en gastos de
+  # personal; el EBITDA del estudio (8.683 M) las incluye. Las ventas de 2024 (35.671 M) están
+  # reexpresadas sin las filiales de Hispanoamérica.
+  - id: TEF
+    name: Telefónica, S.A.
+    source: esef
+    ticker: TEF
+    isin: ES0178430E18
+    lei: 549300EEJH4FEPDBBR25
+    exchange: XMAD
+    country: ES
+    sector: communications
+    industry: telecoms
+    currency: EUR
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Pasivos financieros corrientes (incluyen derivados)", tags: [CurrentFinancialLiabilities]}
+      - {line: "Pasivos financieros no corrientes (incluyen derivados)", tags: [NoncurrentFinancialLiabilities], required: true}
+    tags:
+      capital_expenditure: ["-tef:ProductoDeCompraPropiedadPlantaYEquipoYActivosIntangiblesClasificadosComoActividadesDeInversion"]
+
+  # --- Industria: transporte ----------------------------------------------------------------------
+  # Aena: aeropuertos de España, Luton (Reino Unido) y Brasil; el 51 % es del Estado a través de
+  # ENAIRE. Deuda: las dos líneas «Deuda financiera» del balance suman 7.556,7 M a 31/12/2025, la
+  # «deuda financiera bruta contable» del informe (nota 20); incluyen los préstamos con ENAIRE
+  # (1.572,9 M a largo plazo), los préstamos de accionistas de Luton y unos 36 M de arrendamientos
+  # que la empresa presenta dentro de la deuda. Fuera: derivados y «otros pasivos a largo plazo». Su
+  # balance no tiene subtotal de patrimonio atribuible (solo el total y los minoritarios, negativos),
+  # así que falta con su motivo. Capex fijado: inmovilizado material + intangibles (sobre todo las
+  # concesiones de Brasil) + inversiones inmobiliarias = 720,3 + 339,0 + 1,5 = 1.060,8 M en 2025
+  # (825,2 M en 2024), la «inversión pagada» que publica el informe (apartado 5 del informe de
+  # gestión). Desdoblamiento de acciones de 10 por 1 en 2025.
+  - id: AENA
+    name: Aena S.M.E., S.A.
+    source: esef
+    ticker: AENA
+    isin: ES0105046017
+    lei: 959800R7QMXKF0NFMT29
+    exchange: XMAD
+    country: ES
+    sector: industrials
+    industry: transportation
+    currency: EUR
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Deuda financiera corriente", tags: [ShorttermBorrowings]}
+      - {line: "Deuda financiera no corriente", tags: [LongtermBorrowings], required: true}
+    tags:
+      capital_expenditure: [PurchaseOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities+PurchaseOfIntangibleAssetsClassifiedAsInvestingActivities+PurchaseOfInvestmentProperty]
+
+  # --- Tecnología ---------------------------------------------------------------------------------
+  # Amadeus: tecnología para viajes (reservas y sistemas de aerolíneas y hoteles). Deuda: el balance
+  # solo tiene «Deuda corriente» y «Deuda no corriente» (etiquetadas como instrumentos de deuda
+  # emitidos), que suman 3.228,4 M a 31/12/2025 (nota 17): bonos 2.500, BEI 450, papel comercial
+  # 100, arrendamientos 134,9 e intereses devengados 41,1, entre otros. La empresa presenta los
+  # arrendamientos dentro de la deuda y se incluyen; su deuda «según contratos de financiación»
+  # (3.070,4 M) los excluye. El bono convertible (693,1 M) se convirtió en acciones en 2025.
+  # Capex fijado: inmovilizado material + intangibles (casi todo, software desarrollado) = 60,4 +
+  # 754,2 = 814,6 M en 2025 (788,1 M en 2024). Las «inversiones en inmovilizado» que publica
+  # (813,8 M; 770,3 M en 2024) son esa suma menos los cobros por venta de activos (0,8 M; 17,8 M).
+  - id: AMS
+    name: Amadeus IT Group, S.A.
+    source: esef
+    ticker: AMS
+    isin: ES0109067019
+    lei: 9598004A3FTY3TEHHN09
+    exchange: XMAD
+    country: ES
+    sector: technology
+    industry: it_services
+    currency: EUR
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Deuda corriente (bonos, papel comercial, préstamos, arrendamientos e intereses)", tags: [CurrentDebtInstrumentsIssued]}
+      - {line: "Deuda no corriente (bonos, BEI, préstamos y arrendamientos)", tags: [NoncurrentDebtInstrumentsIssued], required: true}
+    tags:
+      capital_expenditure: [PurchaseOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities+PurchaseOfIntangibleAssetsClassifiedAsInvestingActivities]
+
+  # --- Industria: construcción --------------------------------------------------------------------
+  # Acciona: sustituye a ACS. Infraestructuras (construcción, concesiones y agua: 8.690 M de ventas en
+  # 2025), energía renovable (Acciona Energía: 2.925 M de ventas, pero casi la mitad del EBITDA) y
+  # Nordex (aerogeneradores, filial que consolida: 7.554 M); la bolsa española la clasifica en
+  # construcción. Deuda: las cuatro líneas del balance (obligaciones y deudas con entidades de
+  # crédito, a corto y a largo) suman 12.336 M a 31/12/2025, la «deuda financiera» de su conciliación
+  # de la deuda neta; incluyen la deuda sin recurso de proyectos. Las obligaciones llevan etiquetas
+  # propias de la empresa. Fuera: arrendamientos (874 M, línea aparte) y la deuda de los activos
+  # mantenidos para la venta. Sin EBITDA: la cuenta de resultados agrupa la amortización con la
+  # variación de provisiones («Dotación a la amortización y variación de provisiones», 1.352 M =
+  # 1.119 de amortización + 233 de provisiones, nota 27) y la amortización sola no está en los datos
+  # estructurados; sumar la línea entera inflaría el EBITDA un 8 %. Capex: la línea conjunta de
+  # inmovilizado material e intangibles (la herramienta lo avisa).
+  - id: ANA
+    name: Acciona, S.A.
+    source: esef
+    ticker: ANA
+    isin: ES0125220311
+    lei: 54930002KP75TLLLNO21
+    exchange: XMAD
+    country: ES
+    sector: industrials
+    industry: construction
+    currency: EUR
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Obligaciones y otros valores negociables corrientes", tags: [Acciona:ParticipacionesPreferentesObligacionesYOtrosValoresNegociablesCorrientes]}
+      - {line: "Deudas con entidades de crédito corrientes", tags: [CurrentLoansReceivedAndCurrentPortionOfNoncurrentLoansReceived]}
+      - {line: "Obligaciones y otros valores negociables no corrientes", tags: [Acciona:ParticipacionesPreferentesObligacionesYOtrosValoresNegociablesNoCorrientes1], required: true}
+      - {line: "Deudas con entidades de crédito no corrientes", tags: [NoncurrentPortionOfNoncurrentLoansReceived], required: true}
+
+  # Ferrovial: autopistas, construcción y aeropuertos. Sociedad neerlandesa desde 2023 (Ferrovial
+  # SE; Ferrovial N.V. desde el 30/04/2026, el nombre que da GLEIF; el informe de 2025 aún es de
+  # Ferrovial SE). Cotiza en Madrid (IBEX 35), Ámsterdam y Nasdaq; se toma Madrid. Ventas: se fija
+  # RevenueAndOperatingIncome, la etiqueta que lleva la línea «Revenues» de su cuenta de resultados
+  # (9.627 M, nota 2.1); no publica la etiqueta de ventas por defecto. Deuda: las dos líneas
+  # «Borrowings» del balance (bonos y préstamos) suman 10.427 M a 31/12/2025: 2.810 M del grupo y
+  # 7.617 M de los proyectos de infraestructura (deuda sin recurso, sobre todo autopistas de
+  # EE. UU.). Fuera: arrendamientos y derivados. El resultado operativo incluye deterioros y ventas
+  # de activos (2024: 2.208 M, casi todo por la venta de Heathrow; 2025: 210 M), y el EBITDA con él.
+  # Sin gasto financiero: solo publica resultados financieros netos (de proyectos y del resto).
+  # Capex fijado: sus dos líneas propias del estado de flujos, inversión en inmovilizado material e
+  # intangibles + inversión en proyectos de infraestructura = 187 + 466 = 653 M en 2025 (412 M en
+  # 2024). No publica un total de capex: la «inversión» de su nota 5.3 (2.049 M) incluye además
+  # compras de participaciones y sociedades (1.636 M), así que no es comparable.
+  - id: FER
+    name: Ferrovial N.V.
+    source: esef
+    ticker: FER
+    isin: NL0015001FS8
+    lei: 72450022R2ZFL41Y6I04
+    exchange: XMAD
+    country: NL
+    sector: industrials
+    industry: construction
+    currency: EUR
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Deuda financiera corriente (bonos y préstamos; proyectos de infraestructura y resto)", tags: [CurrentNotesAndDebenturesIssuedAndCurrentPortionOfNoncurrentNotesAndDebenturesIssued]}
+      - {line: "Deuda financiera no corriente (bonos y préstamos; proyectos de infraestructura y resto)", tags: [NoncurrentPortionOfNoncurrentNotesAndDebenturesIssued], required: true}
+    tags:
+      revenue: [RevenueAndOperatingIncome]
+      capital_expenditure: [fer:InvestmentsInPropertyPlantAndEquipmentAndIntangibleAssets+fer:InvestmentsInInfrastructureProjects]
+
+  # --- Salud: farmacéuticas -----------------------------------------------------------------------
+  # Grifols: medicamentos derivados del plasma y diagnóstico. Tiene dos clases de acciones cotizadas:
+  # A (con voto, la de este ISIN) y B (261,4 millones de acciones sin voto, ES0171996095, también en
+  # Nasdaq como ADS). No afecta mientras las europeas no tengan capitalización (no hay cotizaciones
+  # ni número de acciones); si algún día hubiera cotizaciones, habría que revisarlo. Deuda: el
+  # balance solo presenta «Pasivos financieros» (9.643 M a 31/12/2025), que según la nota 19
+  # incluyen bonos (5.467), deuda sénior garantizada (2.209), otros préstamos (169), otros pasivos
+  # financieros (882, casi todo la deuda con GIC por Biomat), derivados (5) y arrendamientos (1.082),
+  # menos gastos de formalización (170). Los arrendamientos van dentro de la línea; la deuda
+  # financiera neta que publica Grifols (7.759 M) los excluye. Capex fijado: inmovilizado material +
+  # intangibles = 265 + 158 = 423 M en 2025 (372 M en 2024), la línea «Inmovilizado material e
+  # intangible» de su estado de flujos (su «CAPEX» de gestión, 265 M, es solo el material).
+  - id: GRF
+    name: Grifols, S.A.
+    source: esef
+    ticker: GRF
+    isin: ES0171996087
+    lei: 959800HSSNXWRKBK4N60
+    exchange: XMAD
+    country: ES
+    sector: health_care
+    industry: pharmaceuticals
+    currency: EUR
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Pasivos financieros corrientes", tags: [CurrentFinancialLiabilities]}
+      - {line: "Pasivos financieros no corrientes", tags: [NoncurrentFinancialLiabilities], required: true}
+    tags:
+      capital_expenditure: [PurchaseOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities+PurchaseOfIntangibleAssetsClassifiedAsInvestingActivities]
+
+  # --- Bancos -------------------------------------------------------------------------------------
+  # BBVA: su «Resultado de la actividad de explotación» (16.153 M en 2025) va etiquetado como
+  # resultado operativo: `ebit: []`. Deuda: los «instrumentos de deuda emitidos» a coste amortizado
+  # (81.842 M) y los valores representativos de deuda emitidos designados a valor razonable con
+  # cambios en resultados (5.997 M, etiqueta propia; son líneas distintas del balance y no se
+  # solapan). Fuera, los pasivos con bancos centrales (17.226 M) y los depósitos.
+  - id: BBVA
+    name: Banco Bilbao Vizcaya Argentaria, S.A.
+    source: esef
+    ticker: BBVA
+    isin: ES0113211835
+    lei: K8MS7FD7N5Z2WQ51AZ71
+    exchange: XMAD
+    country: ES
+    sector: financials
+    industry: banks
+    currency: EUR
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Instrumentos de deuda emitidos a coste amortizado", tags: [DebtInstrumentsIssuedAtAmortisedCost], required: true}
+      - {line: "Valores de deuda emitidos a valor razonable", tags: [bbva:ValoresRepresentativosDeDeudaEmitidosAValorRazonableConCambiosEnResultados]}
+    tags:
+      revenue: [GrossProfit]
+      gross_profit: []
+      ebit: []
+
+  # CaixaBank: incluye su negocio de seguros (VidaCaixa); su margen bruto (16.270 M) ya recoge el
+  # resultado del servicio de seguros. Deuda: los «instrumentos de deuda emitidos» a coste amortizado
+  # (52.206 M), que etiqueta DebtSecurities (su cartera de renta fija del activo lleva etiquetas
+  # propias, así que no se confunden). No tiene deuda emitida a valor razonable. Cuadra con el
+  # balance: depósitos 467.784 + deuda emitida 52.206 + otros pasivos 6.401 = 526.391 M de pasivos a
+  # coste amortizado. Publica el patrimonio atribuible.
+  - id: CABK
+    name: CaixaBank, S.A.
+    source: esef
+    ticker: CABK
+    isin: ES0140609019
+    lei: 7CUNS533WID6K7DGFI87
+    exchange: XMAD
+    country: ES
+    sector: financials
+    industry: banks
+    currency: EUR
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Instrumentos de deuda emitidos", tags: [DebtSecurities], required: true}
+    tags:
+      revenue: [GrossProfit]
+      gross_profit: []
+      ebit: []
+
+  # Bankinter: sustituye a Banco Santander. Deuda: los «instrumentos de deuda emitidos» a coste
+  # amortizado (10.384 M, DebtSecurities); los valores emitidos a valor razonable son cero. No tiene
+  # minoritarios, pero no etiqueta el patrimonio atribuible: falta con su motivo. Algunas etiquetas
+  # propias de su balance llevan el signo cambiado (depósitos: -107.815 M), pero no se usan.
+  - id: BKT
+    name: Bankinter, S.A.
+    source: esef
+    ticker: BKT
+    isin: ES0113679I37
+    lei: VWMYAEQSTOPNV0SUGU82
+    exchange: XMAD
+    country: ES
+    sector: financials
+    industry: banks
+    currency: EUR
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Instrumentos de deuda emitidos", tags: [DebtSecurities], required: true}
+    tags:
+      revenue: [GrossProfit]
+      gross_profit: []
+      ebit: []
+
+  # --- Seguros ------------------------------------------------------------------------------------
+  # Mapfre: aseguradora, cuentas NIIF 17. LEI entre comillas (solo tiene cifras). Su cuenta de
+  # resultados no tiene un total de ingresos: la primera línea son los «ingresos por contratos de
+  # seguro» (26.352 M en 2025, etiqueta propia), que se fijan como ventas. No incluyen los ingresos
+  # financieros (3.082 M), los del servicio de reaseguro ni otros ingresos; los «ingresos» de
+  # 34.074 M de su informe de gestión son primas y otros ingresos con criterio contable local, fuera
+  # de las cuentas NIIF. Sin resultado operativo (`ebit: []`). Gasto financiero: los «costes
+  # financieros» de la cuenta de resultados (732 M, sobre todo de su cartera de inversiones; los
+  # intereses pagados por su deuda son 90 M); la cobertura de intereses no aplica a aseguradoras.
+  # Deuda: las tres líneas de su balance que la forman: pasivos subordinados (1.631 M, la mayor y la
+  # obligatoria), obligaciones y valores negociables (866 M, deuda sénior) y préstamos bancarios
+  # (125 M). Suman 2.622 M, la deuda de la estructura de capital que publica (20 % de 13.136 M con
+  # el patrimonio). Fuera, los «otros pasivos financieros» y las cuentas a pagar.
+  - id: MAP
+    name: MAPFRE, S.A.
+    source: esef
+    ticker: MAP
+    isin: ES0124244E34
+    lei: "95980020140005693107"
+    exchange: XMAD
+    country: ES
+    sector: financials
+    industry: insurance
+    currency: EUR
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Pasivos subordinados", tags: [DatedSubordinatedLiabilities], required: true}
+      - {line: "Obligaciones y otros valores negociables", tags: [map:PasivosFinancieorsPorEmisionObligacionesYValoresNegociables]}
+      - {line: "Préstamos bancarios", tags: [UnsecuredBankLoansReceived]}
+    tags:
+      revenue: [map:IncomeArisingFromInsuranceContracts]
+      ebit: []
+
+  # --- Tecnología ---------------------------------------------------------------------------------
+  # Cifras NIIF del informe anual estatutario (ESEF). Su nota de prensa usa normas de EE. UU.: mismas
+  # ventas (32.667 M) pero otro beneficio (9.609 M frente a 10.213 M en NIIF, sobre todo porque en
+  # NIIF se activan los gastos de desarrollo). Etiquetas fijadas: no tiene minoritarios y no publica
+  # las etiquetas «atribuible a la dominante», así que el beneficio es el del ejercicio (ProfitLoss)
+  # y el patrimonio atribuible es el total (Equity). Deuda: bonos y papel comercial (691,7 M en
+  # 2025, en la línea a corto con los vencimientos a un año de los bonos); las dos líneas suman la
+  # deuda de su nota (4.390,9 M). Arrendamientos (251 M) en «otros pasivos», fuera. La inversión es
+  # solo la de inmovilizado material: los gastos de desarrollo activados (1.136,8 M) no se restan en
+  # el flujo de caja libre.
+  - id: ASML
+    name: ASML Holding N.V.
+    source: esef
+    ticker: ASML
+    isin: NL0010273215
+    lei: 724500Y6DUVHQD6OXN27
+    exchange: XAMS
+    country: NL
+    sector: technology
+    industry: semiconductors
+    currency: EUR
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Papel comercial y vencimientos a un año de la deuda a largo", tags: [CurrentPortionOfLongtermBorrowings]}
+      - {line: "Deuda a largo plazo", tags: [LongtermBorrowings], required: true}
+    tags:
+      net_income: [ProfitLoss]
+      equity_attributable: [Equity]
+
+  # --- Industria ----------------------------------------------------------------------------------
+  # Resultado operativo (EBIT 6.699 M) después de amortizar los intangibles de adquisiciones; su
+  # «EBITA ajustado» (7.520 M) no se usa. Deuda: «dettes financières courantes» (2.859 M: papel
+  # comercial 1.320, bonos a un año 749, préstamo puente 500 y otros, intereses devengados 137) y
+  # «non courantes» (15.021 M); suman la deuda de su nota (17.880 M). Fuera los arrendamientos (en
+  # «otros pasivos») y los compromisos de compra de minoritarios (475 M, líneas aparte). Etiquetas
+  # propias: gasto financiero = «coût de la dette financière brute» (473 M; sin los intereses de
+  # arrendamientos, 62 M); amortizaciones = las del estado de flujos de inmovilizado material (871 M,
+  # con 373 M de derechos de uso) e intangibles (781 M, con los de adquisiciones), sin deterioros.
+  # Sin `depreciation:` no habría EBITDA: no usa las etiquetas NIIF habituales.
+  - id: SU
+    name: Schneider Electric SE
+    source: esef
+    ticker: SU
+    isin: FR0000121972
+    lei: 969500A1YF1XUYYXS284
+    exchange: XPAR
+    country: FR
+    sector: industrials
+    industry: capital_goods
+    currency: EUR
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Deuda financiera a corto plazo", tags: [OtherCurrentFinancialLiabilities]}
+      - {line: "Deuda financiera a largo plazo", tags: [LongtermBorrowings], required: true}
+    tags:
+      interest_expense: [schneiderelectric:CostOfDebt]
+    depreciation: [schneiderelectric:AdjustmentsForDepreciationOfPropertyPlantAndEquipment, schneiderelectric:AdjustmentsForDepreciationOfIntangibleAssetsOtherThanGoodwill]
+
+  # --- Consumo ------------------------------------------------------------------------------------
+  # Resultado operativo = «résultat opérationnel» (8.386,5 M), después de otros ingresos y gastos no
+  # recurrentes (-505,4 M); su «résultat d'exploitation» (8.891,9 M) no se usa. Sin EBITDA: ver la
+  # cabecera. Deuda: bonos, otros préstamos y descubiertos, a corto y a largo; suman la deuda sin
+  # arrendamientos de su nota (10.118,6 M). Incluye el compromiso de compra de los minoritarios de
+  # Medik8 (325 M), que la empresa presenta dentro de sus préstamos. Arrendamientos (1.797 M) fuera.
+  # Etiquetas propias: gasto financiero = «coût de l'endettement financier brut» (365,8 M; por su
+  # definición incluye los intereses de arrendamientos); inversión = compras de inmovilizado
+  # material e intangible (1.495,3 M), que no publica por separado.
+  - id: OR
+    name: L'Oréal S.A.
+    source: esef
+    ticker: OR
+    isin: FR0000120321
+    lei: 529900JI1GG6F7RKVI53
+    exchange: XPAR
+    country: FR
+    sector: consumer
+    industry: consumer_products
+    currency: EUR
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Préstamos a corto y vencimientos a un año (sin arrendamientos)", tags: [CurrentBorrowingsAndCurrentPortionOfNoncurrentBorrowings]}
+      - {line: "Préstamos a largo plazo (sin arrendamientos)", tags: [LongtermBorrowings], required: true}
+    tags:
+      interest_expense: [loreal:CoutDeLendettementFinancierBrut]
+      capital_expenditure: [loreal:AcquisitionsDImmobilisationsCorporellesEtIncorporelles]
+
+  # --- Salud --------------------------------------------------------------------------------------
+  # Id SANF y no su ticker (SAN): SAN ya es el id de Banco Santander en el universo. Sin acciones en
+  # circulación: ver la cabecera. Ventas fijadas: el total de ventas netas (43.626 M); su cuenta no
+  # da un total de ingresos y los «otros ingresos» (3.090 M, sobre todo vacunas distribuidas por
+  # socios y regalías) quedan fuera, aunque sí están en el beneficio bruto (el margen bruto sale algo
+  # alto). Amortizaciones fijadas: la línea del estado de flujos que suma amortizaciones y deterioros
+  # de inmovilizado, derechos de uso e intangibles (5.678 M en 2025, con 2.241 M de deterioro de
+  # intangibles, que también se suman, como hace el EBITDA habitual). En 2025 vendió el control de
+  # Opella (actividad interrumpida): el beneficio atribuido (7.813 M) incluye 2.874 M de esa
+  # actividad y el flujo operativo 189 M; ventas y resultado operativo son solo de las actividades
+  # que continúan. Deuda: bonos, papel comercial y préstamos; fuera los derivados (112 M) y los
+  # arrendamientos (1.739 M). La inversión incluye los intangibles (licencias), con su aviso.
+  - id: SANF
+    name: Sanofi
+    source: esef
+    ticker: SAN
+    isin: FR0000120578
+    lei: 549300E9PC51EN656011
+    exchange: XPAR
+    country: FR
+    sector: health_care
+    industry: pharmaceuticals
+    currency: EUR
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Préstamos a corto y vencimientos a un año de la deuda a largo", tags: [CurrentBorrowingsAndCurrentPortionOfNoncurrentBorrowings]}
+      - {line: "Deuda a largo plazo", tags: [LongtermBorrowings], required: true}
+    tags:
+      revenue: [RevenueFromSaleOfGoods]
+    depreciation: [sny:AjustementsPourAmortissementsEtDepreciationsDesImmobilisationsCorporellesDroitsDutilisationEtImmobilisationsIncorporelles]
+
+  # --- Energía ------------------------------------------------------------------------------------
+  # Sustituye a TotalEnergies. Deuda = las tres líneas del balance: deuda a corto, vencimientos a un
+  # año de la deuda a largo y deuda a largo (bancos, bonos, bonos convertibles y otros financiadores;
+  # 28.502 M a cierre de 2025, como en la nota de pasivos financieros). Los arrendamientos (5.700 M)
+  # van en líneas aparte y no se incluyen; los bonos híbridos perpetuos son patrimonio según las NIIF.
+  # Gasto financiero fijado: los «gastos financieros» (8.170 M) son brutos e incluyen las diferencias
+  # de cambio negativas, que los ingresos financieros (7.196 M) compensan casi del todo (el neto es de
+  # 819 M), así que no son el coste de la deuda; se usan los intereses del estado de flujos (1.256 M;
+  # en la nota: bonos 774 + bancos y otros 252 + arrendamientos 348 − intereses activados 122). Las
+  # amortizaciones del EBITDA no incluyen los deterioros (1.582 M en 2025), que sí restan en el
+  # resultado operativo. La deuda neta del estudio solo resta la caja: la de Eni resta además los
+  # títulos de negociación (6.991 M) y suma los arrendamientos.
+  - id: ENI
+    name: Eni S.p.A.
+    source: esef
+    ticker: ENI
+    isin: IT0003132476
+    lei: BUCRF72VH5RBN7X3VL35
+    exchange: XMIL
+    country: IT
+    sector: energy
+    industry: oil_gas
+    currency: EUR
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Deuda a corto plazo", tags: [ShorttermBorrowings]}
+      - {line: "Vencimientos a un año de la deuda a largo", tags: [CurrentPortionOfLongtermBorrowings]}
+      - {line: "Deuda a largo plazo", tags: [LongtermBorrowings], required: true}
+    tags:
+      interest_expense: [AdjustmentsForInterestExpense]
+
+  # --- Eléctricas ---------------------------------------------------------------------------------
+  # Sustituye a Enel (la República de Austria tiene el 51 %). Deuda = pasivos financieros a largo y
+  # a corto del balance (2.272,8 M a cierre de 2025): bonos, préstamos de bancos y de otros,
+  # participaciones de socios comanditarios (13 M) y 333 M de préstamos de antiguas operaciones de
+  # arrendamiento transfronterizo que la empresa presenta «cerradas» (compensadas por inversiones del
+  # mismo importe en el activo): van dentro de la línea y no se pueden separar. Los arrendamientos
+  # (187 M) van en otros pasivos y no se incluyen. Inversiones = inmovilizado material e intangibles
+  # juntos (no publica las de material por separado). Amortizaciones sin deterioros: el EBITDA de
+  # 2025 (2.737,3 M) coincide con el publicado (2.737,5 M); el de 2024 sale 176 M por debajo del
+  # publicado porque el resultado operativo resta los deterioros netos de ese año.
+  - id: VER
+    name: VERBUND AG
+    source: esef
+    ticker: VER
+    isin: AT0000746409
+    lei: 5299006UDSEJCTTEJS30
+    exchange: XWBO
+    country: AT
+    sector: utilities
+    industry: electric_utilities
+    currency: EUR
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Pasivos financieros a corto", tags: [CurrentBorrowingsAndCurrentPortionOfNoncurrentBorrowings]}
+      - {line: "Pasivos financieros a largo", tags: [LongtermBorrowings], required: true}
+
+  # --- Alimentación y bebidas ---------------------------------------------------------------------
+  # Heineken N.V. (la cotizada que consolida el negocio, no Heineken Holding). Ventas fijadas en los
+  # ingresos netos de impuestos especiales sobre la cerveza («Net revenue», 28.753 M en 2025, línea de
+  # su cuenta de resultados con etiqueta propia): la empresa calcula sus márgenes sobre ellos y así se
+  # compara con las cerveceras y refresqueras de EE. UU. «Revenue» (34.257 M) incluye esos impuestos
+  # (5.504 M), que la empresa recauda para Hacienda. Deuda = las
+  # dos líneas de préstamos del balance (19.279 M): bonos, préstamos bancarios, depósitos de terceros
+  # (sobre todo de empleados), descubiertos y arrendamientos (1.516 M), que la empresa presenta
+  # dentro de su deuda. Las amortizaciones incluyen los deterioros (no publica las amortizaciones
+  # solas).
+  - id: HEIA
+    name: Heineken N.V.
+    source: esef
+    ticker: HEIA
+    isin: NL0000009165
+    lei: 724500K5PTPSST86UQ23
+    exchange: XAMS
+    country: NL
+    sector: consumer
+    industry: food_beverage
+    currency: EUR
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Préstamos a corto (incluye vencimientos a un año, descubiertos y arrendamientos)", tags: [ShorttermBorrowings]}
+      - {line: "Préstamos a largo (bonos, préstamos bancarios y arrendamientos)", tags: [LongtermBorrowings], required: true}
+    tags:
+      revenue: [heia:RevenueLessExciseTaxExpense]
+
+  # --- Salud --------------------------------------------------------------------------------------
+  # Sustituye a Novo Nordisk. Británica; presenta sus cuentas en dólares (cotiza en Londres, en
+  # Estocolmo y, desde febrero de 2026, directamente en Nueva York con el mismo ISIN). Deuda =
+  # préstamos con interés a corto y a largo del balance (27.819 M a cierre de 2025): bonos, otros
+  # préstamos, descubiertos y 473 M de garantías en efectivo recibidas de contrapartes de derivados,
+  # que la empresa presenta dentro de esa línea; los arrendamientos (1.803 M) van en líneas aparte y
+  # no se incluyen. Amortizaciones fijadas: solo publica las amortizaciones con los deterioros del
+  # estado de flujos (5.733 M en 2025; 6.688 M en 2024), con una etiqueta que la herramienta no busca
+  # por defecto; sin fijarla no habría EBITDA. El gasto financiero (1.694 M) es el total: intereses
+  # de deuda y arrendamientos (1.335 M) más actualizaciones de pasivos, pensiones y cambio.
+  - id: AZN
+    name: AstraZeneca PLC
+    source: esef
+    ticker: AZN
+    isin: GB0009895292
+    lei: PY6ZZQWO2IZFZC3IOL08
+    exchange: XLON
+    country: GB
+    sector: health_care
+    industry: pharmaceuticals
+    currency: USD
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Préstamos con interés a corto (incluye vencimientos a un año)", tags: [CurrentBorrowingsAndCurrentPortionOfNoncurrentBorrowings]}
+      - {line: "Préstamos con interés a largo", tags: [LongtermBorrowings], required: true}
+    depreciation: [AdjustmentsForDepreciationAndAmortisationExpenseAndImpairmentLossReversalOfImpairmentLossRecognisedInProfitOrLoss]

@@ -15,6 +15,7 @@ class Sector(StrEnum):
     FINANCIALS = "financials"
     HEALTH_CARE = "health_care"
     ENERGY = "energy"
+    COMMUNICATIONS = "communications"
 
     @property
     def label(self) -> str:
@@ -38,6 +39,8 @@ class Industry(StrEnum):
     PHARMACEUTICALS = "pharmaceuticals"
     MEDICAL_DEVICES = "medical_devices"
     OIL_GAS = "oil_gas"
+    TELECOMS = "telecoms"
+    PERSONAL_PROTECTION = "personal_protection"  # personal protective equipment (PPE)
 
     @property
     def label(self) -> str:
@@ -72,6 +75,7 @@ _SECTOR_LABELS = {
     Sector.FINANCIALS: "Financiero",
     Sector.HEALTH_CARE: "Salud",
     Sector.ENERGY: "Energía",
+    Sector.COMMUNICATIONS: "Telecomunicaciones",
 }
 
 _INDUSTRY_LABELS = {
@@ -91,6 +95,8 @@ _INDUSTRY_LABELS = {
     Industry.PHARMACEUTICALS: "Farmacéuticas",
     Industry.MEDICAL_DEVICES: "Tecnología médica",
     Industry.OIL_GAS: "Petróleo y gas",
+    Industry.TELECOMS: "Operadores de telecomunicaciones",
+    Industry.PERSONAL_PROTECTION: "Equipos de protección individual (EPI)",
 }
 
 _INDUSTRY_SECTOR = {
@@ -110,6 +116,8 @@ _INDUSTRY_SECTOR = {
     Industry.PHARMACEUTICALS: Sector.HEALTH_CARE,
     Industry.MEDICAL_DEVICES: Sector.HEALTH_CARE,
     Industry.OIL_GAS: Sector.ENERGY,
+    Industry.TELECOMS: Sector.COMMUNICATIONS,
+    Industry.PERSONAL_PROTECTION: Sector.INDUSTRIALS,
 }
 
 _SENIORITY_LABELS = {

@@ -1,0 +1,194 @@
+  # --- Fragmento: España, no financieras (informes ESEF de filings.xbrl.org) ----------------------
+  #
+  # Identificadores verificados el 21/10/2026: LEI con GLEIF por ISIN (razón social y domicilio en
+  # España coinciden); ISIN con su dígito de control y con OpenFIGI (acción ordinaria en Madrid y en
+  # el Mercado Continuo, con el mismo ticker); los seis cotizan en la Bolsa de Madrid (XMAD).
+  # Informes: filings.xbrl.org tiene el informe financiero anual de 2025 de las seis (de Inditex,
+  # el del ejercicio cerrado el 31/01/2026), publicado entre el 19/02 y el 11/03/2026.
+  #
+  # Estado (21/10/2026): comprobadas las 6 con apoyo/comprobar_empresas.py; pendientes de
+  # incorporar a universo.yaml. Sin excluidas ni sustituciones.
+  #
+  # Común a las seis:
+  # - Las cifras vienen en euros (divisa de las cuentas) y solo hay datos anuales: el formato ESEF
+  #   solo cubre el informe anual, así que los doce últimos meses son el último ejercicio.
+  # - Ninguna etiqueta el número de acciones en sus estados (solo el beneficio por acción): las
+  #   acciones en circulación quedan sin dato, con su motivo.
+  # - Deuda: solo préstamos, bonos y pagarés. Las obligaciones perpetuas subordinadas (híbridos) de
+  #   Iberdrola, Repsol y Telefónica son patrimonio en sus cuentas y no se suman.
+  # - EBITDA = resultado de explotación publicado + amortizaciones y deterioros de activos no
+  #   financieros. Las eléctricas restan en su EBITDA propio, además, el deterioro de cuentas a
+  #   cobrar (pérdidas crediticias), que aquí no se suma: el EBITDA del estudio queda algo por
+  #   debajo del que publican (diferencias indicadas en cada empresa).
+
+  # --- Eléctricas -------------------------------------------------------------------------------
+  # Iberdrola. Deuda: sus dos líneas propias «Deudas con entidades de crédito y obligaciones u otros
+  # valores negociables» (no corriente y corriente; incluyen el papel comercial), 54.090 M a
+  # 31/12/2025. Fuera, dentro de los pasivos financieros del balance: derivados (1.998 M),
+  # arrendamientos (2.594 M), «instrumentos de capital con características de pasivo financiero»
+  # (692 M, socios fiscales de parques renovables en EE. UU.), proveedores y otros pasivos
+  # financieros. Por eso no sirve `NoncurrentFinancialLiabilities` (48.024 M, que mezcla todo eso).
+  # Gasto financiero: no etiqueta los intereses aparte; se usa el total de gastos financieros
+  # (3.983 M, incluye diferencias de cambio y derivados). EBITDA del estudio 15.558 M frente a los
+  # 15.956 M que publica (resta 398 M de deterioro de cuentas a cobrar).
+  - id: IBE
+    name: Iberdrola, S.A.
+    source: esef
+    ticker: IBE
+    isin: ES0144580Y14
+    lei: 5QK37QC7NWOJ8D7WVQ45
+    exchange: XMAD
+    country: ES
+    sector: utilities
+    industry: electric_utilities
+    currency: EUR
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Deudas con entidades de crédito y obligaciones a corto", tags: [ibe:DeudasConEntidadesDeCreditoYObligacionesUOtrosValoresNegociablesCorrientes]}
+      - {line: "Deudas con entidades de crédito y obligaciones a largo", tags: [ibe:DeudasConEntidadesDeCreditoYObligacionesUOtrosValoresNegociables], required: true}
+
+  # Endesa (controlada por Enel). Deuda: sus líneas «Deuda financiera no corriente» y «corriente»
+  # (10.427 M a 31/12/2025), que el balance presenta sin derivados ni otros pasivos financieros.
+  # Según la nota de deuda incluyen bonos y pagarés (364 M), préstamos bancarios (5.632 M), otros
+  # préstamos, sobre todo de Enel Finance International (3.635 M), y arrendamientos (796 M), que
+  # la empresa presenta dentro de su deuda y no se pueden separar. Amortizaciones fijadas: la
+  # etiqueta por defecto que encuentra es el ajuste del estado de flujos (2.425 M), que suma
+  # también 169 M de deterioro de activos financieros (pérdidas crediticias de clientes), que no
+  # son amortizaciones; se usa su línea propia de la cuenta de resultados «amortizaciones y
+  # pérdidas por deterioro de activos no financieros» (2.256 M), igual que en Iberdrola y Naturgy.
+  # EBITDA del estudio 5.587 M frente a los 5.756 M que publica. Inversiones: incluyen las de
+  # intangibles (no publica las de inmovilizado material por separado).
+  - id: ELE
+    name: Endesa, S.A.
+    source: esef
+    ticker: ELE
+    isin: ES0130670112
+    lei: 549300LHK07F2CHV4X31
+    exchange: XMAD
+    country: ES
+    sector: utilities
+    industry: electric_utilities
+    currency: EUR
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Deuda financiera corriente", tags: [CurrentFinancialLiabilities]}
+      - {line: "Deuda financiera no corriente", tags: [NoncurrentFinancialLiabilities], required: true}
+    depreciation: [ele:DepreciationAmortisationAndImpairmentLossReversalOfImpairmentLossRecognisedInProfitOrLossNonFinancialAssets]
+
+  # Naturgy: gas y electricidad (redes, generación y comercialización); se clasifica con las
+  # eléctricas, la única industria de servicios públicos de la lista. Deuda: obligaciones y deuda
+  # con entidades de crédito, no corriente (12.874 M) y corriente (2.606 M) a 31/12/2025; los
+  # arrendamientos (1.278 M) van en líneas aparte y no se suman. La línea corriente incluye 11 M de
+  # derivados de cobertura (14 M en la no corriente de 2024) que no se pueden separar. Sin
+  # beneficio bruto (no lo publica). EBITDA del estudio 5.192 M frente a los 5.334 M que publica
+  # (resta 139 M de deterioro por pérdidas crediticias y 3 M de otros resultados). Inversiones:
+  # incluyen las de intangibles.
+  - id: NTGY
+    name: Naturgy Energy Group, S.A.
+    source: esef
+    ticker: NTGY
+    isin: ES0116870314
+    lei: TL2N6M87CW970S5SV098
+    exchange: XMAD
+    country: ES
+    sector: utilities
+    industry: electric_utilities
+    currency: EUR
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Obligaciones y deuda con entidades de crédito a corto", tags: [CurrentBorrowingsAndCurrentPortionOfNoncurrentBorrowings]}
+      - {line: "Obligaciones y deuda con entidades de crédito a largo", tags: [LongtermBorrowings], required: true}
+
+  # --- Petróleo y gas -----------------------------------------------------------------------------
+  # Repsol. Ventas: etiqueta fijada. No usa la etiqueta de ingresos totales; se toma su línea
+  # «Ventas» (54.421 M en 2025, con 6.512 M de impuestos especiales sobre hidrocarburos, que la
+  # empresa cuenta como ingreso). Quedan fuera los 440 M de prestación de servicios (los ingresos
+  # ordinarios son 54.861 M): la herramienta no suma etiquetas de ingresos. Deuda: sus líneas
+  # «Pasivos financieros no corrientes» (11.410 M) y «corrientes» (2.018 M) del balance, las únicas
+  # etiquetadas. Según la nota 12 contienen bonos y papel comercial (6.554 M), préstamos (1.307 M,
+  # incluida la línea de crédito de NEO NEXT para el desmantelamiento del Mar del Norte) y deuda
+  # con entidades de crédito (2.483 M), pero también arrendamientos (2.894 M), que la empresa
+  # presenta dentro, y derivados financieros (184 M; los comerciales van en otras líneas): la deuda
+  # sale unos 3.000 M por encima de la deuda en sentido estricto (10.344 M). Patrimonio atribuible:
+  # no lo etiqueta (solo «fondos propios» y el total con minoritarios), así que queda sin dato. Su
+  # gasto financiero sí es el de intereses (291 M). Amortizaciones sin deterioros (en 2025 son
+  # -1 M; en 2024, 946 M, que restan del EBITDA de ese año).
+  - id: REP
+    name: Repsol, S.A.
+    source: esef
+    ticker: REP
+    isin: ES0173516115
+    lei: BSYCX13Y0NOTV14V9N85
+    exchange: XMAD
+    country: ES
+    sector: energy
+    industry: oil_gas
+    currency: EUR
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Pasivos financieros corrientes (incluyen arrendamientos y derivados)", tags: [CurrentFinancialLiabilities]}
+      - {line: "Pasivos financieros no corrientes (incluyen arrendamientos y derivados)", tags: [NoncurrentFinancialLiabilities], required: true}
+    tags:
+      revenue: [RevenueFromSaleOfGoods]
+
+  # --- Consumo ------------------------------------------------------------------------------------
+  # Inditex: ejercicio a 31 de enero (el de 2025 cerró el 31/01/2026). Deuda casi nula: 2 M de
+  # deuda financiera corriente y ninguna a largo; los arrendamientos (5.933 M) van aparte y no se
+  # suman, y la financiación de proveedores (confirming, 1.335 M) está en acreedores comerciales.
+  # La caja del estudio (5.276 M) no incluye las inversiones financieras temporales (5.684 M), así
+  # que su caja neta sale menor que la posición financiera neta que publica (10.958 M). Gasto
+  # financiero sin dato: la cuenta de resultados solo da el resultado financiero neto (-80 M); los
+  # gastos financieros (155 M) solo aparecen en el texto de la nota 9 y la única cifra etiquetada,
+  # 215 M, son los intereses de arrendamientos (estado de flujos), que no corresponden a la deuda.
+  # EBITDA del estudio = el que publica (11.267 M).
+  - id: ITX
+    name: Industria de Diseño Textil, S.A.
+    source: esef
+    ticker: ITX
+    isin: ES0148396007
+    lei: 549300TTCXZOGZM2EY83
+    exchange: XMAD
+    country: ES
+    sector: consumer
+    industry: retail
+    currency: EUR
+    fiscal_year_end_month: 1
+    debt:
+      - {line: "Deuda financiera corriente", tags: [CurrentBorrowingsAndCurrentPortionOfNoncurrentBorrowings]}
+      - {line: "Deuda financiera no corriente", tags: [LongtermBorrowings], required: true}
+
+  # --- Telecomunicaciones -------------------------------------------------------------------------
+  # Telefónica. Deuda: sus líneas «Pasivos financieros no corrientes» (30.120 M) y «corrientes»
+  # (4.219 M), las únicas etiquetadas. Según su nota de pasivos financieros contienen bonos
+  # (27.913 M), pagarés y papel comercial (1.418 M) y préstamos (2.740 M), pero también derivados
+  # (2.268 M) que no se pueden separar: la deuda sale un 7 % por encima de la deuda en sentido
+  # estricto (32.071 M). Los arrendamientos (7.582 M) van en líneas aparte y no se suman.
+  # Inversiones: etiqueta fijada con el signo cambiado. No usa las etiquetas estándar; su línea
+  # propia del estado de flujos «(Pagos)/cobros por inversiones materiales e intangibles» va en
+  # negativo (-5.055 M en 2025; -4.851 M en 2024) y se lee como 5.055 M. Incluye inmovilizado
+  # material e intangibles (con el espectro) y es neta de los cobros por desinversiones: según su
+  # nota, pagos de 5.446 M menos cobros de 391 M (el bruto solo está en el texto de la nota). Es de
+  # las actividades continuadas, mientras que el flujo operativo es el total (9.722 M, con 181 M de
+  # las interrumpidas). Cifras de 2025
+  # reales y atípicas: beneficio atribuido de -4.318 M (salida de Hispanoamérica, en actividades
+  # interrumpidas, y deterioros) y resultado de explotación de 1.319 M, tras 2.663 M de provisiones
+  # por planes de reestructuración de plantilla (2.322 M en Telefónica España) en gastos de
+  # personal; el EBITDA del estudio (8.683 M) las incluye. Las ventas de 2024 (35.671 M) están
+  # reexpresadas sin las filiales de Hispanoamérica.
+  - id: TEF
+    name: Telefónica, S.A.
+    source: esef
+    ticker: TEF
+    isin: ES0178430E18
+    lei: 549300EEJH4FEPDBBR25
+    exchange: XMAD
+    country: ES
+    sector: communications
+    industry: telecoms
+    currency: EUR
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Pasivos financieros corrientes (incluyen derivados)", tags: [CurrentFinancialLiabilities]}
+      - {line: "Pasivos financieros no corrientes (incluyen derivados)", tags: [NoncurrentFinancialLiabilities], required: true}
+    tags:
+      capital_expenditure: ["-tef:ProductoDeCompraPropiedadPlantaYEquipoYActivosIntangiblesClasificadosComoActividadesDeInversion"]

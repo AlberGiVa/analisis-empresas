@@ -82,6 +82,11 @@
       <div class="bars" data-orden="a">
         <div class="panel-head">
           <h2>Puntuaciones</h2>
+          <div class="seg" role="group" aria-label="Empresas">
+            <button type="button" data-zona-btn="europa" aria-pressed="true">Europa</button>
+            <button type="button" data-zona-btn="eeuu" aria-pressed="false">EE. UU.</button>
+            <button type="button" data-zona-btn="epi" aria-pressed="false">EPI</button>
+          </div>
           <div class="seg" role="group" aria-label="Ordenar">
             <button type="button" data-orden-por="a" aria-pressed="true">Accionista</button>
             <button type="button" data-orden-por="c" aria-pressed="false">Acreedor</button>
@@ -95,19 +100,28 @@
 
   <div class="dash-two">
     <section class="panel-card">
-      <div class="panel-head"><h2>Empresas</h2><a href="reales/index.html">Ver todas →</a></div>
+      <div class="panel-head"><h2>Empresas</h2>
+          <div class="seg" role="group" aria-label="Empresas">
+            <button type="button" data-zona-btn="europa" aria-pressed="true">Europa</button>
+            <button type="button" data-zona-btn="eeuu" aria-pressed="false">EE. UU.</button>
+            <button type="button" data-zona-btn="epi" aria-pressed="false">EPI</button>
+          </div>
+          <span class="links"><a href="reales/index.html">Ver todas →</a><a href="reales/epi.html">Sector EPI →</a></span></div>
       <div class="scroll">
       <table>
         <thead><tr><th>Empresa</th><th>Sector</th><th class="num">Accionista</th><th class="num">Acreedor</th><th class="num">Alertas</th></tr></thead>
         <tbody>
         {% for company in study.run.companies %}
-          <tr>
+          <tr data-zona="{{ zones[company.issuer_id] }}">
             <td><a href="reales/{{ company.ficha_path }}">{{ company.name }}</a></td>
             <td>{{ company.industry_label }}</td>
             <td class="num">{{ company.equity.value_text if company.equity.value is not none else "—" }}</td>
             <td class="num">{{ company.credit.value_text if company.credit.value is not none else "—" }}</td>
             <td class="num">{{ company.alerts | length or "" }}</td>
           </tr>
+        {% endfor %}
+        {% for zone in ["europa", "eeuu", "epi"] if not zone_counts[zone] %}
+          <tr data-zona="{{ zone }}"><td colspan="5" class="muted">Ninguna empresa.</td></tr>
         {% endfor %}
         </tbody>
       </table>
@@ -118,7 +132,7 @@
       {% if real_alerts %}
       <ul class="alert-list">
         {% for company, alert in real_alerts %}
-        <li><a href="reales/{{ company.ficha_path }}">{{ company.name }}</a> · <strong>{{ alert.rule_label }}.</strong> {{ alert.message }}</li>
+        <li data-zona="{{ zones[company.issuer_id] }}"><a href="reales/{{ company.ficha_path }}">{{ company.name }}</a> · <strong>{{ alert.rule_label }}.</strong> {{ alert.message }}</li>
         {% endfor %}
       </ul>
       {% else %}<p class="muted">Ninguna.</p>{% endif %}

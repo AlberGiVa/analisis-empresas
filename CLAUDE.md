@@ -58,7 +58,7 @@ Las fichas y el panel leen esos resultados guardados (`reports`, `app`).
 | `config.py`, `config_loader.py` | Metodología de `config/analysis.yaml`: modelos, validación y huella. |
 | `models/` | Modelos de dominio validados (pydantic): emisores, instrumentos, estados financieros en formato largo, mercado y `DataBundle` (lote autocontenido). |
 | `providers/` | Interfaz `DataProvider`, `SampleProvider` (CSV de `data/sample`), generador determinista de datos sintéticos y `WorkbookProvider` (plantilla de Excel para datos reales; `docs/importar-datos.md`). |
-| `providers/public/` | Datos reales de fuentes públicas (SEC EDGAR, Nasdaq/Yahoo, BCE): descarga a carpetas con fecha y manifiesto, lectura a fecha de la SEC y revisión de calidad. Solo lo usan el estudio y la web. |
+| `providers/public/` | Datos reales de fuentes públicas (SEC EDGAR, informes anuales europeos ESEF de filings.xbrl.org, Nasdaq/Yahoo, BCE): descarga a carpetas con fecha y manifiesto, lectura a fecha (el mismo lector para la SEC y el ESEF) y revisión de calidad. Solo lo usan el estudio y la web. Decisión 0019. |
 | `study.py` | Estudio con datos reales, aislado en `estudio-real/` (rutas fijas en el código; nunca toca la base principal). Decisión 0017. |
 | `web.py` | Web pública estática (GitHub Pages): ejemplo completo y empresas reales sin cotizaciones, construida en una carpeta temporal. Decisión 0018. |
 | `i18n/` | Versión inglesa de la web: traduce los textos del HTML generado con el catálogo `en.yaml` (frases exactas y patrones) y pasa las cifras a notación inglesa. Lo que falta se queda en español y se lista. |

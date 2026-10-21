@@ -1,0 +1,148 @@
+  # --- Fragmento: financieras europeas (España, informes anuales ESEF) ----------------------------
+  #
+  # Identificadores verificados el 21/10/2026: LEI con GLEIF (razón social, jurisdicción ES, entidad
+  # activa) y con filings.xbrl.org, donde está su informe de 2025; GLEIF asocia cada ISIN a ese LEI;
+  # ISIN con su dígito de control y con OpenFIGI (acción ordinaria, mercado principal la Bolsa de
+  # Madrid, XMAD).
+  #
+  # Estado (21/10/2026): comprobadas con apoyo/comprobar_empresas.py BBVA, CABK y MAP, y BKT como
+  # sustituta de Santander, todas con su informe ESEF de 2025. Cifras de 2025 cotejadas con los
+  # estados financieros del propio informe (visor de filings.xbrl.org) y con las notas de resultados
+  # de cada empresa: coinciden.
+  #
+  # Criterio común (el mismo de JPM, BAC, MET y TRV):
+  # - Sin resultado operativo (`ebit: []`). La cuenta de resultados de los bancos españoles (formato
+  #   de la Circular 4/2017 del Banco de España) tiene un «Resultado de la actividad de explotación»
+  #   que no es un resultado operativo: va después de los intereses pagados y de los deterioros de
+  #   crédito. BBVA lo etiqueta ProfitLossFromOperatingActivities y saldrían un EBIT y un EBITDA de
+  #   banco; en los demás se fija igual para que no aparezca si algún informe lo etiqueta.
+  # - Ingresos de los bancos: el margen bruto, que etiquetan GrossProfit. Se fija como ventas y el
+  #   beneficio bruto queda vacío (`gross_profit: []`): no es un beneficio después del coste de
+  #   ventas sino los ingresos del banco, y saldría la misma cifra dos veces.
+  # - Deuda de los bancos: los valores representativos de deuda emitidos (bonos, cédulas, pagarés y
+  #   deuda subordinada). Fuera: depósitos de bancos centrales, de bancos y de clientes, derivados,
+  #   posiciones cortas y otros pasivos financieros. La «pro memoria: pasivos subordinados» no es
+  #   una línea más: está dentro de las anteriores.
+  # - Faltan, con su motivo (no los etiquetan): las acciones en circulación (las cuatro) y el
+  #   patrimonio atribuible de BBVA y Bankinter (su balance da fondos propios, otro resultado global
+  #   acumulado y minoritarios, sin el subtotal), así que su ROE saldrá «no disponible». No se
+  #   sustituye por el patrimonio total.
+  #
+  # Excluidas tras revisar sus datos (texto para la cabecera del universo):
+  # - Banco Santander: su informe de 2025 solo etiqueta sin desglose el total de «pasivos financieros
+  #   a coste amortizado» (1.421.184 M, depósitos incluidos); los valores representativos de deuda
+  #   emitidos (312.704 M a coste amortizado y 11.686 M a valor razonable) solo aparecen como
+  #   desglose por dimensión (ClassesOfFinancialLiabilitiesAxis), que el proveedor no lee. Sin línea
+  #   de deuda obligatoria; tampoco etiqueta el patrimonio atribuible. Entraría si el proveedor
+  #   leyera ese desglose. La sustituye Bankinter (banco español, mediana capitalización, emisor de
+  #   bonos).
+  # - Banco Sabadell, comprobado como alternativa y descartado: TSB está en venta (49.333 M de
+  #   pasivos mantenidos para la venta a 31/12/2025; resultados de 2025 y 2024 sin TSB) y su deuda
+  #   emitida baja de 27.437 M a 19.949 M solo por esa reclasificación.
+
+  # --- Bancos -------------------------------------------------------------------------------------
+  # BBVA: su «Resultado de la actividad de explotación» (16.153 M en 2025) va etiquetado como
+  # resultado operativo: `ebit: []`. Deuda: los «instrumentos de deuda emitidos» a coste amortizado
+  # (81.842 M) y los valores representativos de deuda emitidos designados a valor razonable con
+  # cambios en resultados (5.997 M, etiqueta propia; son líneas distintas del balance y no se
+  # solapan). Fuera, los pasivos con bancos centrales (17.226 M) y los depósitos.
+  - id: BBVA
+    name: Banco Bilbao Vizcaya Argentaria, S.A.
+    source: esef
+    ticker: BBVA
+    isin: ES0113211835
+    lei: K8MS7FD7N5Z2WQ51AZ71
+    exchange: XMAD
+    country: ES
+    sector: financials
+    industry: banks
+    currency: EUR
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Instrumentos de deuda emitidos a coste amortizado", tags: [DebtInstrumentsIssuedAtAmortisedCost], required: true}
+      - {line: "Valores de deuda emitidos a valor razonable", tags: [bbva:ValoresRepresentativosDeDeudaEmitidosAValorRazonableConCambiosEnResultados]}
+    tags:
+      revenue: [GrossProfit]
+      gross_profit: []
+      ebit: []
+
+  # CaixaBank: incluye su negocio de seguros (VidaCaixa); su margen bruto (16.270 M) ya recoge el
+  # resultado del servicio de seguros. Deuda: los «instrumentos de deuda emitidos» a coste amortizado
+  # (52.206 M), que etiqueta DebtSecurities (su cartera de renta fija del activo lleva etiquetas
+  # propias, así que no se confunden). No tiene deuda emitida a valor razonable. Cuadra con el
+  # balance: depósitos 467.784 + deuda emitida 52.206 + otros pasivos 6.401 = 526.391 M de pasivos a
+  # coste amortizado. Publica el patrimonio atribuible.
+  - id: CABK
+    name: CaixaBank, S.A.
+    source: esef
+    ticker: CABK
+    isin: ES0140609019
+    lei: 7CUNS533WID6K7DGFI87
+    exchange: XMAD
+    country: ES
+    sector: financials
+    industry: banks
+    currency: EUR
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Instrumentos de deuda emitidos", tags: [DebtSecurities], required: true}
+    tags:
+      revenue: [GrossProfit]
+      gross_profit: []
+      ebit: []
+
+  # Bankinter: sustituye a Banco Santander. Deuda: los «instrumentos de deuda emitidos» a coste
+  # amortizado (10.384 M, DebtSecurities); los valores emitidos a valor razonable son cero. No tiene
+  # minoritarios, pero no etiqueta el patrimonio atribuible: falta con su motivo. Algunas etiquetas
+  # propias de su balance llevan el signo cambiado (depósitos: -107.815 M), pero no se usan.
+  - id: BKT
+    name: Bankinter, S.A.
+    source: esef
+    ticker: BKT
+    isin: ES0113679I37
+    lei: VWMYAEQSTOPNV0SUGU82
+    exchange: XMAD
+    country: ES
+    sector: financials
+    industry: banks
+    currency: EUR
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Instrumentos de deuda emitidos", tags: [DebtSecurities], required: true}
+    tags:
+      revenue: [GrossProfit]
+      gross_profit: []
+      ebit: []
+
+  # --- Seguros ------------------------------------------------------------------------------------
+  # Mapfre: aseguradora, cuentas NIIF 17. LEI entre comillas (solo tiene cifras). Su cuenta de
+  # resultados no tiene un total de ingresos: la primera línea son los «ingresos por contratos de
+  # seguro» (26.352 M en 2025, etiqueta propia), que se fijan como ventas. No incluyen los ingresos
+  # financieros (3.082 M), los del servicio de reaseguro ni otros ingresos; los «ingresos» de
+  # 34.074 M de su informe de gestión son primas y otros ingresos con criterio contable local, fuera
+  # de las cuentas NIIF. Sin resultado operativo (`ebit: []`). Gasto financiero: los «costes
+  # financieros» de la cuenta de resultados (732 M, sobre todo de su cartera de inversiones; los
+  # intereses pagados por su deuda son 90 M); la cobertura de intereses no aplica a aseguradoras.
+  # Deuda: las tres líneas de su balance que la forman: pasivos subordinados (1.631 M, la mayor y la
+  # obligatoria), obligaciones y valores negociables (866 M, deuda sénior) y préstamos bancarios
+  # (125 M). Suman 2.622 M, la deuda de la estructura de capital que publica (20 % de 13.136 M con
+  # el patrimonio). Fuera, los «otros pasivos financieros» y las cuentas a pagar.
+  - id: MAP
+    name: MAPFRE, S.A.
+    source: esef
+    ticker: MAP
+    isin: ES0124244E34
+    lei: "95980020140005693107"
+    exchange: XMAD
+    country: ES
+    sector: financials
+    industry: insurance
+    currency: EUR
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Pasivos subordinados", tags: [DatedSubordinatedLiabilities], required: true}
+      - {line: "Obligaciones y otros valores negociables", tags: [map:PasivosFinancieorsPorEmisionObligacionesYValoresNegociables]}
+      - {line: "Préstamos bancarios", tags: [UnsecuredBankLoansReceived]}
+    tags:
+      revenue: [map:IncomeArisingFromInsuranceContracts]
+      ebit: []

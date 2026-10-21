@@ -1,0 +1,178 @@
+  # --- Fragmento: España y Países Bajos (ESEF, no financieras) ---------------------------------------
+  #
+  # Identificadores verificados el 21/10/2026: LEI con GLEIF (razón social, jurisdicción y relación
+  # ISIN-LEI) y con el índice de entidades de filings.xbrl.org; ISIN con su dígito de control y con
+  # OpenFIGI (acción ordinaria en la bolsa de Madrid); mercado con OpenFIGI.
+  #
+  # Estado (21/10/2026): comprobadas las 5 con apoyo/comprobar_empresas.py, ya con la corrección de
+  # las amortizaciones, la descarga solo de informes anuales y la suma de etiquetas fijadas («A+B»).
+  # Todas tienen en filings.xbrl.org el informe anual de 2025 (presentados entre el 25/02 y el
+  # 27/02/2026). Cifras de 2025 contrastadas con el propio informe (cuenta de resultados, balance,
+  # nota de deuda y conciliación de la deuda neta): ventas, resultado operativo, beneficio atribuido
+  # y deuda coinciden; el EBITDA calculado coincide con el que publican Aena (3.785,0 M), Amadeus
+  # (2.493,4 M) y Grifols (1.693 M).
+  #
+  # Común a las cinco: ningún informe publica el número de acciones en los datos estructurados, así
+  # que las acciones (y con ellas la capitalización) salen «la empresa no publica esta partida»,
+  # como en Iberdrola. Ninguna publica beneficio bruto salvo Grifols.
+  #
+  # Excluida tras revisar sus datos (texto para la cabecera del universo):
+  # - ACS: no publica resultado operativo. Su cuenta de resultados consolidada pasa de las partidas
+  #   de explotación a los ingresos y gastos financieros sin subtotal de «resultado de explotación»
+  #   (y el informe ESEF no lo etiqueta), así que no hay EBIT ni EBITDA, como en Clorox o IBM. La
+  #   sustituye Acciona (construcción e infraestructuras, además de energía).
+  #
+  # Capex: Aena, Amadeus, Grifols y Ferrovial presentan su inversión en varias líneas del estado de
+  # flujos (inmovilizado material, intangibles…); se fija su suma («A+B») y cada comentario dice con
+  # qué cifra publicada coincide. Acciona ya publica una sola línea conjunta.
+
+  # --- Industria: transporte ----------------------------------------------------------------------
+  # Aena: aeropuertos de España, Luton (Reino Unido) y Brasil; el 51 % es del Estado a través de
+  # ENAIRE. Deuda: las dos líneas «Deuda financiera» del balance suman 7.556,7 M a 31/12/2025, la
+  # «deuda financiera bruta contable» del informe (nota 20); incluyen los préstamos con ENAIRE
+  # (1.572,9 M a largo plazo), los préstamos de accionistas de Luton y unos 36 M de arrendamientos
+  # que la empresa presenta dentro de la deuda. Fuera: derivados y «otros pasivos a largo plazo». Su
+  # balance no tiene subtotal de patrimonio atribuible (solo el total y los minoritarios, negativos),
+  # así que falta con su motivo. Capex fijado: inmovilizado material + intangibles (sobre todo las
+  # concesiones de Brasil) + inversiones inmobiliarias = 720,3 + 339,0 + 1,5 = 1.060,8 M en 2025
+  # (825,2 M en 2024), la «inversión pagada» que publica el informe (apartado 5 del informe de
+  # gestión). Desdoblamiento de acciones de 10 por 1 en 2025.
+  - id: AENA
+    name: Aena S.M.E., S.A.
+    source: esef
+    ticker: AENA
+    isin: ES0105046017
+    lei: 959800R7QMXKF0NFMT29
+    exchange: XMAD
+    country: ES
+    sector: industrials
+    industry: transportation
+    currency: EUR
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Deuda financiera corriente", tags: [ShorttermBorrowings]}
+      - {line: "Deuda financiera no corriente", tags: [LongtermBorrowings], required: true}
+    tags:
+      capital_expenditure: [PurchaseOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities+PurchaseOfIntangibleAssetsClassifiedAsInvestingActivities+PurchaseOfInvestmentProperty]
+
+  # --- Tecnología ---------------------------------------------------------------------------------
+  # Amadeus: tecnología para viajes (reservas y sistemas de aerolíneas y hoteles). Deuda: el balance
+  # solo tiene «Deuda corriente» y «Deuda no corriente» (etiquetadas como instrumentos de deuda
+  # emitidos), que suman 3.228,4 M a 31/12/2025 (nota 17): bonos 2.500, BEI 450, papel comercial
+  # 100, arrendamientos 134,9 e intereses devengados 41,1, entre otros. La empresa presenta los
+  # arrendamientos dentro de la deuda y se incluyen; su deuda «según contratos de financiación»
+  # (3.070,4 M) los excluye. El bono convertible (693,1 M) se convirtió en acciones en 2025.
+  # Capex fijado: inmovilizado material + intangibles (casi todo, software desarrollado) = 60,4 +
+  # 754,2 = 814,6 M en 2025 (788,1 M en 2024). Las «inversiones en inmovilizado» que publica
+  # (813,8 M; 770,3 M en 2024) son esa suma menos los cobros por venta de activos (0,8 M; 17,8 M).
+  - id: AMS
+    name: Amadeus IT Group, S.A.
+    source: esef
+    ticker: AMS
+    isin: ES0109067019
+    lei: 9598004A3FTY3TEHHN09
+    exchange: XMAD
+    country: ES
+    sector: technology
+    industry: it_services
+    currency: EUR
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Deuda corriente (bonos, papel comercial, préstamos, arrendamientos e intereses)", tags: [CurrentDebtInstrumentsIssued]}
+      - {line: "Deuda no corriente (bonos, BEI, préstamos y arrendamientos)", tags: [NoncurrentDebtInstrumentsIssued], required: true}
+    tags:
+      capital_expenditure: [PurchaseOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities+PurchaseOfIntangibleAssetsClassifiedAsInvestingActivities]
+
+  # --- Industria: construcción --------------------------------------------------------------------
+  # Acciona: sustituye a ACS. Infraestructuras (construcción, concesiones y agua: 8.690 M de ventas en
+  # 2025), energía renovable (Acciona Energía: 2.925 M de ventas, pero casi la mitad del EBITDA) y
+  # Nordex (aerogeneradores, filial que consolida: 7.554 M); la bolsa española la clasifica en
+  # construcción. Deuda: las cuatro líneas del balance (obligaciones y deudas con entidades de
+  # crédito, a corto y a largo) suman 12.336 M a 31/12/2025, la «deuda financiera» de su conciliación
+  # de la deuda neta; incluyen la deuda sin recurso de proyectos. Las obligaciones llevan etiquetas
+  # propias de la empresa. Fuera: arrendamientos (874 M, línea aparte) y la deuda de los activos
+  # mantenidos para la venta. Sin EBITDA: la cuenta de resultados agrupa la amortización con la
+  # variación de provisiones («Dotación a la amortización y variación de provisiones», 1.352 M =
+  # 1.119 de amortización + 233 de provisiones, nota 27) y la amortización sola no está en los datos
+  # estructurados; sumar la línea entera inflaría el EBITDA un 8 %. Capex: la línea conjunta de
+  # inmovilizado material e intangibles (la herramienta lo avisa).
+  - id: ANA
+    name: Acciona, S.A.
+    source: esef
+    ticker: ANA
+    isin: ES0125220311
+    lei: 54930002KP75TLLLNO21
+    exchange: XMAD
+    country: ES
+    sector: industrials
+    industry: construction
+    currency: EUR
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Obligaciones y otros valores negociables corrientes", tags: [Acciona:ParticipacionesPreferentesObligacionesYOtrosValoresNegociablesCorrientes]}
+      - {line: "Deudas con entidades de crédito corrientes", tags: [CurrentLoansReceivedAndCurrentPortionOfNoncurrentLoansReceived]}
+      - {line: "Obligaciones y otros valores negociables no corrientes", tags: [Acciona:ParticipacionesPreferentesObligacionesYOtrosValoresNegociablesNoCorrientes1], required: true}
+      - {line: "Deudas con entidades de crédito no corrientes", tags: [NoncurrentPortionOfNoncurrentLoansReceived], required: true}
+
+  # Ferrovial: autopistas, construcción y aeropuertos. Sociedad neerlandesa desde 2023 (Ferrovial
+  # SE; Ferrovial N.V. desde el 30/04/2026, el nombre que da GLEIF; el informe de 2025 aún es de
+  # Ferrovial SE). Cotiza en Madrid (IBEX 35), Ámsterdam y Nasdaq; se toma Madrid. Ventas: se fija
+  # RevenueAndOperatingIncome, la etiqueta que lleva la línea «Revenues» de su cuenta de resultados
+  # (9.627 M, nota 2.1); no publica la etiqueta de ventas por defecto. Deuda: las dos líneas
+  # «Borrowings» del balance (bonos y préstamos) suman 10.427 M a 31/12/2025: 2.810 M del grupo y
+  # 7.617 M de los proyectos de infraestructura (deuda sin recurso, sobre todo autopistas de
+  # EE. UU.). Fuera: arrendamientos y derivados. El resultado operativo incluye deterioros y ventas
+  # de activos (2024: 2.208 M, casi todo por la venta de Heathrow; 2025: 210 M), y el EBITDA con él.
+  # Sin gasto financiero: solo publica resultados financieros netos (de proyectos y del resto).
+  # Capex fijado: sus dos líneas propias del estado de flujos, inversión en inmovilizado material e
+  # intangibles + inversión en proyectos de infraestructura = 187 + 466 = 653 M en 2025 (412 M en
+  # 2024). No publica un total de capex: la «inversión» de su nota 5.3 (2.049 M) incluye además
+  # compras de participaciones y sociedades (1.636 M), así que no es comparable.
+  - id: FER
+    name: Ferrovial N.V.
+    source: esef
+    ticker: FER
+    isin: NL0015001FS8
+    lei: 72450022R2ZFL41Y6I04
+    exchange: XMAD
+    country: NL
+    sector: industrials
+    industry: construction
+    currency: EUR
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Deuda financiera corriente (bonos y préstamos; proyectos de infraestructura y resto)", tags: [CurrentNotesAndDebenturesIssuedAndCurrentPortionOfNoncurrentNotesAndDebenturesIssued]}
+      - {line: "Deuda financiera no corriente (bonos y préstamos; proyectos de infraestructura y resto)", tags: [NoncurrentPortionOfNoncurrentNotesAndDebenturesIssued], required: true}
+    tags:
+      revenue: [RevenueAndOperatingIncome]
+      capital_expenditure: [fer:InvestmentsInPropertyPlantAndEquipmentAndIntangibleAssets+fer:InvestmentsInInfrastructureProjects]
+
+  # --- Salud: farmacéuticas -----------------------------------------------------------------------
+  # Grifols: medicamentos derivados del plasma y diagnóstico. Tiene dos clases de acciones cotizadas:
+  # A (con voto, la de este ISIN) y B (261,4 millones de acciones sin voto, ES0171996095, también en
+  # Nasdaq como ADS). No afecta mientras las europeas no tengan capitalización (no hay cotizaciones
+  # ni número de acciones); si algún día hubiera cotizaciones, habría que revisarlo. Deuda: el
+  # balance solo presenta «Pasivos financieros» (9.643 M a 31/12/2025), que según la nota 19
+  # incluyen bonos (5.467), deuda sénior garantizada (2.209), otros préstamos (169), otros pasivos
+  # financieros (882, casi todo la deuda con GIC por Biomat), derivados (5) y arrendamientos (1.082),
+  # menos gastos de formalización (170). Los arrendamientos van dentro de la línea; la deuda
+  # financiera neta que publica Grifols (7.759 M) los excluye. Capex fijado: inmovilizado material +
+  # intangibles = 265 + 158 = 423 M en 2025 (372 M en 2024), la línea «Inmovilizado material e
+  # intangible» de su estado de flujos (su «CAPEX» de gestión, 265 M, es solo el material).
+  - id: GRF
+    name: Grifols, S.A.
+    source: esef
+    ticker: GRF
+    isin: ES0171996087
+    lei: 959800HSSNXWRKBK4N60
+    exchange: XMAD
+    country: ES
+    sector: health_care
+    industry: pharmaceuticals
+    currency: EUR
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Pasivos financieros corrientes", tags: [CurrentFinancialLiabilities]}
+      - {line: "Pasivos financieros no corrientes", tags: [NoncurrentFinancialLiabilities], required: true}
+    tags:
+      capital_expenditure: [PurchaseOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities+PurchaseOfIntangibleAssetsClassifiedAsInvestingActivities]

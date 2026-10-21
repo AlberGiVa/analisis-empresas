@@ -77,12 +77,14 @@ nunca se suben al repositorio.
 ### Estudio con datos reales de hoy
 
 ```powershell
-estudio-real\estudio todo   # 32 empresas reales: SEC, cotizaciones y BCE, en un espacio aislado
+estudio-real\estudio todo   # 58 empresas reales: SEC, informes anuales europeos y BCE, en un espacio aislado
 ```
 
-Prueba la herramienta con 32 empresas reales de EE. UU. (consumo, tecnología, industria, salud,
-energía, eléctricas, banca y seguros). Las cuentas vienen de
-la SEC, las cotizaciones de Nasdaq (contrastadas con Yahoo Finance) y los tipos de cambio del BCE.
+Prueba la herramienta con 58 empresas reales: 23 europeas y 35 de EE. UU. (consumo, tecnología,
+industria, salud, energía, eléctricas, telecomunicaciones, banca, seguros y fabricantes de equipos de
+protección individual). Las cuentas vienen de la SEC y, las europeas, de su informe anual oficial en
+formato ESEF (filings.xbrl.org); las cotizaciones de las de EE. UU., de Nasdaq (contrastadas con
+Yahoo Finance), y los tipos de cambio, del BCE.
 Tiene su propia base de datos, metodología y carpeta de resultados, y genera un informe con
 comparables, cambios entre dos fechas y la calidad y el origen de cada dato. Detalles en
 [estudio-real/README.md](estudio-real/README.md).
@@ -101,8 +103,11 @@ muestra datos que se pueden republicar:
   el DAX y el FTSE MIB) y tipos de interés, deuda pública y divisas del euro (BCE).
 - **Internacional:** América (con mapas del S&P 500, el Nasdaq 100 y el Dow Jones), Asia y el resto
   del mundo, materias primas, economía mundial y calendario económico.
-- **Empresas:** comparables, cambios y alertas de las empresas reales, con las cuentas de la SEC y sin
-  cotizaciones (sus condiciones no permiten publicarlas), y una ficha por empresa.
+- **Empresas:** comparables, cambios y alertas de las empresas reales, primero las europeas (con sus
+  informes anuales oficiales, ESEF) y después las de EE. UU. (cuentas de la SEC), sin cotizaciones
+  (sus condiciones no permiten publicarlas), y una ficha por empresa. La página **Sector EPI** reúne
+  a los fabricantes cotizados de equipos de protección individual: los que tienen cuentas de uso
+  libre, analizados como el resto, y todos con las cifras y la cotización de TradingView.
 - **Ejemplos:** una empresa ficticia por cada situación que trata la herramienta (13): qué le pasa,
   qué hace la herramienta y cómo sale en su ficha.
 - **Academy:** glosario y métricas, sin más explicación técnica (la documentación de la herramienta no

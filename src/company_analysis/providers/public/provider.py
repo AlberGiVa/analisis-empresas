@@ -24,6 +24,7 @@ from company_analysis.models import (
 )
 from company_analysis.providers.base import DataProvider
 from company_analysis.providers.public.downloads import PRICES_FOLDER, read_manifest
+from company_analysis.providers.public.esef import company_facts, read_index, report_path
 from company_analysis.providers.public.market import (
     YAHOO_EXCHANGE_MIC,
     ecb_rates,
@@ -32,7 +33,14 @@ from company_analysis.providers.public.market import (
     yahoo_closes,
     yahoo_exchange,
 )
-from company_analysis.providers.public.sec import DebtComponent, Lineage, extract_financials
+from company_analysis.providers.public.sec import (
+    ESEF_FORM,
+    IFRS,
+    DebtComponent,
+    Extraction,
+    Lineage,
+    extract_financials,
+)
 from company_analysis.providers.public.universe import CompanyEntry, Universe, load_universe
 
 # A price that differs from the second source by more than this is reported.
@@ -108,9 +116,7 @@ def latest_filing(submissions: Mapping[str, Any]) -> Filing | None:
     return None  # the list is newest first
 
 
-def _company(
-    folder: Path, company: CompanyEntry, *, with_prices: bool
-) -> tuple[list[FinancialFact], list[EquityPrice], CompanyQuality]:
+def _sec(folder: Path, company: CompanyEntry) -> tuple[Extraction, Filing | None]:
     companyfacts = _json(folder, f"sec/{company.id}.companyfacts.json")
     submissions = _json(folder, f"sec/{company.id}.submissions.json")
     extraction = extract_financials(
@@ -122,9 +128,48 @@ def _company(
         overrides=company.tags,
         depreciation_tags=company.depreciation,
     )
+    return extraction, latest_filing(submissions)
+
+
+def _esef(folder: Path, company: CompanyEntry) -> tuple[Extraction, Filing | None]:
+    """A European company: the annual reports of the download, read with the IFRS sources."""
+    filings = read_index(
+        _json(folder, f"esef/{company.id}.filings.json"), company.fiscal_year_end_month
+    )
+    documents = [
+        (filing, _json(folder, report_path(company.id, filing)))
+        for filing in filings
+        if (folder / report_path(company.id, filing)).is_file()
+    ]
+    assert company.lei is not None  # checked by the universe
+    extraction = extract_financials(
+        company.id,
+        company_facts(documents, company.lei),
+        currency=company.currency,
+        fiscal_year_end_month=company.fiscal_year_end_month,
+        debt_lines=company.debt_lines(),
+        overrides=company.tags,
+        depreciation_tags=company.depreciation,
+        standard=IFRS,
+    )
+    latest = filings[-1] if filings else None
+    filing = (
+        Filing(ESEF_FORM, latest.period_end, latest.available, latest.identifier)
+        if latest
+        else None
+    )
+    return extraction, filing
+
+
+def _company(
+    folder: Path, company: CompanyEntry, *, with_prices: bool
+) -> tuple[list[FinancialFact], list[EquityPrice], CompanyQuality]:
+    extraction, filing = (
+        _esef(folder, company) if company.source == "esef" else _sec(folder, company)
+    )
     prices: list[EquityPrice] = []
     yahoo: Mapping[str, Any] = {}
-    if with_prices:
+    if with_prices and company.source == "sec":
         prices = nasdaq_prices(
             _json(folder, f"{PRICES_FOLDER}{company.id}.nasdaq.json"),
             isin=company.isin,
@@ -134,7 +179,6 @@ def _company(
         if yahoo_path.is_file():
             yahoo = json.loads(yahoo_path.read_text(encoding="utf-8"))
     compared, worst, worst_day = price_differences(prices, yahoo_closes(yahoo))
-    filing = latest_filing(submissions)
     periods = [entry.latest[1] for entry in extraction.lineage if entry.latest is not None]
     in_data = max(periods, default=None)
     quality = CompanyQuality(
@@ -228,7 +272,13 @@ def _review(
     """Warnings the analyst should read before trusting the figures."""
     warnings = quality.warnings
     filing, in_data = quality.latest_filing, quality.latest_period_in_data
-    if filing and in_data and filing.period_end > in_data:
+    if filing and in_data and filing.period_end > in_data and filing.form == ESEF_FORM:
+        warnings.append(
+            f"El último informe anual (ejercicio cerrado el {filing.period_end:%d/%m/%Y}, "
+            f"publicado el {filing.filed:%d/%m/%Y}) no se ha podido leer: se usan las cifras del "
+            f"{in_data:%d/%m/%Y}."
+        )
+    elif filing and in_data and filing.period_end > in_data:
         warnings.append(
             f"El último informe registrado ({filing.form} del periodo cerrado el "
             f"{filing.period_end:%d/%m/%Y}, presentado el {filing.filed:%d/%m/%Y}) todavía no "
@@ -251,6 +301,12 @@ def _review(
                 "como cero."
             )
     if not with_prices:
+        return
+    if company.source == "esef":
+        warnings.append(
+            "Sin cotizaciones: el estudio no tiene una fuente de cotizaciones europeas, así que "
+            "las métricas de mercado quedan sin dato."
+        )
         return
     if quality.compared_days == 0:
         warnings.append("No se han podido contrastar las cotizaciones con una segunda fuente.")

@@ -85,6 +85,7 @@ class Cell:
 class Column:
     header: str
     name: str  # full metric name
+    metric_id: str
 
 
 @dataclass(frozen=True)
@@ -106,14 +107,32 @@ class Change:
 
 
 @dataclass(frozen=True)
+class PeerGroup:
+    """Companies compared in one table (a region, a sector), by industry, the largest first."""
+
+    name: str
+    anchor: str  # id of its section on the page
+    groups: tuple[tuple[str, tuple[PeerRow, ...]], ...]  # (industry, rows)
+    group_medians: dict[str, tuple[str, ...]]  # industry -> medians (two or more companies)
+    medians: tuple[str, ...]
+
+
+# Europe first; every company outside the United States belongs to Europe in this universe.
+REGIONS = (("Europa", "europa"), ("EE. UU.", "eeuu"))
+
+
+def region_of(country: str) -> str:
+    return "EE. UU." if country == "US" else "Europa"
+
+
+@dataclass(frozen=True)
 class StudyView:
     run: RunView
     previous: RunView | None
     title: str
     description: str
     columns: tuple[Column, ...]
-    groups: tuple[tuple[str, tuple[PeerRow, ...]], ...]  # (industry, rows)
-    group_medians: dict[str, tuple[str, ...]]  # industry -> medians (two or more companies)
+    regions: tuple[PeerGroup, ...]  # only the regions with companies
     medians: tuple[str, ...]
     changes: tuple[Change, ...]
     chart: Markup
@@ -318,18 +337,11 @@ def build_study_view(
         )
         for company in run.companies
     ]
-    industries = sorted({row.company.industry_label for row in rows})
-    groups = tuple(
-        (
-            industry,
-            tuple(
-                sorted(
-                    (row for row in rows if row.company.industry_label == industry),
-                    key=lambda row: -row.size,
-                )
-            ),
-        )
-        for industry in industries
+    metric_ids = [m for m, _ in columns]
+    regions = tuple(
+        _peer_group(metrics, members, name, anchor, metric_ids)
+        for name, anchor in REGIONS
+        if (members := [row for row in rows if region_of(row.company.country) == name])
     )
     distorted = {q.issuer_id for q in data.companies if q.distorted_ebitda} if data else set()
     chart = CHART_WITH_PRICES if with_prices else CHART_WITHOUT_PRICES
@@ -350,16 +362,11 @@ def build_study_view(
         previous=previous,
         title=title,
         description=description,
-        columns=tuple(Column(header, get_metric(metric).name) for metric, header in columns),
-        groups=groups,
-        group_medians={
-            industry: _medians(
-                metrics, [row.company.issuer_id for row in rows], [m for m, _ in columns]
-            )
-            for industry, rows in groups
-            if len(rows) > 1
-        },
-        medians=_medians(metrics, [c.issuer_id for c in run.companies], [m for m, _ in columns]),
+        columns=tuple(
+            Column(header, get_metric(metric).name, metric) for metric, header in columns
+        ),
+        regions=regions,
+        medians=_medians(metrics, [c.issuer_id for c in run.companies], metric_ids),
         changes=_changes(run, previous),
         chart=chart_svg(
             points,
@@ -374,6 +381,59 @@ def build_study_view(
         data=data,
         with_prices=with_prices,
     )
+
+
+def _peer_group(
+    metrics: MetricTable,
+    members: Sequence[PeerRow],
+    name: str,
+    anchor: str,
+    metric_ids: Sequence[str],
+) -> PeerGroup:
+    groups = tuple(
+        (
+            industry,
+            tuple(
+                sorted(
+                    (row for row in members if row.company.industry_label == industry),
+                    key=lambda row: -row.size,
+                )
+            ),
+        )
+        for industry in sorted({row.company.industry_label for row in members})
+    )
+    return PeerGroup(
+        name=name,
+        anchor=anchor,
+        groups=groups,
+        group_medians={
+            industry: _medians(metrics, [row.company.issuer_id for row in group], metric_ids)
+            for industry, group in groups
+            if len(group) > 1
+        },
+        medians=_medians(metrics, [row.company.issuer_id for row in members], metric_ids),
+    )
+
+
+def peer_group(
+    conn: duckdb.DuckDBPyConnection,
+    study: StudyView,
+    issuer_ids: Sequence[str],
+    *,
+    name: str,
+    anchor: str,
+) -> PeerGroup:
+    """Some of the study's companies (e.g. one sector, from every region) in their own table."""
+    metrics = load_metric_table(conn, study.run.record.run_id)
+    wanted = set(issuer_ids)
+    members = [
+        row
+        for region in study.regions
+        for _, rows in region.groups
+        for row in rows
+        if row.company.issuer_id in wanted
+    ]
+    return _peer_group(metrics, members, name, anchor, [c.metric_id for c in study.columns])
 
 
 def _date_text(value: date | None) -> str:

@@ -1,0 +1,121 @@
+{% extends "web_base.html.j2" %}
+{% block title %}Sector EPI{% endblock %}
+{% block content %}
+<style>
+  .epi { display: grid; gap: 16px; margin-top: 14px; }
+  .lead { max-width: 76ch; margin: 0 0 6px; font-size: 16px; color: var(--ink-2); }
+  .tv { min-height: 120px; }
+  table.peers { margin: 0; border: 0; }
+  table.peers th, table.peers td { font-size: 13px; }
+  table.peers tr.group td { background: var(--soft); font-weight: 600; color: var(--muted); font-size: 12px;
+                            text-transform: uppercase; letter-spacing: .04em; }
+  table.peers tr.group-median td { color: var(--muted); font-style: italic; font-size: 12px; }
+  table.peers td:first-child { min-width: 170px; }
+  .na { color: var(--muted); font-size: 12px; }
+  .score { font-weight: 600; }
+  .profiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 480px), 1fr)); gap: 16px; }
+  .profile { display: flex; flex-direction: column; gap: 10px; }
+  .profile h3 { margin: 0; font-size: 19px; }
+  .profile .who { margin: 2px 0 0; font-size: 13px; color: var(--muted); }
+  .profile .who span + span::before { content: " · "; }
+  .profile p { margin: 0; }
+  .figures { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; }
+  .fig { border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; background: var(--soft); }
+  .fig span { display: block; font-size: 11.5px; color: var(--muted); }
+  .fig b { font-size: 17px; font-variant-numeric: tabular-nums; }
+  .fig .badge { font-size: 11px; }
+  .profile .go { font-weight: 600; } .profile .go a { text-decoration: none; }
+  .tv-fin { height: 440px; }
+</style>
+
+<div class="panel-head">
+  <div><p class="eyebrow">Empresas · sector</p><h1>Equipos de protección individual (EPI)</h1></div>
+  <span class="muted small">Cuentas: informes anuales y SEC · Bolsa: TradingView</span>
+</div>
+<p class="lead">Cotizadas que fabrican EPI: cascos, protección respiratoria y auditiva, ropa de protección, guantes,
+  calzado, anticaídas y detección de gases. Sirven de referencia para comparar a cualquier empresa del sector, también a
+  las que no cotizan.</p>
+<nav class="jump" aria-label="En esta página">
+  <a href="#comparables">Comparables</a><a href="#bolsa">En bolsa</a><a href="#empresas">Las empresas</a><a href="index.html">Todas las empresas →</a>
+</nav>
+
+<div class="epi">
+  <h2 class="part" id="comparables">Comparables</h2>
+  <section class="panel-card">
+    {% if sector.groups %}
+    <div class="scroll">
+    <table class="peers">
+      <thead><tr>
+        <th>Empresa</th><th>Cifras</th>
+        {% for column in columns %}<th class="num" title="{{ column.name }}">{{ column.header }}</th>{% endfor %}
+        <th class="num">Accionista</th><th class="num">Acreedor</th>
+      </tr></thead>
+      <tbody>
+      {% for industry, rows in sector.groups %}
+        <tr class="group"><td colspan="{{ columns | length + 4 }}">{{ industry }}</td></tr>
+        {% for row in rows %}
+        <tr>
+          <td><a href="{{ row.company.ficha_path }}">{{ row.company.name }}</a><br><span class="muted small">{{ row.company.issuer_id }}</span></td>
+          <td class="small muted nowrap" title="{{ row.company.reference_text }}">{{ row.period }}</td>
+          {% for cell in row.cells %}
+            {% if cell.available %}<td class="num">{{ cell.text }}</td>
+            {% else %}<td class="num na" title="{{ cell.note or '' }}">{{ cell.text }}</td>{% endif %}
+          {% endfor %}
+          <td class="num score">{{ row.company.equity.value_text if row.company.equity.value is not none else "—" }}</td>
+          <td class="num score">{{ row.company.credit.value_text if row.company.credit.value is not none else "—" }}</td>
+        </tr>
+        {% endfor %}
+        {% if industry in sector.group_medians %}
+        <tr class="group-median"><td>Mediana del sector</td><td></td>
+          {% for text in sector.group_medians[industry] %}<td class="num">{{ text }}</td>{% endfor %}<td></td><td></td></tr>
+        {% endif %}
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+    <p class="muted small">Empresas cuyas cuentas son de uso libre (SEC o informe anual europeo), analizadas a
+      <span>{{ real_date }}</span> con la misma metodología que el resto. Las puntuaciones las comparan con todo el universo.
+      Las demás del sector solo tienen las cifras de TradingView, más abajo.</p>
+    {% else %}
+    <p class="muted">Ninguna empresa del sector tiene cuentas de uso libre en esta versión: solo las cifras de TradingView, más abajo.</p>
+    {% endif %}
+  </section>
+
+  <h2 class="part" id="bolsa">En bolsa</h2>
+  <section class="panel-card">
+    <div class="panel-head"><h2>Cotización</h2><span class="muted small">Datos de TradingView, con el retraso propio de cada mercado</span></div>
+    <div class="tv" data-tv="symbol-overview" style="height:460px"><script type="application/json">
+      {"symbols": [{% for ppe, company, figures in profiles %}[{{ ppe.name | tojson }}, {{ (ppe.symbol ~ "|1D") | tojson }}]{% if not loop.last %}, {% endif %}{% endfor %}],
+       "chartOnly": false, "width": "100%", "height": "100%", "autosize": true, "showVolume": false, "showMA": false,
+       "hideDateRanges": false, "hideMarketStatus": false, "hideSymbolLogo": false, "scalePosition": "right",
+       "scaleMode": "Normal", "fontSize": "10", "noTimeScale": false, "valuesTracking": "1",
+       "changeMode": "price-and-percent", "chartType": "area", "lineWidth": 2, "lineType": 0,
+       "dateRanges": ["1m|30", "3m|60", "12m|1D", "60m|1W", "all|1M"]}
+    </script></div>
+  </section>
+
+  <h2 class="part" id="empresas">Las empresas</h2>
+  <div class="profiles">
+    {% for ppe, company, figures in profiles %}
+    <article class="panel-card profile">
+      <div>
+        <h3>{{ ppe.name }}</h3>
+        <p class="who"><span>{{ ppe.country }}</span><span>{{ ppe.listing }}</span></p>
+      </div>
+      <p>{{ ppe.description }}</p>
+      {% if company %}
+      <div class="figures">
+        {% for row in figures %}<div class="fig"><span>{{ row.label }}</span>{% if row.state %}<span class="badge">{{ row.state }}</span>{% else %}<b>{{ row.value }}</b>{% endif %}</div>{% endfor %}
+      </div>
+      <p class="go"><a href="{{ company.ficha_path }}">Ficha de la herramienta →</a></p>
+      {% else %}
+      <p class="muted small">Sin cuentas de uso libre: la herramienta no la analiza. Cifras de TradingView.</p>
+      {% endif %}
+      <div class="tv tv-fin" data-tv="financials"><script type="application/json">
+        {"symbol": {{ ppe.symbol | tojson }}, "displayMode": "regular", "width": "100%", "height": "100%"}
+      </script></div>
+    </article>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

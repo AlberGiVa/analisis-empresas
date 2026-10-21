@@ -1,0 +1,139 @@
+  # --- Fragmento: grandes europeas (1) — informes anuales ESEF de filings.xbrl.org ---------------
+  #
+  # Identificadores verificados el 21/10/2026: LEI con GLEIF (razón social, jurisdicción, activo y
+  # emitido; GLEIF asocia a cada ISIN este mismo LEI) y con el índice de filings.xbrl.org; ISIN con
+  # su dígito de control y con OpenFIGI (acción ordinaria; ASML en Euronext Ámsterdam, las demás en
+  # Euronext París, que es su mercado principal). Las cuatro presentan sus cuentas en euros, cierran
+  # el 31 de diciembre y tienen el informe anual de 2025 en filings.xbrl.org.
+  #
+  # Estado (21/10/2026): comprobadas las 4 (ASML, SU, OR, SANF) con apoyo/comprobar_empresas.py
+  # (también tras el cambio de IFRS_DEPRECIATION_SOURCES y de read_index). Ventas, resultado
+  # operativo, beneficio atribuido y deuda coinciden con el informe anual publicado (ESEF) y con
+  # las cifras que anunciaron las empresas. Sin excluidas ni sustituciones: las cuatro publican
+  # resultado operativo. Dos partidas faltan y se quedan sin dato, con su motivo:
+  # - L'Oréal: sin EBITDA. No etiqueta las amortizaciones en cifras (solo en el texto de una nota:
+  #   1.652,4 M en 2025, de ellos 482,5 M de derechos de uso) y la única cifra etiquetada mezcla
+  #   amortizaciones y provisiones.
+  # - Sanofi: sin acciones en circulación (su informe solo trae la media ponderada del año), así que
+  #   el estudio no tendrá su capitalización ni las métricas de valoración; la web no las usa.
+  # Posibles sustitutas revisadas, ninguna mejor: LVMH, Kering, EssilorLuxottica, UCB e Ipsen no
+  # tienen el informe de 2025 en filings.xbrl.org; SEB y De'Longhi (medianas) tampoco publican las
+  # acciones; Recordati etiqueta su deuda con etiquetas propias y su índice incluye un informe con
+  # el periodo mal fechado (2032).
+
+  # --- Tecnología ---------------------------------------------------------------------------------
+  # Cifras NIIF del informe anual estatutario (ESEF). Su nota de prensa usa normas de EE. UU.: mismas
+  # ventas (32.667 M) pero otro beneficio (9.609 M frente a 10.213 M en NIIF, sobre todo porque en
+  # NIIF se activan los gastos de desarrollo). Etiquetas fijadas: no tiene minoritarios y no publica
+  # las etiquetas «atribuible a la dominante», así que el beneficio es el del ejercicio (ProfitLoss)
+  # y el patrimonio atribuible es el total (Equity). Deuda: bonos y papel comercial (691,7 M en
+  # 2025, en la línea a corto con los vencimientos a un año de los bonos); las dos líneas suman la
+  # deuda de su nota (4.390,9 M). Arrendamientos (251 M) en «otros pasivos», fuera. La inversión es
+  # solo la de inmovilizado material: los gastos de desarrollo activados (1.136,8 M) no se restan en
+  # el flujo de caja libre.
+  - id: ASML
+    name: ASML Holding N.V.
+    source: esef
+    ticker: ASML
+    isin: NL0010273215
+    lei: 724500Y6DUVHQD6OXN27
+    exchange: XAMS
+    country: NL
+    sector: technology
+    industry: semiconductors
+    currency: EUR
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Papel comercial y vencimientos a un año de la deuda a largo", tags: [CurrentPortionOfLongtermBorrowings]}
+      - {line: "Deuda a largo plazo", tags: [LongtermBorrowings], required: true}
+    tags:
+      net_income: [ProfitLoss]
+      equity_attributable: [Equity]
+
+  # --- Industria ----------------------------------------------------------------------------------
+  # Resultado operativo (EBIT 6.699 M) después de amortizar los intangibles de adquisiciones; su
+  # «EBITA ajustado» (7.520 M) no se usa. Deuda: «dettes financières courantes» (2.859 M: papel
+  # comercial 1.320, bonos a un año 749, préstamo puente 500 y otros, intereses devengados 137) y
+  # «non courantes» (15.021 M); suman la deuda de su nota (17.880 M). Fuera los arrendamientos (en
+  # «otros pasivos») y los compromisos de compra de minoritarios (475 M, líneas aparte). Etiquetas
+  # propias: gasto financiero = «coût de la dette financière brute» (473 M; sin los intereses de
+  # arrendamientos, 62 M); amortizaciones = las del estado de flujos de inmovilizado material (871 M,
+  # con 373 M de derechos de uso) e intangibles (781 M, con los de adquisiciones), sin deterioros.
+  # Sin `depreciation:` no habría EBITDA: no usa las etiquetas NIIF habituales.
+  - id: SU
+    name: Schneider Electric SE
+    source: esef
+    ticker: SU
+    isin: FR0000121972
+    lei: 969500A1YF1XUYYXS284
+    exchange: XPAR
+    country: FR
+    sector: industrials
+    industry: capital_goods
+    currency: EUR
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Deuda financiera a corto plazo", tags: [OtherCurrentFinancialLiabilities]}
+      - {line: "Deuda financiera a largo plazo", tags: [LongtermBorrowings], required: true}
+    tags:
+      interest_expense: [schneiderelectric:CostOfDebt]
+    depreciation: [schneiderelectric:AdjustmentsForDepreciationOfPropertyPlantAndEquipment, schneiderelectric:AdjustmentsForDepreciationOfIntangibleAssetsOtherThanGoodwill]
+
+  # --- Consumo ------------------------------------------------------------------------------------
+  # Resultado operativo = «résultat opérationnel» (8.386,5 M), después de otros ingresos y gastos no
+  # recurrentes (-505,4 M); su «résultat d'exploitation» (8.891,9 M) no se usa. Sin EBITDA: ver la
+  # cabecera. Deuda: bonos, otros préstamos y descubiertos, a corto y a largo; suman la deuda sin
+  # arrendamientos de su nota (10.118,6 M). Incluye el compromiso de compra de los minoritarios de
+  # Medik8 (325 M), que la empresa presenta dentro de sus préstamos. Arrendamientos (1.797 M) fuera.
+  # Etiquetas propias: gasto financiero = «coût de l'endettement financier brut» (365,8 M; por su
+  # definición incluye los intereses de arrendamientos); inversión = compras de inmovilizado
+  # material e intangible (1.495,3 M), que no publica por separado.
+  - id: OR
+    name: L'Oréal S.A.
+    source: esef
+    ticker: OR
+    isin: FR0000120321
+    lei: 529900JI1GG6F7RKVI53
+    exchange: XPAR
+    country: FR
+    sector: consumer
+    industry: consumer_products
+    currency: EUR
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Préstamos a corto y vencimientos a un año (sin arrendamientos)", tags: [CurrentBorrowingsAndCurrentPortionOfNoncurrentBorrowings]}
+      - {line: "Préstamos a largo plazo (sin arrendamientos)", tags: [LongtermBorrowings], required: true}
+    tags:
+      interest_expense: [loreal:CoutDeLendettementFinancierBrut]
+      capital_expenditure: [loreal:AcquisitionsDImmobilisationsCorporellesEtIncorporelles]
+
+  # --- Salud --------------------------------------------------------------------------------------
+  # Id SANF y no su ticker (SAN): SAN ya es el id de Banco Santander en el universo. Sin acciones en
+  # circulación: ver la cabecera. Ventas fijadas: el total de ventas netas (43.626 M); su cuenta no
+  # da un total de ingresos y los «otros ingresos» (3.090 M, sobre todo vacunas distribuidas por
+  # socios y regalías) quedan fuera, aunque sí están en el beneficio bruto (el margen bruto sale algo
+  # alto). Amortizaciones fijadas: la línea del estado de flujos que suma amortizaciones y deterioros
+  # de inmovilizado, derechos de uso e intangibles (5.678 M en 2025, con 2.241 M de deterioro de
+  # intangibles, que también se suman, como hace el EBITDA habitual). En 2025 vendió el control de
+  # Opella (actividad interrumpida): el beneficio atribuido (7.813 M) incluye 2.874 M de esa
+  # actividad y el flujo operativo 189 M; ventas y resultado operativo son solo de las actividades
+  # que continúan. Deuda: bonos, papel comercial y préstamos; fuera los derivados (112 M) y los
+  # arrendamientos (1.739 M). La inversión incluye los intangibles (licencias), con su aviso.
+  - id: SANF
+    name: Sanofi
+    source: esef
+    ticker: SAN
+    isin: FR0000120578
+    lei: 549300E9PC51EN656011
+    exchange: XPAR
+    country: FR
+    sector: health_care
+    industry: pharmaceuticals
+    currency: EUR
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Préstamos a corto y vencimientos a un año de la deuda a largo", tags: [CurrentBorrowingsAndCurrentPortionOfNoncurrentBorrowings]}
+      - {line: "Deuda a largo plazo", tags: [LongtermBorrowings], required: true}
+    tags:
+      revenue: [RevenueFromSaleOfGoods]
+    depreciation: [sny:AjustementsPourAmortissementsEtDepreciationsDesImmobilisationsCorporellesDroitsDutilisationEtImmobilisationsIncorporelles]

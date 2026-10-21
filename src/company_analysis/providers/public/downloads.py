@@ -17,12 +17,20 @@ from datetime import date
 from pathlib import Path
 
 from company_analysis.clock import utc_now
+from company_analysis.providers.public.esef import SITE as ESEF_SITE
+from company_analysis.providers.public.esef import (
+    filings_to_download,
+    index_url,
+    read_index,
+    report_path,
+)
 from company_analysis.providers.public.universe import Universe
 
 MANIFEST = "manifest.json"
 PRICES_FOLDER = "precios/"  # share prices: their terms do not allow republishing them
 TIMEOUT_SECONDS = 60
 BROWSER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"  # Nasdaq and Yahoo reject other agents
+ESEF_SOURCE = "filings.xbrl.org (informes anuales ESEF)"
 
 Fetch = Callable[[str, Mapping[str, str]], bytes]
 
@@ -77,6 +85,18 @@ def plan(
     start = universe.history_start
     requests: list[Request] = []
     for company in universe.companies:
+        if company.source == "esef":
+            assert company.lei is not None  # checked by the universe
+            # The reports to download depend on this index: see ``esef_reports``.
+            requests.append(
+                Request(
+                    f"esef/{company.id}.filings.json",
+                    index_url(company.lei),
+                    ESEF_SOURCE,
+                    "browser",
+                )
+            )
+            continue  # no free source of European share prices
         cik = company.cik
         requests += [
             Request(
@@ -139,6 +159,37 @@ def plan(
     return requests
 
 
+def esef_reports(universe: Universe, since: date) -> Callable[[Path], list[Request]]:
+    """Second stage of a download: the annual reports listed in each company's ESEF index.
+
+    For each company, the latest report public on ``since`` (the first analysis date) and every
+    later one.
+    """
+
+    def requests(folder: Path) -> list[Request]:
+        result: list[Request] = []
+        for company in universe.companies:
+            index = folder / f"esef/{company.id}.filings.json"
+            if company.source != "esef" or not index.is_file():
+                continue
+            filings = read_index(
+                json.loads(index.read_text(encoding="utf-8")), company.fiscal_year_end_month
+            )
+            for filing in filings_to_download(filings, since):
+                assert filing.json_url is not None
+                result.append(
+                    Request(
+                        report_path(company.id, filing),
+                        ESEF_SITE + filing.json_url,
+                        ESEF_SOURCE,
+                        "browser",
+                    )
+                )
+        return result
+
+    return requests
+
+
 def _epoch(day: date) -> int:
     return (day - date(1970, 1, 1)).days * 86_400
 
@@ -166,12 +217,46 @@ def download(
     fetch: Fetch = http_fetch,
     pause_seconds: float = 0.15,
     progress: Callable[[Request], None] | None = None,
+    then: Callable[[Path], Sequence[Request]] | None = None,
 ) -> Snapshot:
-    """Download everything into a new snapshot folder and write its manifest."""
+    """Download everything into a new snapshot folder and write its manifest.
+
+    ``then`` gives more requests once the first ones are saved (files whose address is in a file
+    just downloaded, such as the ESEF reports of an index).
+    """
     stamp = utc_now().strftime("%Y%m%dT%H%M%SZ")
     folder = cache_dir / stamp
     files: list[Downloaded] = []
     failures: list[Failure] = []
+    _fetch_all(requests, folder, files, failures, sec_agent, fetch, pause_seconds, progress)
+    if then is not None:
+        more = then(folder)
+        _fetch_all(more, folder, files, failures, sec_agent, fetch, pause_seconds, progress)
+        requests = [*requests, *more]
+    folder.mkdir(parents=True, exist_ok=True)
+    manifest = {
+        "creado": utc_now().isoformat(timespec="seconds"),
+        "identificacion_sec": sec_agent,
+        "cotizaciones": any(request.path.startswith(PRICES_FOLDER) for request in requests),
+        "ficheros": [asdict(f) for f in files],
+        "fallos": [asdict(f) for f in failures],
+    }
+    (folder / MANIFEST).write_text(
+        json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+    return Snapshot(folder, files, failures)
+
+
+def _fetch_all(
+    requests: Sequence[Request],
+    folder: Path,
+    files: list[Downloaded],
+    failures: list[Failure],
+    sec_agent: str,
+    fetch: Fetch,
+    pause_seconds: float,
+    progress: Callable[[Request], None] | None,
+) -> None:
     for request in requests:
         if progress:
             progress(request)
@@ -201,18 +286,6 @@ def download(
         )
         if pause_seconds:
             time.sleep(pause_seconds)  # well below the SEC limit of 10 requests per second
-    folder.mkdir(parents=True, exist_ok=True)
-    manifest = {
-        "creado": utc_now().isoformat(timespec="seconds"),
-        "identificacion_sec": sec_agent,
-        "cotizaciones": any(request.path.startswith(PRICES_FOLDER) for request in requests),
-        "ficheros": [asdict(f) for f in files],
-        "fallos": [asdict(f) for f in failures],
-    }
-    (folder / MANIFEST).write_text(
-        json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"
-    )
-    return Snapshot(folder, files, failures)
 
 
 def latest_snapshot(cache_dir: Path) -> Path | None:

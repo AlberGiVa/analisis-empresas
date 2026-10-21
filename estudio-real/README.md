@@ -6,11 +6,14 @@ descarga o calcula se mezcla con la base principal ni se sube al repositorio.
 
 ## Qué analiza
 
-Treinta y dos grandes empresas de EE. UU. con acciones y bonos en el mercado: diez de consumo
-básico (alimentación y bebidas; productos de hogar e higiene), cuatro tecnológicas, cuatro
-industriales, cuatro de salud, tres de energía, tres eléctricas, dos bancos y dos aseguradoras.
-Publican sus cuentas en la SEC con la fecha exacta de cada informe, y los bancos y las aseguradoras
-muestran con datos reales las métricas que no les aplican. El porqué de cada empresa (y de las que
+Cincuenta y ocho grandes empresas con acciones y bonos en el mercado: 23 europeas (sobre todo del
+IBEX 35, más ASML, Schneider, L'Oréal, Sanofi, Eni, Verbund, Heineken y AstraZeneca) y 35 de EE. UU.
+(consumo, tecnología, industria, salud, energía, eléctricas, banca y seguros), entre ellas tres
+fabricantes de equipos de protección individual (MSA Safety, Cadre y Lakeland). Las de EE. UU.
+publican sus cuentas en la SEC con la fecha exacta de cada informe; las europeas, su informe anual
+oficial en formato ESEF, que recoge filings.xbrl.org (solo anual: sus doce últimos meses son su último
+ejercicio, y no hay cotizaciones europeas de uso libre). Los bancos y las aseguradoras muestran con
+datos reales las métricas que no les aplican. El porqué de cada empresa (y de las que
 se descartaron), sus identificadores verificados y cómo se construye su deuda están en
 [universo.yaml](universo.yaml).
 

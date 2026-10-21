@@ -1,4 +1,6 @@
-"""Synthetic responses shaped like SEC EDGAR, Nasdaq, Yahoo Finance and the ECB (invented data).
+"""Synthetic responses shaped like SEC EDGAR, filings.xbrl.org, Nasdaq, Yahoo Finance and the ECB.
+
+All the data are invented.
 
 The fictitious company reports on calendar years and has every awkward case seen in real
 filings: comparatives repeated in later reports, a restated figure, a lone quarter in the
@@ -13,7 +15,7 @@ from datetime import date, timedelta
 from pathlib import Path
 from typing import Any
 
-from company_analysis.providers.sample_generator import equity_isin
+from company_analysis.providers.sample_generator import equity_isin, synthetic_lei
 
 MN = 1_000_000
 
@@ -212,10 +214,128 @@ COMPANIES = (
     ("ZZAA", "Zeta Foods Inc.", "0000000001", 1.0),
     ("ZZBB", "Beta Home Corp.", "0000000002", 1.6),
 )
+
+# --- A European company: annual reports in ESEF (xBRL-JSON of filings.xbrl.org) ------------------
+EU_ID, EU_NAME = "ZZEU", "Europa Alimentación, S.A."
+EU_LEI = synthetic_lei(EU_ID)
+IFRS_2024 = "https://xbrl.ifrs.org/taxonomy/2024-03-27/ifrs-full"
+# Figures of each fiscal (= calendar) year, in millions of euros.
+EU_CONCEPTS = (
+    "Revenue",
+    "ProfitLossFromOperatingActivities",
+    "DepreciationAndAmortisationExpense",
+    "FinanceCosts",
+    "ProfitLossAttributableToOwnersOfParent",
+    "CashFlowsFromUsedInOperatingActivities",
+    "PurchaseOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities",
+    "CashAndCashEquivalents",
+    "Equity",
+    "EquityAttributableToOwnersOfParent",
+    "CurrentBorrowingsAndCurrentPortionOfNoncurrentBorrowings",
+    "NoncurrentPortionOfNoncurrentBorrowings",
+)
+EU_YEARS: dict[int, dict[str, float]] = {
+    year: dict(zip(EU_CONCEPTS, values, strict=True))
+    for year, values in {
+        2023: (950, 110, 38, 14, 72, 130, 48, 80, 560, 540, 35, 320),
+        2024: (1000, 120, 40, 15, 80, 140, 50, 90, 600, 580, 30, 300),
+        2025: (1100, 130, 45, 16, 88, 150, 55, 100, 650, 630, 25, 280),
+    }.items()
+}
+EU_BALANCES = {
+    "CashAndCashEquivalents",
+    "Equity",
+    "EquityAttributableToOwnersOfParent",
+    "CurrentBorrowingsAndCurrentPortionOfNoncurrentBorrowings",
+    "NoncurrentPortionOfNoncurrentBorrowings",
+}
+# (fiscal year, fxo_id, published by the source, added to filings.xbrl.org)
+EU_FILINGS = (
+    (2024, f"{EU_LEI}-2024-12-31-ESEF-ES-0", None, "2025-05-08 11:09:48"),
+    (2024, f"{EU_LEI}-2024-12-31-ESEF-ES-1", "2025-02-27 00:00:00", "2026-10-20 15:46:16"),
+    (2025, f"{EU_LEI}-2025-12-31-ESEF-ES-0", "2026-02-26 00:00:00", "2026-03-02 09:00:00"),
+)
+
+
+DESCRIPTION = "DescriptionOfNatureOfEntitysOperationsAndPrincipalActivities"
+
+
+def esef_index() -> dict[str, Any]:
+    """The company's filings in filings.xbrl.org: the 2024 report is listed twice."""
+    return {
+        "data": [
+            {
+                "type": "filing",
+                "id": str(number),
+                "attributes": {
+                    "period_end": f"{year}-12-31",
+                    "fxo_id": fxo_id,
+                    "published": published,
+                    "date_added": added,
+                    "json_url": f"/{EU_LEI}/{year}-12-31/ESEF/ES/{fxo_id[-1]}/report.json",
+                },
+            }
+            for number, (year, fxo_id, published, added) in enumerate(EU_FILINGS, start=1)
+        ]
+    }
+
+
+def _esef_fact(prefix: str, concept: str, year: int, value: float, **extra: str) -> dict[str, Any]:
+    if concept in EU_BALANCES:
+        period = f"{year + 1}-01-01T00:00:00"  # the end of 31 December
+    else:
+        period = f"{year}-01-01T00:00:00/{year + 1}-01-01T00:00:00"
+    dimensions = {
+        "concept": f"{prefix}:{concept}",
+        "entity": f"scheme:{extra.pop('entity', EU_LEI)}",
+        "period": period,
+        "unit": extra.pop("unit", "iso4217:EUR"),
+        **extra,
+    }
+    return {"value": str(value * MN), "decimals": -6, "dimensions": dimensions}
+
+
+def esef_report(year: int) -> dict[str, Any]:
+    """The annual report of ``year`` (with the previous year as comparative), as xBRL-JSON.
+
+    The 2024 report names the IFRS taxonomy with another prefix. The 2025 one also has a segment
+    breakdown, a text, a ratio and a fact of another entity, none of which may be read.
+    """
+    prefix = "ifrs" if year == 2024 else "ifrs-full"
+    facts = [
+        _esef_fact(prefix, concept, fiscal, value)
+        for fiscal in (year, year - 1)
+        for concept, value in EU_YEARS[fiscal].items()
+    ]
+    if year == 2025:
+        facts += [
+            _esef_fact(prefix, "Revenue", 2025, 600, **{"ifrs-full:SegmentsAxis": "eu:FoodMember"}),
+            _esef_fact(prefix, "Revenue", 2025, 5, entity="ZZZZ00OTHER000000000"),
+            _esef_fact(prefix, "BasicEarningsPerShare", 2025, 1, unit="iso4217:EUR/xbrli:shares"),
+            {
+                "value": "Fabrica alimentos.",
+                "dimensions": {
+                    "concept": f"{prefix}:{DESCRIPTION}",
+                    "entity": f"scheme:{EU_LEI}",
+                    "period": "2025-01-01T00:00:00/2026-01-01T00:00:00",
+                    "language": "es",
+                },
+            },
+        ]
+    return {
+        "documentInfo": {
+            "documentType": "https://xbrl.org/2021/xbrl-json",
+            "namespaces": {prefix: IFRS_2024, "eu": "http://www.example.invalid/2025"},
+        },
+        "facts": {f"f-{number}": fact for number, fact in enumerate(facts, start=1)},
+    }
+
+
 PRICE_DAYS = trading_days(date(2026, 6, 1), date(2026, 8, 14))
 
 
-def write_universe(root: Path) -> Path:
+def write_universe(root: Path, *, european: bool = False) -> Path:
+    """The universe of the tests; ``european`` adds a company with ESEF annual reports."""
     lines = [
         'name: "Universo de prueba"',
         'description: "Empresas inventadas para las pruebas."',
@@ -239,12 +359,32 @@ def write_universe(root: Path) -> Path:
             '      - {line: "Préstamos a corto plazo", tags: [ShortTermBorrowings]}',
             '      - {line: "Deuda a largo plazo", tags: [LongTermDebtNoncurrent], required: true}',
         ]
+    if european:
+        lines += [
+            f"  - id: {EU_ID}",
+            f"    name: {EU_NAME}",
+            "    source: esef",
+            f"    ticker: {EU_ID}",
+            f"    isin: {equity_isin(EU_ID)}",
+            f"    lei: {EU_LEI}",
+            "    exchange: XMAD",
+            "    country: ES",
+            "    sector: consumer",
+            "    industry: food_beverage",
+            "    currency: EUR",
+            "    fiscal_year_end_month: 12",
+            "    debt:",
+            '      - {line: "Deuda financiera a corto plazo", '
+            "tags: [CurrentBorrowingsAndCurrentPortionOfNoncurrentBorrowings]}",
+            '      - {line: "Deuda financiera a largo plazo", '
+            "tags: [NoncurrentPortionOfNoncurrentBorrowings], required: true}",
+        ]
     path = root / "universo.yaml"
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
     return path
 
 
-def write_snapshot(folder: Path, *, prices: bool = True) -> Path:
+def write_snapshot(folder: Path, *, prices: bool = True, european: bool = False) -> Path:
     """A downloaded snapshot (with its manifest) as the downloader would leave it.
 
     With ``prices=False`` it is a download without share prices: no ``precios/`` files and the
@@ -266,6 +406,10 @@ def write_snapshot(folder: Path, *, prices: bool = True) -> Path:
         if prices:
             put(f"precios/{identifier}.nasdaq.json", json.dumps(nasdaq(PRICE_DAYS, 50.0 * scale)))
             put(f"precios/{identifier}.yahoo.json", json.dumps(yahoo(PRICE_DAYS, 50.0 * scale)))
+    if european:
+        put(f"esef/{EU_ID}.filings.json", json.dumps(esef_index()))
+        for year in (2024, 2025):
+            put(f"esef/{EU_ID}/{year}-12-31.json", json.dumps(esef_report(year)))
     put("bce/USD.csv", ecb_csv(trading_days(date(2023, 1, 2), date(2026, 8, 14)), 1.10))
     manifest: dict[str, Any] = {
         "creado": "2026-08-15T08:00:00+00:00",

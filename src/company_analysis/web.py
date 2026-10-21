@@ -4,8 +4,10 @@
 - Europa: European stock markets (TradingView widgets) and the euro's rates, sovereign yields and
   exchange rates (ECB).
 - Internacional: America, Asia and the rest of the world, commodities and the world economy.
-- Empresas: real US companies with sources that may be republished (SEC accounts, no share prices,
-  methodology ``estudio-real/metodologia-web.yaml``), with a sheet per company.
+- Empresas: real European and US companies with sources that may be republished (the annual
+  reports of European listed companies, SEC accounts, no share prices, methodology
+  ``estudio-real/metodologia-web.yaml``), with a sheet per company, and the listed makers of
+  personal protective equipment (PPE) on a page of their own.
 - Ejemplos: one fictitious company per situation the tool handles, with what its sheet shows.
 - Academy: terms and metric formulas, for whoever wants them.
 
@@ -46,11 +48,11 @@ from company_analysis.formatting import format_date, format_number
 from company_analysis.i18n import CatalogError, Translator, load_catalog, untranslated_report
 from company_analysis.metrics import MetricCategory, all_metrics, get_metric
 from company_analysis.metrics.base import MetricDefinition
-from company_analysis.models import FxRate
+from company_analysis.models import FxRate, Industry
 from company_analysis.pipeline import AnalysisError, run_analysis
 from company_analysis.provenance import git_commit
 from company_analysis.providers import SampleProvider
-from company_analysis.providers.public.downloads import Request, download, plan
+from company_analysis.providers.public.downloads import Request, download, esef_reports, plan
 from company_analysis.providers.public.market import ecb_rates
 from company_analysis.providers.public.provider import (
     PublicDataProvider,
@@ -68,7 +70,14 @@ from company_analysis.reports import (
     write_reports,
 )
 from company_analysis.reports.render import _common_context, environment
-from company_analysis.reports.study import StudyView, build_study_view, write_study_report
+from company_analysis.reports.study import (
+    PeerGroup,
+    StudyView,
+    build_study_view,
+    peer_group,
+    region_of,
+    write_study_report,
+)
 from company_analysis.reports.views import DISCLAIMER, MetricLine
 from company_analysis.settings import Settings
 from company_analysis.storage import open_database, save_bundle
@@ -92,8 +101,9 @@ SECTIONS: tuple[tuple[str, str, str], ...] = (  # (key, label, page from the web
     ("academy", "Academy", "academy.html"),
 )
 REAL_NOTICE = (
-    "Empresas reales con datos públicos de uso libre: cuentas de la SEC y tipos de cambio del BCE. "
-    "Sin cotizaciones, así que no hay capitalización, PER ni EV/EBITDA."
+    "Empresas reales con datos públicos de uso libre: informes anuales oficiales de las "
+    "cotizadas europeas (ESEF), cuentas de la SEC y tipos de cambio del BCE. Sin cotizaciones, así "
+    "que no hay capitalización, PER ni EV/EBITDA."
 )
 SAMPLE_NOTICE = (
     "Ejemplo con empresas ficticias y datos inventados: sirven para ver cómo responde la "
@@ -406,18 +416,137 @@ def build_sample(work: Path, site: Path, settings: Settings) -> RunView:
 
 
 PUBLIC_SOURCES = (
-    "Cuentas de la SEC (normas contables de EE. UU., sin ajustes) y tipos de cambio del BCE, sin "
-    "cotizaciones."
+    "Cuentas de los informes anuales oficiales de las europeas (ESEF, normas NIIF) y de la SEC "
+    "(normas contables de EE. UU.), sin ajustes, y tipos de cambio del BCE, sin cotizaciones."
 )
+
+
+@dataclass(frozen=True)
+class PpeCompany:
+    """A listed maker of personal protective equipment, on the sector page."""
+
+    name: str
+    country: str
+    listing: str  # market and ticker, as shown
+    symbol: str  # TradingView symbol
+    description: str
+    issuer_id: str | None = None  # in the study universe: its accounts may be republished
+
+
+# The sector page: makers of PPE (helmets, respiratory and hearing protection, protective
+# clothing, gloves, fall protection, gas detection), with or without accounts the tool can use.
+PPE_COMPANIES: tuple[PpeCompany, ...] = (
+    PpeCompany(
+        "MSA Safety",
+        "EE. UU.",
+        "NYSE: MSA",
+        "NYSE:MSA",
+        "Cascos y protección de la cabeza, detección de gases, equipos de respiración autónoma y "
+        "protección anticaídas, para la industria y los bomberos.",
+        "MSA",
+    ),
+    PpeCompany(
+        "Drägerwerk",
+        "Alemania",
+        "Xetra: DRW3",
+        "XETR:DRW3",
+        "Tecnología médica y de seguridad: equipos de respiración autónoma, protección "
+        "respiratoria y detección de gases.",
+    ),
+    PpeCompany(
+        "Ansell",
+        "Australia",
+        "ASX: ANN",
+        "ASX:ANN",
+        "Guantes de protección industriales y sanitarios y ropa de protección química.",
+    ),
+    PpeCompany(
+        "Delta Plus Group",
+        "Francia",
+        "Euronext Growth: ALDLT",
+        "EURONEXT:ALDLT",
+        "EPI de la cabeza a los pies: cascos, gafas, protección auditiva, guantes, ropa, calzado "
+        "y anticaídas.",
+    ),
+    PpeCompany(
+        "Avon Technologies",
+        "Reino Unido",
+        "Bolsa de Londres: AVON",
+        "LSE:AVON",
+        "EPI para defensa y policía: protección respiratoria frente a amenazas químicas, "
+        "biológicas, radiológicas y nucleares, y cascos balísticos.",
+    ),
+    PpeCompany(
+        "Cadre Holdings",
+        "EE. UU.",
+        "NYSE: CDRE",
+        "NYSE:CDRE",
+        "Protección balística (chalecos y placas antibalas) y trajes antiexplosivos para policía "
+        "y defensa, además de equipamiento policial.",
+        "CDRE",
+    ),
+    PpeCompany(
+        "Lakeland Industries",
+        "EE. UU.",
+        "Nasdaq: LAKE",
+        "NASDAQ:LAKE",
+        "Ropa de protección industrial (desechable, química y contra el fuego) y equipos para "
+        "bomberos.",
+        "LAKE",
+    ),
+    PpeCompany(
+        "Alpha Pro Tech",
+        "EE. UU.",
+        "NYSE American: APT",
+        "AMEX:APT",
+        "Ropa de protección desechable y mascarillas, además de materiales de construcción.",
+    ),
+    PpeCompany(
+        "3M",
+        "EE. UU.",
+        "NYSE: MMM",
+        "NYSE:MMM",
+        "Conglomerado: su negocio de seguridad incluye protección respiratoria, auditiva, ocular "
+        "y anticaídas.",
+        "MMM",
+    ),
+)
+PPE_FIGURES = ("revenue_ltm_eur", "ebitda_margin", "revenue_growth", "net_debt_to_ebitda")
+
+
+@dataclass(frozen=True)
+class RealSite:
+    study: StudyView
+    data: PublicDataResult
+    sector: PeerGroup  # the PPE makers whose accounts the tool uses
+
+
+def zones(company: CompanyView) -> str:
+    """Groups of the dashboard a company belongs to: its region, and the PPE sector."""
+    region = "europa" if region_of(company.country) == "Europa" else "eeuu"
+    ppe = company.industry_label == Industry.PERSONAL_PROTECTION.label
+    return f"{region} epi" if ppe else region
+
+
+def _ppe_ids(study: StudyView) -> list[str]:
+    """The study's PPE makers, and the companies of the sector page analysed in other industries."""
+    listed = {c.issuer_id for c in PPE_COMPANIES if c.issuer_id}
+    return [
+        company.issuer_id
+        for company in study.run.companies
+        if company.industry_label == Industry.PERSONAL_PROTECTION.label
+        or company.issuer_id in listed
+    ]
 
 
 def _public_description(description: str) -> str:
     """The universe's description with the sources the website actually uses.
 
-    The sentence about the sources ("Cuentas de la SEC…") is replaced; a description without it
-    gets it added. Abbreviations such as "EE. UU." never cut the text.
+    The sentence about the sources ("Cuentas de la SEC…", "Cuentas de los informes…") is
+    replaced; a description without it gets it added. Abbreviations such as "EE. UU." never cut
+    the text.
     """
-    head = description.split("Cuentas de la SEC", maxsplit=1)[0].strip()
+    head = description.split("Cuentas de ", maxsplit=1)[0].strip()
     return f"{head} {PUBLIC_SOURCES}" if head else PUBLIC_SOURCES
 
 
@@ -428,21 +557,22 @@ def build_real(
     *,
     snapshot: Path | None,
     dates: Sequence[date],
-) -> tuple[StudyView, PublicDataResult]:
+) -> RealSite:
     """The study's universe with republishable sources only, analysed at ``dates``."""
     study_dir = settings.study_dir
     universe_path = study_dir / "universo.yaml"
     universe = load_universe(universe_path)
     if snapshot is None:
         console.print(
-            f"Descargando de la SEC y del BCE las cuentas de {len(universe.companies)} "
-            "empresas y los tipos de cambio (sin cotizaciones)…"
+            f"Descargando las cuentas de {len(universe.companies)} empresas (informes anuales "
+            "europeos y SEC) y los datos del BCE (sin cotizaciones)…"
         )
         downloaded = download(
             plan(universe, local_today(), prices=False, currencies=FX_CURRENCIES)
             + market_requests(local_today()),
             work / "crudo",
             sec_agent=settings.http_user_agent,
+            then=esef_reports(universe, min(dates)),
         )
         if not downloaded.complete:
             missing = "; ".join(f"{f.path} ({f.error})" for f in downloaded.failures if f.required)
@@ -468,10 +598,16 @@ def build_real(
             title=universe.name,
             description=_public_description(universe.description),
         )
+        sector = peer_group(
+            conn, study, _ppe_ids(study), name=Industry.PERSONAL_PROTECTION.label, anchor="epi"
+        )
+    # The PPE makers first; then the companies of other industries that also make PPE (3M).
+    ppe = Industry.PERSONAL_PROTECTION.label
+    sector = replace(sector, groups=tuple(sorted(sector.groups, key=lambda g: g[0] != ppe)))
     section = nav("reales", REAL_NOTICE)
     write_reports(view, site, folder="reales", site=section)
     write_study_report(study, site / "reales", filename="index.html", site=section)
-    return study, data
+    return RealSite(study, data, sector)
 
 
 # --- Currencies ----------------------------------------------------------------------------------
@@ -731,13 +867,24 @@ def _metric_groups() -> list[tuple[str, list[MetricDefinition]]]:
     ]
 
 
+def ppe_profiles(study: StudyView) -> list[tuple[PpeCompany, CompanyView | None, list[Evidence]]]:
+    """Each company of the sector page, with its sheet and key figures if the tool analyses it."""
+    companies = {company.issuer_id: company for company in study.run.companies}
+    profiles = []
+    for ppe in PPE_COMPANIES:
+        company = companies.get(ppe.issuer_id or "")
+        figures = evidence(company, PPE_FIGURES) if company else []
+        profiles.append((ppe, company, figures))
+    return profiles
+
+
 def write_pages(
     site: Path,
     *,
     sample: RunView,
-    study: StudyView,
-    data: PublicDataResult,
+    real: RealSite,
 ) -> None:
+    study, data = real.study, real.data
     env = environment()
     common: dict[str, Any] = {
         "site_root": "",
@@ -764,6 +911,11 @@ def write_pages(
                 "real_alerts": real_alerts,
                 "sample_alerts": sample_alerts,
                 "quality_warnings": sum(len(q.warnings) for q in data.companies),
+                "zones": {c.issuer_id: zones(c) for c in study.run.companies},
+                "zone_counts": {
+                    zone: sum(zone in zones(c).split() for c in study.run.companies)
+                    for zone in ("europa", "eeuu", "epi")
+                },
                 "metrics_count": len(all_metrics()),
                 "fx": fx,
                 "market": market,
@@ -772,6 +924,7 @@ def write_pages(
                         {
                             "name": c.name,
                             "href": f"reales/{c.ficha_path}",
+                            "z": zones(c).split(),
                             "a": None if c.equity.value is None else round(c.equity.value),
                             "c": None if c.credit.value is None else round(c.credit.value),
                         }
@@ -801,6 +954,17 @@ def write_pages(
             env.get_template(template).render(**common, site=nav(key), **context),
             encoding="utf-8",
         )
+    (site / "reales" / "epi.html").write_text(
+        env.get_template("web_epi.html.j2").render(
+            **common | {"site_root": "../"},
+            site=nav("reales", REAL_NOTICE),
+            columns=study.columns,
+            sector=real.sector,
+            profiles=ppe_profiles(study),
+            real_date=format_date(study.run.record.as_of_date),
+        ),
+        encoding="utf-8",
+    )
 
 
 def write_logo(site: Path) -> None:
@@ -871,13 +1035,14 @@ def build_site(
         work = Path(temporary)
         site = work / "sitio"
         site.mkdir()
-        study, data = build_real(work, site, settings, snapshot=snapshot, dates=dates)
+        real = build_real(work, site, settings, snapshot=snapshot, dates=dates)
         sample = build_sample(work, site, settings)
-        write_pages(site, sample=sample, study=study, data=data)
+        write_pages(site, sample=sample, real=real)
         write_logo(site)
         translator = Translator(
             load_catalog(),
-            keep={c.name for c in (*sample.companies, *study.run.companies)},
+            keep={c.name for c in (*sample.companies, *real.study.run.companies)}
+            | {ppe.name for ppe in PPE_COMPANIES},
         )
         write_english(site, translator)
         link_languages(site)

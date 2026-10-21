@@ -1,0 +1,116 @@
+  # --- Fragmento: equipos de protección individual (EPI) -------------------------------------------
+  #
+  # Industria «personal_protection» (sector «industrials»): fabricantes cotizados de cascos,
+  # protección respiratoria, ropa de protección, protección balística, anticaídas…
+  #
+  # Identificadores verificados el 21/10/2026: CIK, mercado y cierre del ejercicio con el fichero
+  # de presentaciones de la SEC; ISIN con su dígito de control y con OpenFIGI; LEI con GLEIF (razón
+  # social y jurisdicción; el de Cadre, por nombre: GLEIF no le asocia el ISIN).
+  #
+  # Estado (21/10/2026): comprobadas con apoyo/comprobar_empresas.py MSA Safety, Lakeland y Cadre
+  # (esta última añadida al grupo); excluidas Alpha Pro Tech y Avon Technologies. Pendiente:
+  # incorporarlas a universo.yaml. Las tres son de EE. UU. y ninguna tiene bonos cotizados: su deuda
+  # es bancaria o colocada de forma privada, así que la vista de acreedor se basa en esa deuda.
+  #
+  # Excluidas tras revisar sus datos (texto para la cabecera del universo):
+  # - Alpha Pro Tech: no tiene deuda financiera (ni bonos ni préstamos; solo arrendamientos
+  #   operativos), así que no hay vista de acreedor (como Vertex). Además es una microempresa
+  #   (59 M USD de ventas en 2025).
+  # - Avon Technologies (Reino Unido, cuentas en USD, ejercicio a 30 de septiembre): su informe ESEF
+  #   (filings.xbrl.org; el último, del ejercicio cerrado el 30/09/2025) solo etiqueta los estados
+  #   principales, y en ellos faltan el número de acciones (sin capitalización ni múltiplos de
+  #   valoración), las amortizaciones (el estado de flujos empieza en la caja generada por las
+  #   operaciones: sin EBITDA) y el gasto financiero (solo el resultado financiero neto, −6,1 M). Igual
+  #   en los informes de 2023 y 2024. Lo que sí publica cuadra con su informe: ventas 313,9 M,
+  #   resultado operativo 19,2 M, beneficio 10,3 M (sin minoritarios) y préstamos 81,4 M (línea de
+  #   crédito 63,5 M más arrendamientos 17,9 M, que presenta dentro de «Borrowings»).
+  # - No se añaden: Rocky Brands (calzado de trabajo, del Oeste, de caza y de exterior; el de
+  #   seguridad es solo una parte), GVS (filtros; la división de protección es una quinta parte de
+  #   las ventas), Leatt (protecciones para deporte de motor; cotiza fuera de mercado regulado), Safe
+  #   Pro Group (microempresa) y NZI Technical Protection (cascos de moto; BME Growth, sin informe
+  #   ESEF). Sioen salió de bolsa; Honeywell vendió su negocio de EPI a una empresa no cotizada.
+  #   Sin otros fabricantes de EPI en filings.xbrl.org de los países con cobertura.
+
+  # MSA Safety: cascos, equipos de respiración autónoma (bomberos), detección de gases y anticaídas.
+  # Su deuda son pagarés sénior colocados de forma privada (con Prudential; 299 M a 31/12/2025) y
+  # disposiciones de su línea de crédito (282 M): sin bonos cotizados. La deuda a un año lleva
+  # DebtCurrent o LongTermDebtCurrent (mismo importe); las dos líneas suman su LongTermDebt total.
+  # Etiqueta fijada: desde 2022 presenta su patrimonio con la etiqueta del patrimonio con
+  # minoritarios, pero no los tiene (a cero desde septiembre de 2021), así que es el patrimonio de
+  # los accionistas; la etiqueta sin minoritarios solo llega a 2021 (como Stryker).
+  - id: MSA
+    name: MSA Safety Incorporated
+    cik: "0000066570"
+    ticker: MSA
+    isin: US5534981064
+    lei: 529900DVA3258XK11O39
+    exchange: XNYS
+    country: US
+    sector: industrials
+    industry: personal_protection
+    currency: USD
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Pagarés y vencimientos a un año de la deuda a largo", tags: [DebtCurrent, LongTermDebtCurrent]}
+      - {line: "Deuda a largo plazo", tags: [LongTermDebtNoncurrent], required: true}
+    tags:
+      equity_attributable: [StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest]
+
+  # Lakeland Industries (opera como Lakeland Fire + Safety): ropa de protección química e ignífuga y
+  # equipos para bomberos. Ejercicio a 31 de enero. Microempresa (193 M USD de ventas), por debajo
+  # del resto del universo, y sin bonos: su deuda es la línea de crédito (28,5 M dispuestos a
+  # 31/01/2026, que presenta a largo plazo) y préstamos pequeños. Deuda: la línea a largo cambia de
+  # etiqueta (LongTermLoansPayable hasta octubre de 2025, LongTermDebt desde enero de 2026; mismo
+  # importe donde coinciden) y va primero LongTermLoansPayable porque el LongTermDebt de julio de
+  # 2024 (2,9 M) es una partida parcial; la de a un año, entre tres etiquetas con el mismo importe
+  # donde coinciden. La obligatoria es la de a un año: en 2023 no tenía deuda a largo (la línea no
+  # aparece) y sí presentaba sus préstamos a corto (casi cero). Amortizaciones fijadas: la etiqueta
+  # habitual (DepreciationDepletionAndAmortization) solo trae la depreciación del inmovilizado y solo
+  # en los cierres (2,8 M en el ejercicio 2026); la línea del estado de flujos (5,1 M, con la
+  # amortización de intangibles) es DepreciationAndAmortization. Hoy la herramienta ya la elige
+  # (llega al último trimestre), pero con el próximo informe anual empatarían y ganaría la otra.
+  # Pérdidas y flujo operativo negativo en el ejercicio 2026 (deterioro del fondo de comercio,
+  # aranceles, provisión sobre impuestos diferidos): datos reales.
+  - id: LAKE
+    name: Lakeland Industries, Inc.
+    cik: "0000798081"
+    ticker: LAKE
+    isin: US5117951062
+    lei: 549300HGP70IM9WKU164
+    exchange: XNAS
+    country: US
+    sector: industrials
+    industry: personal_protection
+    currency: USD
+    fiscal_year_end_month: 1
+    debt:
+      - {line: "Préstamos a corto y vencimientos a un año", tags: [LongTermDebtCurrent, LoansPayableCurrent, ShortTermBorrowings], required: true}
+      - {line: "Deuda a largo plazo (incluye la línea de crédito)", tags: [LongTermLoansPayable, LongTermDebt]}
+    depreciation: [DepreciationAndAmortization]
+
+  # Cadre Holdings: añadida al grupo. Chalecos y placas antibalas (Safariland; TYR Tactical desde
+  # enero de 2026) y trajes y equipos de desactivación de explosivos (Med-Eng), además de
+  # equipamiento policial (fundas, cinturones) y, desde 2024, seguridad nuclear (contención,
+  # instrumentación). No publica las ventas por producto: la protección balística y antiexplosivos
+  # es su negocio principal, pero no todo es EPI (decidir si encaja en la industria). Sin bonos:
+  # préstamos bancarios a plazo y línea de crédito (309,1 M de principal a 31/12/2025; 307,3 M en
+  # balance, netos de gastos de formalización). La deuda a largo incluye la línea de crédito cuando
+  # está dispuesta (62,5 M en marzo de 2026). Arrendamientos financieros (2,8 M) fuera. Gasto
+  # financiero: solo publica el neto de ingresos («Interest expense, net») desde el informe anual de
+  # 2025; la herramienta lo toma con su nota. Sin minoritarios. Resultado operativo atípico en el
+  # primer trimestre de 2026 (el estudio lo avisa): dato del informe.
+  - id: CDRE
+    name: Cadre Holdings, Inc.
+    cik: "0001860543"
+    ticker: CDRE
+    isin: US12763L1052
+    lei: 2549006IKQEWJ8M7CB97
+    exchange: XNYS
+    country: US
+    sector: industrials
+    industry: personal_protection
+    currency: USD
+    fiscal_year_end_month: 12
+    debt:
+      - {line: "Vencimientos a un año de la deuda", tags: [DebtCurrent, LongTermDebtCurrent]}
+      - {line: "Deuda a largo plazo (incluye la línea de crédito)", tags: [LongTermDebtNoncurrent], required: true}

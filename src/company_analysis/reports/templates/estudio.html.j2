@@ -11,6 +11,10 @@
   table.peers tr.group td { background: var(--soft); font-weight: 600; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
   table.peers tr.median td { border-top: 2px solid var(--line); font-weight: 600; }
   table.peers tr.group-median td { color: var(--muted); font-style: italic; font-size: 12px; }
+  h3.region { margin: 26px 0 8px; font-size: 20px; }
+  .regions { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 6px; }
+  .regions a { padding: 4px 12px; border: 1px solid var(--line); border-radius: 999px; font-size: 13px; font-weight: 600;
+               text-decoration: none; }
   .na { color: var(--muted); font-size: 12px; }
   .scroll { overflow-x: auto; }
   .nowrap { white-space: nowrap; }
@@ -49,14 +53,15 @@
 {% if not site %}
 <div class="notice">
   {% if study.with_prices %}
-  <p><strong>Datos reales, uso interno.</strong> Cifras tal como las publican las empresas en la SEC
-  (normas contables de EE. UU., sin los ajustes que ellas mismas presentan como «ajustados»),
-  cotizaciones de cierre y tipos de cambio del BCE. Cada importe en euros usa el tipo de cambio de su
+  <p><strong>Datos reales, uso interno.</strong> Cifras tal como las publican las empresas: las de EE. UU. en la
+  SEC (normas contables de EE. UU.) y las europeas en su informe anual oficial (formato ESEF, normas NIIF), sin los
+  ajustes que ellas mismas presentan como «ajustados»; cotizaciones de cierre de las de EE. UU. y tipos de cambio del
+  BCE. Cada importe en euros usa el tipo de cambio de su
   fecha. No es una recomendación de inversión: describe y compara.</p>
   {% else %}
-  <p><strong>Datos reales de fuentes de uso libre.</strong> Cifras tal como las publican las empresas en
-  la SEC (normas contables de EE. UU., sin los ajustes que ellas mismas presentan como «ajustados») y
-  tipos de cambio del BCE. Cada importe en euros usa el tipo de cambio de su fecha. No es una
+  <p><strong>Datos reales de fuentes de uso libre.</strong> Cifras tal como las publican las empresas: las de
+  EE. UU. en la SEC (normas contables de EE. UU.) y las europeas en su informe anual oficial (formato ESEF, normas
+  NIIF), sin los ajustes que ellas mismas presentan como «ajustados»; y tipos de cambio del BCE. Cada importe en euros usa el tipo de cambio de su fecha. No es una
   recomendación de inversión: describe y compara.</p>
   <p>Esta versión va sin cotizaciones: las condiciones de los servicios gratuitos que las ofrecen no
   permiten republicarlas. Por eso no hay capitalización, PER, EV/EBITDA ni FCF yield, y la puntuación de
@@ -73,6 +78,14 @@
 «Cifras» dice cuál).{% if study.with_prices %} Capitalización en millones de euros.{% endif %} Las puntuaciones comparan cada empresa con
 las de su sector que tienen dato (con todas, si son menos de {{ view.config.scoring.min_peers }}): 100 es la mejor del grupo en cada factor.</p>
 {% endif %}
+{% if study.regions | length > 1 or site %}
+<nav class="regions" aria-label="Regiones">
+  {% for region in study.regions %}<a href="#{{ region.anchor }}">{{ region.name }}</a>{% endfor %}
+  {% if site %}<a href="epi.html">Sector EPI →</a>{% endif %}
+</nav>
+{% endif %}
+{% for region in study.regions %}
+<h3 class="region" id="{{ region.anchor }}">{{ region.name }}</h3>
 <div class="scroll">
 <table class="peers">
   <thead><tr>
@@ -81,7 +94,7 @@ las de su sector que tienen dato (con todas, si son menos de {{ view.config.scor
     <th class="num">Accionista</th><th class="num">Acreedor</th>
   </tr></thead>
   <tbody>
-  {% for industry, rows in study.groups %}
+  {% for industry, rows in region.groups %}
     <tr class="group"><td colspan="{{ study.columns | length + 4 }}">{{ industry }}</td></tr>
     {% for row in rows %}
     <tr>
@@ -96,16 +109,17 @@ las de su sector que tienen dato (con todas, si son menos de {{ view.config.scor
       <td class="num score">{{ row.company.credit.value_text if row.company.credit.value is not none else "—" }}</td>
     </tr>
     {% endfor %}
-    {% if industry in study.group_medians %}
+    {% if industry in region.group_medians %}
     <tr class="group-median"><td>Mediana del sector</td><td></td>
-      {% for text in study.group_medians[industry] %}<td class="num">{{ text }}</td>{% endfor %}<td></td><td></td></tr>
+      {% for text in region.group_medians[industry] %}<td class="num">{{ text }}</td>{% endfor %}<td></td><td></td></tr>
     {% endif %}
   {% endfor %}
-    <tr class="median"><td>Mediana del grupo</td><td></td>
-      {% for text in study.medians %}<td class="num">{{ text }}</td>{% endfor %}<td></td><td></td></tr>
+    <tr class="median"><td>Mediana de {{ region.name }}</td><td></td>
+      {% for text in region.medians %}<td class="num">{{ text }}</td>{% endfor %}<td></td><td></td></tr>
   </tbody>
 </table>
 </div>
+{% endfor %}
 {% if not site %}
 <p class="muted small">Pasa el ratón por una celda sin valor para ver el motivo. Cada ficha despliega la fórmula y los datos de entrada de cada métrica.
 Los avisos llevan a la sección de calidad de datos: léelos antes de sacar conclusiones de una cifra.</p>
@@ -188,7 +202,7 @@ informe posterior (la herramienta guarda las dos versiones y usa la que se conoc
         <tbody>
         {% for entry in quality.lineage %}
           <tr><td>{{ entry.item.label }}</td>
-            <td><code>{{ entry.source }}</code>{% if entry.note %}<br><span class="muted small">{{ entry.note }}</span>{% endif %}</td>
+            <td><code{% if entry.item.value != "total_debt" %} translate="no"{% endif %}>{{ entry.source }}</code>{% if entry.note %}<br><span class="muted small">{{ entry.note }}</span>{% endif %}</td>
             <td class="small">{% if entry.latest %}{{ entry.latest[0].value }} {{ entry.latest[1] | fecha }}{% else %}—{% endif %}</td>
             <td class="num">{{ entry.restatements }}</td></tr>
         {% endfor %}
@@ -200,7 +214,7 @@ informe posterior (la herramienta guarda las dos versiones y usa la que se conoc
           <thead><tr><th colspan="2">Deuda financiera a {{ day | fecha }} (millones)</th></tr></thead>
           <tbody>
           {% for component in components %}
-            <tr><td>{{ component.line }}<br><span class="muted small">{{ component.tag or "no presentada en ese balance: cuenta como cero" }}</span></td>
+            <tr><td>{{ component.line }}<br>{% if component.tag %}<span class="muted small" translate="no">{{ component.tag }}</span>{% else %}<span class="muted small">no presentada en ese balance: cuenta como cero</span>{% endif %}</td>
               <td class="num">{{ component.value | num(0) if component.value is not none else "0" }}</td></tr>
           {% endfor %}
           </tbody>
@@ -220,11 +234,14 @@ informe posterior (la herramienta guarda las dos versiones y usa la que se conoc
 {% if not site %}
 <h2>Método y límites</h2>
 <ul>
-  <li><strong>Lectura a fecha.</strong> Cada cifra lleva la fecha en que la SEC recibió el informe. Una ejecución solo usa lo
-  presentado hasta su fecha de análisis, y las cifras corregidas después se guardan como una publicación nueva.</li>
+  <li><strong>Lectura a fecha.</strong> Cada cifra lleva la fecha en que la SEC recibió el informe o, en las europeas, la
+  de publicación de su informe anual (si la fuente no la da, la de su llegada a filings.xbrl.org, que es posterior). Una
+  ejecución solo usa lo publicado hasta su fecha de análisis, y las cifras corregidas después se guardan como una
+  publicación nueva.</li>
   <li><strong>Periodos.</strong> Se usan los periodos acumulados desde el inicio del ejercicio (primer trimestre, semestre,
   nueve meses y año), identificados por sus fechas. Los doce últimos meses se calculan como año anterior + acumulado actual −
-  mismo acumulado un año antes; funciona con cierres en mayo o junio y con años de 52/53 semanas.</li>
+  mismo acumulado un año antes; funciona con cierres en mayo o junio y con años de 52/53 semanas. Las europeas solo
+  publican en este formato el informe anual: sus doce últimos meses son su último ejercicio.</li>
   <li><strong>EBITDA.</strong> Resultado operativo publicado más amortizaciones del estado de flujos. Incluye los deterioros y
   costes de reestructuración que la empresa haya registrado: puede ser bastante menor que el EBITDA «ajustado» que comunica.</li>
   <li><strong>Deuda.</strong> Las líneas de deuda que cada empresa presenta en su balance (préstamos, papel comercial,
@@ -244,6 +261,8 @@ informe posterior (la herramienta guarda las dos versiones y usa la que se conoc
 <h2>Fuentes y condiciones de uso</h2>
 <ul>
   <li><strong>SEC EDGAR</strong> (data.sec.gov): datos públicos de la administración de EE. UU.</li>
+  <li><strong>filings.xbrl.org</strong> (XBRL International): informes anuales oficiales de las cotizadas europeas
+  (ESEF); declara que no hay restricciones al uso de sus datos.</li>
   <li><strong>Banco Central Europeo</strong> (data-api.ecb.europa.eu): reutilización libre citando la fuente.</li>
   {% if study.with_prices %}
   <li><strong>Nasdaq y Yahoo Finance</strong>: cotizaciones de servicios web sin licencia de datos. Valen para esta prueba

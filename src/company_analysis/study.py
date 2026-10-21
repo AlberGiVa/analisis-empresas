@@ -37,6 +37,7 @@ from company_analysis.formatting import format_date
 from company_analysis.providers.public.downloads import (
     Request,
     download,
+    esef_reports,
     latest_snapshot,
     plan,
 )
@@ -145,17 +146,22 @@ def download_command() -> None:
         universe = load_universe(paths.universe)
     except UniverseError as error:
         fail(str(error))
-    requests = plan(universe, local_today())
+    today = local_today()
+    requests = plan(universe, today)
     console.print(
         f"Descargando {len(requests)} ficheros de {len(universe.companies)} empresas "
-        "(SEC, Nasdaq, Yahoo Finance y BCE)…"
+        "(SEC, informes anuales europeos, Nasdaq, Yahoo Finance y BCE)…"
     )
 
     def progress(request: Request) -> None:
         console.print(f"  {request.path}", style="dim")
 
     snapshot = download(
-        requests, paths.downloads, sec_agent=Settings().http_user_agent, progress=progress
+        requests,
+        paths.downloads,
+        sec_agent=Settings().http_user_agent,
+        progress=progress,
+        then=esef_reports(universe, comparison_date(today)),
     )
     console.print(f"Descarga guardada en {snapshot.folder} ({len(snapshot.files)} ficheros).")
     for failure in snapshot.failures:

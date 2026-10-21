@@ -1,4 +1,8 @@
-"""Financial statements from SEC EDGAR "company facts" (XBRL, US GAAP), point in time.
+"""Financial statements from XBRL "company facts", point in time.
+
+The facts come from SEC EDGAR (US GAAP) or, converted to the same shape, from the annual reports
+European listed companies publish in XBRL (IFRS; ``esef.py``). ``Standard`` says where each item
+lives in each set of accounts.
 
 Each reported value keeps the date its filing was accepted ("filed"), so the analysis never uses a
 figure before it was public. Values come out of every filing that repeats them (comparatives); a
@@ -12,7 +16,7 @@ year to date. Only cumulative periods from the start of the fiscal year are used
 from calendar import monthrange
 from collections import defaultdict
 from collections.abc import Iterable, Mapping, Sequence
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import date, timedelta
 from typing import Any
 
@@ -49,8 +53,9 @@ class SecFact:
 # Only periodic reports count: the same concepts also appear in proxy statements (DEF 14A pay
 # versus performance tables, rounded) and in 8-K exhibits, which are not new publications of the
 # financial statements and must not be read as restatements.
+ESEF_FORM = "ESEF"  # annual financial report of a European listed company (esef.py)
 REPORT_FORMS = frozenset(
-    {"10-K", "10-Q", "10-K/A", "10-Q/A", "10-KT", "10-QT", "10-KT/A", "10-QT/A"}
+    {"10-K", "10-Q", "10-K/A", "10-Q/A", "10-KT", "10-QT", "10-KT/A", "10-QT/A", ESEF_FORM}
 )
 
 
@@ -96,18 +101,25 @@ class FiscalCalendar:
     reports sometimes also disclose other twelve-month periods (pro forma, trailing figures).
     """
 
-    def __init__(self, companyfacts: Mapping[str, Any], fiscal_year_end_month: int) -> None:
+    def __init__(
+        self,
+        companyfacts: Mapping[str, Any],
+        fiscal_year_end_month: int,
+        *,
+        taxonomy: str = "us-gaap",
+        unit: str = "USD",
+    ) -> None:
         durations = [
             fact
-            for tag in companyfacts.get("facts", {}).get("us-gaap", {})
-            for fact in read_facts(companyfacts, tag)
+            for tag in companyfacts.get("facts", {}).get(taxonomy, {})
+            for fact in read_facts(companyfacts, tag, taxonomy=taxonomy, unit=unit)
             if fact.start is not None
         ]
         lo, hi = PERIOD_DAYS[FiscalPeriod.FY]
         years = {
             (fact.start, fact.end)
             for fact in durations
-            if fact.start is not None and fact.form.startswith("10-K")
+            if fact.start is not None and fact.form.startswith(("10-K", ESEF_FORM))
             and lo <= _days(fact.start, fact.end) <= hi
             and closes_fiscal_year(fact.end, fiscal_year_end_month)
         }  # fmt: skip
@@ -193,7 +205,11 @@ def latest_period(series: Series) -> PeriodKey | None:
 # --- Where each item comes from ------------------------------------------------------------------
 @dataclass(frozen=True)
 class Source:
-    """One way of obtaining an item: a tag, or a signed sum of tags from the same statements."""
+    """One way of obtaining an item: a tag, or a signed sum of tags from the same statements.
+
+    A tag may name its taxonomy (``ibe:EbitdaAjustado``, an extension of the company); without it,
+    it belongs to ``taxonomy``. Monetary items are read in the company's reporting currency.
+    """
 
     terms: tuple[tuple[str, float], ...]  # (tag, sign)
     taxonomy: str = "us-gaap"
@@ -212,9 +228,28 @@ class Source:
         return text
 
 
-def tags(*names: str, note: str | None = None, unit: str = "USD") -> tuple[Source, ...]:
+def tags(
+    *names: str, note: str | None = None, unit: str = "USD", taxonomy: str = "us-gaap"
+) -> tuple[Source, ...]:
     """One source per tag, in priority order."""
-    return tuple(Source(((name, 1.0),), unit=unit, note=note) for name in names)
+    return tuple(Source(((name, 1.0),), taxonomy=taxonomy, unit=unit, note=note) for name in names)
+
+
+def signed(tag: str) -> tuple[str, float]:
+    """A tag fixed in the universe: ``-Name`` is read with its sign changed (a company that
+    publishes as negative an amount the analysis uses as positive)."""
+    return (tag[1:], -1.0) if tag.startswith("-") else (tag, 1.0)
+
+
+def fixed_terms(tag: str) -> tuple[tuple[str, float], ...]:
+    """``A+B`` adds two lines of the same statement (an item the company splits in two)."""
+    return tuple(signed(part.strip()) for part in tag.split("+"))
+
+
+def qualified(tag: str, taxonomy: str) -> tuple[str, str]:
+    """``prefix:Name`` → (prefix, Name); a bare name belongs to ``taxonomy``."""
+    prefix, separator, name = tag.partition(":")
+    return (prefix, name) if separator else (taxonomy, tag)
 
 
 ITEM_SOURCES: dict[FinancialItem, tuple[Source, ...]] = {
@@ -289,6 +324,75 @@ DEPRECIATION_SOURCES: tuple[Source, ...] = (
     Source((("Depreciation", 1.0), ("AmortizationOfIntangibleAssets", 1.0))),
 )
 
+# IFRS (European annual reports). There is no IFRS line for operating income, EBITDA or net debt:
+# the companies that present an operating result tag it ProfitLossFromOperatingActivities, and
+# the universe fixes another tag (or none) for those that do not.
+_IFRS = "ifrs-full"
+IFRS_ITEM_SOURCES: dict[FinancialItem, tuple[Source, ...]] = {
+    FinancialItem.REVENUE: tags("Revenue", "RevenueFromContractsWithCustomers", taxonomy=_IFRS),
+    FinancialItem.GROSS_PROFIT: tags("GrossProfit", taxonomy=_IFRS),
+    FinancialItem.EBIT: tags("ProfitLossFromOperatingActivities", taxonomy=_IFRS),
+    FinancialItem.INTEREST_EXPENSE: (
+        *tags("InterestExpense", "InterestExpenseOnBorrowings", taxonomy=_IFRS),
+        *tags(
+            "FinanceCosts",
+            taxonomy=_IFRS,
+            note="gastos financieros totales: incluyen otros además de los intereses",
+        ),
+    ),
+    FinancialItem.NET_INCOME: tags("ProfitLossAttributableToOwnersOfParent", taxonomy=_IFRS),
+    FinancialItem.OPERATING_CASH_FLOW: tags(
+        "CashFlowsFromUsedInOperatingActivities", taxonomy=_IFRS
+    ),
+    FinancialItem.CAPITAL_EXPENDITURE: (
+        *tags(
+            "PurchaseOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities",
+            "PurchaseOfPropertyPlantAndEquipment",
+            taxonomy=_IFRS,
+        ),
+        *tags(
+            "PurchaseOfPropertyPlantAndEquipmentIntangibleAssetsOtherThanGoodwillInvestmentPropertyAndOtherNoncurrentAssets",
+            taxonomy=_IFRS,
+            note="incluye las inversiones en intangibles: la empresa no publica las de "
+            "inmovilizado material por separado",
+        ),
+    ),
+    FinancialItem.CASH: tags("CashAndCashEquivalents", taxonomy=_IFRS),
+    FinancialItem.TOTAL_EQUITY: tags("Equity", taxonomy=_IFRS),
+    FinancialItem.EQUITY_ATTRIBUTABLE: tags("EquityAttributableToOwnersOfParent", taxonomy=_IFRS),
+    FinancialItem.SHARES_OUTSTANDING: tags(
+        "NumberOfSharesOutstanding", "NumberOfSharesIssued", taxonomy=_IFRS, unit="shares"
+    ),
+}
+IFRS_DEPRECIATION_SOURCES: tuple[Source, ...] = (
+    *tags(
+        "DepreciationAndAmortisationExpense",
+        "AdjustmentsForDepreciationAndAmortisationExpense",
+        taxonomy=_IFRS,
+    ),
+    Source((("DepreciationExpense", 1.0), ("AmortisationExpense", 1.0)), taxonomy=_IFRS),
+    # With impairments: added back as well, as the usual EBITDA does.
+    *tags(
+        "DepreciationAmortisationAndImpairmentLossReversalOfImpairmentLossRecognisedInProfitOrLoss",
+        "AdjustmentsForDepreciationAndAmortisationExpenseAndImpairmentLossReversalOfImpairmentLossRecognisedInProfitOrLoss",
+        taxonomy=_IFRS,
+        note="incluye los deterioros",
+    ),
+)
+
+
+@dataclass(frozen=True)
+class Standard:
+    """Where a set of accounts keeps each item."""
+
+    taxonomy: str  # of the bare tags, and the one whose full years make the fiscal calendar
+    items: Mapping[FinancialItem, tuple[Source, ...]]
+    depreciation: tuple[Source, ...]
+
+
+US_GAAP = Standard("us-gaap", ITEM_SOURCES, DEPRECIATION_SOURCES)
+IFRS = Standard(_IFRS, IFRS_ITEM_SOURCES, IFRS_DEPRECIATION_SOURCES)
+
 
 @dataclass(frozen=True)
 class DebtLine:
@@ -327,8 +431,9 @@ class Extraction:
 def _source_facts(
     calendar: FiscalCalendar, companyfacts: Mapping[str, Any], tag: str, source: Source
 ) -> list[SecFact]:
-    facts = read_facts(companyfacts, tag, taxonomy=source.taxonomy, unit=source.unit)
-    if source.taxonomy != "dei":
+    taxonomy, name = qualified(tag, source.taxonomy)
+    facts = read_facts(companyfacts, name, taxonomy=taxonomy, unit=source.unit)
+    if taxonomy != "dei":
         return facts
     # Cover-page counts are dated after the period: attach each one to the period of its report.
     return [
@@ -371,13 +476,20 @@ def _lineage(item: FinancialItem, source: str, note: str | None, series: Series)
 
 
 def _debt_line(
-    calendar: FiscalCalendar, companyfacts: Mapping[str, Any], line: DebtLine
+    calendar: FiscalCalendar,
+    companyfacts: Mapping[str, Any],
+    line: DebtLine,
+    *,
+    taxonomy: str,
+    currency: str,
 ) -> tuple[Series, dict[PeriodKey, str]]:
     """One debt line: on each balance sheet, the first of its alternative tags with a value."""
     merged: Series = {}
     used: dict[PeriodKey, str] = {}
     for tag in line.tags:
-        for key, published in series_of(calendar, read_facts(companyfacts, tag)).items():
+        prefix, name = qualified(tag, taxonomy)
+        facts = read_facts(companyfacts, name, taxonomy=prefix, unit=currency)
+        for key, published in series_of(calendar, facts).items():
             if key not in merged:
                 merged[key], used[key] = published, tag
     return merged, used
@@ -392,45 +504,61 @@ def extract_financials(
     debt_lines: Sequence[DebtLine],
     overrides: Mapping[FinancialItem, Sequence[str]] | None = None,
     depreciation_tags: Sequence[str] = (),
+    standard: Standard = US_GAAP,
 ) -> Extraction:
     """Every catalogue item of one company, with its publication dates and its lineage.
 
     ``depreciation_tags`` replaces the default depreciation sources of the EBITDA with the sum of
     those tags (for a company whose usual tag leaves out part of its amortisation).
     """
-    calendar = FiscalCalendar(companyfacts, fiscal_year_end_month)
+    taxonomy = standard.taxonomy
+    calendar = FiscalCalendar(companyfacts, fiscal_year_end_month, taxonomy=taxonomy, unit=currency)
     result = Extraction()
     chosen: dict[FinancialItem, Series] = {}
-    for item, default_sources in ITEM_SOURCES.items():
+    labels: dict[FinancialItem, str] = {}
+    for item, default_sources in standard.items.items():
         sources = default_sources
         if overrides and item in overrides:
-            unit = "USD" if item.is_monetary else "shares"
-            sources = tags(*overrides[item], note="etiqueta fijada en el universo", unit=unit)
+            sources = tuple(
+                Source(fixed_terms(tag), taxonomy=taxonomy, note="etiqueta fijada en el universo")
+                for tag in overrides[item]
+            )
+        unit = currency if item.is_monetary else "shares"
+        sources = tuple(replace(source, unit=unit) for source in sources)
         found = choose_source(calendar, companyfacts, sources)
         if found is None:
             result.lineage.append(Lineage(item, "—", "la empresa no publica esta partida", None, 0))
             continue
         source, series = found
-        chosen[item] = series
+        chosen[item], labels[item] = series, source.label
         result.lineage.append(_lineage(item, source.label, source.note, series))
 
     # EBITDA = operating income (EBIT) + depreciation and amortisation, both as published.
-    depreciation_sources = DEPRECIATION_SOURCES
+    depreciation_sources = standard.depreciation
     if depreciation_tags:
-        depreciation_sources = (Source(tuple((tag, 1.0) for tag in depreciation_tags)),)
-    depreciation = choose_source(calendar, companyfacts, depreciation_sources)
+        depreciation_sources = (
+            Source(tuple(signed(tag) for tag in depreciation_tags), taxonomy=taxonomy),
+        )
+    depreciation = choose_source(
+        calendar,
+        companyfacts,
+        tuple(replace(source, unit=currency) for source in depreciation_sources),
+    )
     if FinancialItem.EBIT in chosen and depreciation is not None:
         ebitda = combine([chosen[FinancialItem.EBIT], depreciation[1]])
         chosen[FinancialItem.EBITDA] = ebitda
+        note = (
+            "calculado: resultado operativo publicado más las amortizaciones fijadas en el universo"
+            if depreciation_tags
+            else "calculado: resultado operativo publicado más amortizaciones del estado de flujos"
+        )
+        if depreciation[0].note:
+            note += f" ({depreciation[0].note})"
         result.lineage.append(
             _lineage(
                 FinancialItem.EBITDA,
-                f"OperatingIncomeLoss + {depreciation[0].label}",
-                "calculado: resultado operativo publicado más las amortizaciones fijadas en el "
-                "universo"
-                if depreciation_tags
-                else "calculado: resultado operativo publicado más amortizaciones del estado de "
-                "flujos",
+                f"{labels[FinancialItem.EBIT]} + {depreciation[0].label}",
+                note,
                 ebitda,
             )
         )
@@ -446,7 +574,10 @@ def extract_financials(
         )
 
     # Financial debt: the balance-sheet lines listed for the company in the universe file.
-    lines = [_debt_line(calendar, companyfacts, line) for line in debt_lines]
+    lines = [
+        _debt_line(calendar, companyfacts, line, taxonomy=taxonomy, currency=currency)
+        for line in debt_lines
+    ]
     debt = combine([series for series, _ in lines], [not line.required for line in debt_lines])
     if debt:
         chosen[FinancialItem.TOTAL_DEBT] = debt
